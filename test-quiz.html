@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Test Page</title>
+    <link rel="stylesheet" href="shared/css/quiz.css">
+    <style>
+        body {
+            font-family: 'Atkinson Hyperlegible', 'Source Sans Pro', Helvetica, sans-serif;
+            padding: 40px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #10099F;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .test-section {
+            margin-bottom: 60px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Multiple Choice Quiz System Test</h1>
+    
+    <div class="test-section">
+        <h2>Single Choice Question Test</h2>
+        <div data-mcq='{
+            "question": "What is the primary advantage of machine learning over traditional programming?",
+            "type": "single",
+            "options": [
+                {
+                    "text": "ML code is always faster to execute",
+                    "correct": false,
+                    "explanation": "ML models can actually be computationally expensive. The advantage is in solving complex problems, not execution speed."
+                },
+                {
+                    "text": "ML can learn patterns from data without explicit programming",
+                    "correct": true,
+                    "explanation": "This is the key advantage - ML algorithms can discover patterns and rules from examples rather than requiring programmers to explicitly code every scenario. Machine learning models are particularly effective when dealing with complex, high-dimensional data where the underlying patterns are not immediately obvious to human programmers. They can identify subtle correlations and relationships that would be nearly impossible to encode manually. This capability has revolutionized fields like computer vision, natural language processing, and recommendation systems, where the complexity of the problem space makes traditional rule-based approaches impractical."
+                },
+                {
+                    "text": "ML requires less data to work effectively",
+                    "correct": false,
+                    "explanation": "ML typically requires large amounts of quality data to train effective models."
+                },
+                {
+                    "text": "ML provides more deterministic results",
+                    "correct": false,
+                    "explanation": "ML models are probabilistic and can give varying confidence scores. Traditional programming is more deterministic."
+                }
+            ]
+        }'></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Multiple Choice Question Test</h2>
+        <div data-mcq='{
+            "question": "Which of the following are components of a machine learning system?",
+            "type": "multiple",
+            "options": [
+                {
+                    "text": "Training data",
+                    "correct": true,
+                    "explanation": "Data is fundamental - ML models learn patterns from training examples."
+                },
+                {
+                    "text": "Model architecture",
+                    "correct": true,
+                    "explanation": "The model defines how inputs are transformed to outputs through learnable parameters."
+                },
+                {
+                    "text": "Loss function",
+                    "correct": true,
+                    "explanation": "The loss function measures how well the model is performing and guides optimization."
+                },
+                {
+                    "text": "Manual rule definitions",
+                    "correct": false,
+                    "explanation": "ML systems learn rules from data rather than requiring manual rule definitions - that is traditional programming."
+                }
+            ]
+        }'></div>
+    </div>
+    
+    <script src="shared/js/multiple-choice.js"></script>
+</body>
+</html>

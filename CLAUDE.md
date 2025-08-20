@@ -1,0 +1,412 @@
+# CLAUDE.md
+
+This file provides guidance for developing presentation slides for an Introduction to Deep Learning course using web-based presentation frameworks.
+
+## Project Context
+
+You are assisting in creating educational slides for a deep learning course. The slides should be:
+- Clear and pedagogically sound for students new to deep learning
+- Visually engaging with interactive JavaScript animations
+- Built using the Reveal.js framework
+- Focused on explaining concepts through visual demonstrations
+
+## Course Topics
+
+The course is based on the book "Dive into deep learning" and covers the following topics:
+- Introduction
+- Preliminaries
+- Linear Neural Networks for Regression
+- Linear Neural Networks for Classification
+- Multilayer Perceptrons
+- Builder's guide
+- Convolutional Neural Networks
+- Modern Convolutional Neural Networks
+- Recurrent Neural Networks
+- Modern Recurrent Neural Networks
+- Attention Mechanisms and Transformers
+- Optimization Algorithms
+- Computational Performance
+- Computer Vision
+- Natural Language Processing: Pretraining
+- Natural Language Processing: Applications
+- Reinforcement Learning
+- Gaussian Processes
+- Hyperparameter Optimization
+- Generative Adversarial Networks
+- Recommender Systems
+
+## Technical Guidelines
+
+### Framework Choice
+- **Reveal.js** - for stability and extensive features
+
+### MCPs
+
+Remember to use MCPs such as:
+- Puppeteer to test the slides
+- Context7 to look up documentation
+- Sequential-thinking if you need to do some planning
+- fetch if you need to grab content from the internet
+
+### Animation Requirements
+- Use D3.js or P5.js for 2D network visualizations
+- Implement interactive demos where students can:
+  - Adjust network parameters
+  - See real-time activation propagation
+  - Visualize gradient flow during backpropagation
+  - Experiment with different activation functions
+
+### Code Style
+- Keep JavaScript animations modular and reusable
+- Use ES6+ syntax for clarity
+- Comment complex mathematical operations
+- Ensure animations are performant (60fps target)
+
+## Slide Structure Guidelines
+
+### Title Slides
+- Course/section title
+- Clear learning objectives
+- Estimated time for section
+- **REQUIRED**: Use the `truncate-title` class on ALL slide titles (h1, h2, h3)
+- **REQUIRED**: Include University of Iceland logo on all title slides
+- Logo placement: Centered above the title (positioning handled automatically by CSS in shared/css/common.css)
+- Example structure:
+```html
+<section class="title-slide">
+    <img src="../shared/images/uoi_logo_blue.png" alt="University of Iceland Logo" class="ui-logo">
+    <h1>Lecture Title</h1>
+    <p>Subtitle or description</p>
+    <p class="mt-lg">
+        <small>Instructor: Name</small><br>
+        <small>University of Iceland</small>
+    </p>
+</section>
+```
+Note: The logo positioning is handled automatically by CSS - no need for manual positioning.
+
+### Concept Slides
+- One main concept per slide
+- Visual representation before mathematical notation
+- Build complexity gradually
+- Use animations to show processes step-by-step
+
+### Interactive Demo Slides
+- Clear instructions for interaction
+- Reset button for demonstrations
+- Parameter ranges clearly labeled
+- Visual feedback for user actions
+
+### Slides that transition vertically
+- Slides that transition vertically go deeper into the content. They should be closely linked to the previous slide.
+- If there is a strong thematic progression from one slide to the next, you should use a vertical transition.
+- If the slides only split up a concept into two subsections, you should not use a vertical transition.
+- Close to the bottom most slide of the vertical transition there should always have a multiple choice question that students should answer to test their understanding. The implementation for the multiple choice question should be in the shared/js/multiple-choice.js file. Each option should have an explanation for why it is correct and why it is wrong that is revealed when the user clicks on the option.
+- Multiple choice questions should also be placed after important slides.
+
+### Math Notation
+- Use LaTeX for equations
+- Define notation before use
+- Provide intuitive explanations alongside formulas
+- Example: `$$\frac{\partial L}{\partial w} = \frac{\partial L}{\partial z} \cdot \frac{\partial z}{\partial w}$$`
+- Color parts of the equation if necessary to highlight the different parts and explain them using the same color.
+
+### Source Citations
+- Never put sources directly at the bottom of slides - they take up too much vertical space
+- Use a book icon (📚) in the lower left corner for slides with sources
+- Add `data-sources` attribute to the section with a JSON array of sources
+- Clicking the icon opens a modal with all sources
+- Example: `<section data-sources='[{"text": "Paper Title", "url": "https://..."}]'>`
+- **REQUIRED**: Include `source-modal-v2.js` from shared/js/ in your presentation
+- The script automatically:
+  - Adds the book icon to slides with `data-sources`
+  - Creates and manages the modal
+  - Handles all interactions
+
+Implementation:
+```html
+<!-- Include in your HTML -->
+<script src="../shared/js/source-modal-v2.js"></script>
+
+<!-- On a slide -->
+<section data-sources='[{"text": "Dive into Deep Learning - Chapter 1", "url": "https://d2l.ai/chapter_introduction/index.html"}, {"text": "Deep Learning Book - Ian Goodfellow", "url": "https://www.deeplearningbook.org/"}]'>
+    <h2>Slide Title</h2>
+    <p>Content here...</p>
+</section>
+```
+
+## Visual Design Principles
+
+### University of Iceland Branding
+
+#### Color Palette
+All presentations must use the official University of Iceland color scheme:
+- **Primary Color**: #10099F (UI Blue) - Use for headings, links, and primary elements
+- **Supporting Colors**:
+  - #2DD2C0 (Teal) - Use for success states and secondary highlights
+  - #00FFBA (Mint) - Use for interactive hover states
+  - #FAC55B (Yellow) - Use for warnings or attention elements
+  - #FC8484 (Coral) - Use for errors or output layers
+  - #FFA05F (Orange) - Use for gradients and transitions
+  - #EEEEEE (Light Gray) - Use for borders and subtle backgrounds
+  - #F5F5F5 (Lighter Gray) - Use for main backgrounds
+  - #262626 (Dark) - Use for body text
+
+#### Typography
+- **Primary Font**: Atkinson Hyperlegible (available in shared/fonts/)
+- **Fallback Fonts**: 'Source Sans Pro', Helvetica, sans-serif
+- **Code Font**: 'Source Code Pro', monospace
+
+#### Logo Usage
+- Use `uoi_logo_blue.png` on light backgrounds (default)
+- Use `uoi_logo_white.png` only on dark backgrounds if needed
+- Logo must appear on all title slides
+- Position: Centered above title (handled by CSS)
+- Size: 330px width
+- CSS automatically handles responsive sizing
+
+### Neural Network Visualization Colors
+Adapted to use University of Iceland colors:
+- Input layer: UI Blue (#10099F)
+- Hidden layers: Teal (#2DD2C0)
+- Output layer: Coral (#FC8484)
+- Gradients: Orange (#FFA05F)
+- Weights: Gray scale from #EEEEEE to #262626 based on magnitude
+
+### Animation Timing
+- Forward propagation: 2-3 seconds total
+- Backpropagation: 3-4 seconds total
+- Smooth transitions between states
+- Pause options for explanation
+- Use particles with values that traverse the edges of the network to show the flow of information
+
+## Common Patterns
+
+### Network Visualization Structure
+```javascript
+// Basic structure for neural network visualization
+const network = {
+  layers: [
+    { type: 'input', neurons: 3 },
+    { type: 'hidden', neurons: 4 },
+    { type: 'output', neurons: 2 }
+  ],
+  connections: generateConnections(layers),
+  activations: initializeActivations(layers)
+};
+```
+
+### Animation Loop Pattern
+```javascript
+// Standard animation pattern for demonstrations
+function animate() {
+  updateActivations();
+  renderNetwork();
+  if (!paused) {
+    requestAnimationFrame(animate);
+  }
+}
+```
+
+## Best Practices
+
+1. **Accessibility**: Include alt text for visualizations and keyboard navigation
+2. **Performance**: Optimize animations for smooth playback on various devices
+3. **Clarity**: Avoid overwhelming students with too many moving parts at once
+4. **Interactivity**: Make demos forgiving - no way to "break" them
+5. **Progressive Disclosure**: Reveal complexity gradually through slide progression
+
+## Testing Checklist
+
+Before finalizing slides:
+- [ ] Test all animations on different screen sizes
+- [ ] Verify math notation renders correctly
+- [ ] Check slide navigation works smoothly
+- [ ] Ensure interactive elements are responsive
+- [ ] Validate color contrast for readability
+- [ ] Test presenter mode functionality
+
+## Branding Compliance Checklist
+
+Before creating any new presentation:
+- [ ] Use the UI color scheme defined above
+- [ ] Include Atkinson Hyperlegible as the primary font
+- [ ] Add the UI logo to all title slides
+- [ ] Use light backgrounds (white or #F5F5F5) instead of dark themes
+- [ ] Ensure all interactive elements use UI brand colors
+- [ ] Test color contrast for accessibility
+
+## Shared Resources Directory Structure
+
+The project uses a modular structure to share common resources across all presentations:
+
+### Directory Layout
+```
+2025H/
+├── shared/                    # Shared resources for all presentations
+│   ├── css/
+│   │   ├── reveal-theme.css   # Custom Reveal.js theme
+│   │   └── common.css         # Common styles across presentations
+│   ├── js/
+│   │   ├── d3-utils.js        # Reusable D3.js utilities
+│   │   ├── animation-lib.js   # Common animation functions
+│   │   └── neural-viz.js      # Reusable neural network visualization
+│   ├── images/
+│   │   └── course-logo.svg    # Course branding
+│   └── reveal.js/             # Reveal.js library (place v4.x here)
+├── 00_introduction/           # First lecture slides
+├── 01_preliminaries/          # Second lecture slides
+└── ...                        # Subsequent lectures
+```
+
+### Naming Conventions
+- Lecture directories: `XX_topic_name` (e.g., `00_introduction`, `01_preliminaries`)
+- Main presentation file in each directory: `index.html`
+- Lecture-specific resources go in subdirectories: `css/`, `js/`, `images/`
+
+### Using Shared Resources
+
+When creating a new presentation, reference shared resources with relative paths:
+```html
+<!-- In any lecture's index.html -->
+<link rel="stylesheet" href="../shared/reveal.js/dist/reveal.css">
+<link rel="stylesheet" href="../shared/css/reveal-theme.css">
+<link rel="stylesheet" href="../shared/css/common.css">
+
+<script src="../shared/reveal.js/dist/reveal.js"></script>
+<script src="../shared/js/d3-utils.js"></script>
+<script src="../shared/js/animation-lib.js"></script>
+<script src="../shared/js/neural-viz.js"></script>
+<script src="../shared/js/title-handler.js"></script>
+```
+
+### Common JavaScript APIs
+
+#### D3 Utilities (d3-utils.js)
+- `createSVG(selector, width, height)` - Initialize SVG container
+- `createScales(domain, range)` - Create consistent scales
+- `drawAxes(svg, xScale, yScale)` - Draw standard axes
+
+#### Animation Library (animation-lib.js)
+- `fadeIn(element, duration)` - Fade in animation
+- `slideIn(element, direction, duration)` - Slide in from direction
+- `pulseAnimation(element)` - Attention-grabbing pulse
+
+#### Neural Network Visualization (neural-viz.js)
+- `createNetwork(config)` - Create network visualization
+- `animateForwardPass(network, data)` - Animate forward propagation
+- `animateBackprop(network, gradients)` - Animate backpropagation
+- `highlightPath(network, fromNeuron, toNeuron)` - Highlight connection
+
+#### Title Handler (title-handler.js)
+- Automatically handles truncated slide titles with the `truncate-title` class
+- Provides click/tap to expand functionality for long titles
+- Works on both desktop (hover + click) and mobile (tap)
+- Auto-collapses after 3 seconds or when clicking elsewhere
+- Shows visual indicator (⋯) when title is truncated and interactive
+
+### Reveal.js Configuration
+
+Standard configuration to include in each presentation:
+```javascript
+Reveal.initialize({
+    hash: true,
+    controls: true,
+    progress: true,
+    center: true,
+    transition: 'slide',
+    math: {
+        mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',
+        config: 'TeX-AMS_HTML-full',
+        TeX: {
+            Macros: {
+                R: '\\mathbb{R}',
+                set: ['\\left\\{#1\\right\\}', 1]
+            }
+        }
+    },
+    plugins: [ RevealMath, RevealHighlight, RevealNotes ]
+});
+```
+
+## Handling Long Titles
+
+**REQUIRED**: Apply the `truncate-title` class to ALL slide titles (h1, h2, h3), not just long ones. This ensures consistency and handles different screen sizes gracefully:
+
+```html
+<section>
+    <h1 class="truncate-title">The Immediate Impact of Deep Learning on Computer Vision (2013-2015)</h1>
+    <p>Content here...</p>
+</section>
+```
+
+Features:
+- Titles with the `truncate-title` class automatically detect if they're truncated
+- Users can click/tap to expand and see the full title
+- Expanded titles show in a subtle highlighted box
+- Auto-collapses after 3 seconds or when clicking elsewhere
+- Mobile-friendly with touch support
+- Visual indicator (⋯) appears on hover/touch to show interactivity
+- **REQUIRED**: Include `title-handler.js` from shared/js/ in your presentation
+
+Implementation:
+```html
+<!-- Include in your HTML -->
+<script src="../shared/js/title-handler.js"></script>
+```
+
+This ensures users can always read the full title while maintaining clean slide layouts.
+
+**Why this is required for all titles:**
+- Consistency across all presentations
+- Handles different screen sizes and zoom levels gracefully
+- Short titles remain unaffected (no visual change)
+- Long titles automatically become interactive
+- Future-proofs presentations for various display contexts
+
+## Tooltips for Technical Terms
+
+Use tooltips to provide quick explanations for technical terms without cluttering slides:
+
+```html
+<span class="tooltip">ReLU<span class="tooltiptext">Rectified Linear Unit: An activation function defined as f(x) = max(0, x)</span></span>
+```
+
+The tooltip appears on hover (desktop) or click (mobile). Include `tooltip-modal.js` if you need click-based modal tooltips.
+
+## Table Styling
+
+Tables are automatically styled with the UI color scheme:
+- Headers have blue background with white text
+- Cells have borders and centered text
+- Add custom styling in your lecture-specific CSS if needed
+
+## Interactive Visualizations
+
+### Neural Network Animation
+When creating neural network visualizations:
+- Show edge weights with varying thickness
+- Animate signal propagation with particles
+- Node sizes can pulse based on activation values
+- Use weight-based coloring (positive=blue, negative=red)
+
+### Gradient Descent Visualization
+- Show loss landscape with contour lines
+- Animate the optimization path
+- Include learning rate control
+- Display current loss value
+
+## Emphasis Boxes
+
+Use the default emphasis box styling from reveal-theme.css:
+```html
+<div class="emphasis-box">
+    <p>Important concept or takeaway</p>
+</div>
+```
+
+This creates a subtle bordered box with light background - avoid bright gradients.
+
+## Remember
+
+The goal is to make deep learning concepts intuitive and engaging. When in doubt, prioritize clarity over complexity. Visual explanations should complement, not replace, rigorous mathematical understanding.
