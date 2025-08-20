@@ -116,22 +116,8 @@ We welcome contributions to improve these educational materials! Here's how you 
 │   └── fonts/           # Atkinson Hyperlegible font files
 ├── 00_introduction/     # Introduction lecture
 ├── 01_basics/           # Basics and preliminaries
-├── CLAUDE.md            # Detailed development guidelines
 └── README.md            # This file
 ```
-
-### Development Guidelines
-
-Please read [CLAUDE.md](CLAUDE.md) for detailed guidelines on:
-- Animation patterns and best practices
-- Neural network visualization standards
-- Interactive demo requirements
-- University of Iceland branding requirements
-- Testing checklist
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
