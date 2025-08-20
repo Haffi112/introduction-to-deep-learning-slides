@@ -431,7 +431,6 @@ def detect_wake_word(audio):
             </section>
             
             <!-- Data Section -->
-            <!-- FIXED: CSS variable names updated from var(--color-*) to var(--ui-*) to match the defined variables in shared CSS files -->
               
             <section>
                 <section>
@@ -439,7 +438,6 @@ def detect_wake_word(audio):
                     <h3 style="color: var(--ui-teal);">The Foundation of Machine Learning</h3>
                 </section>
                 
-                <!-- ADDRESSED: Added slides explaining data importance for deep learning -->
                 <section>
                     <h2 class="truncate-title">The Data Revolution in Deep Learning</h2>
                     <ul>
@@ -460,8 +458,7 @@ def detect_wake_word(audio):
                         <li class="fragment">Mistakes in data → mistakes in predictions</li>
                         <li class="fragment">Non-predictive features → learning failure</li>
                     </ul>
-                    <!-- TODO: The border left needs to be a darker version of the ui-coral color. -->
-                    <div class="fragment emphasis-box mt-lg" style="background: var(--ui-coral); color: white; padding: 1em;">
+                    <div class="fragment emphasis-box mt-lg" style="background: var(--ui-coral); color: white; padding: 1em; border-left: 4px solid #D65555;">
                         <p><strong>Critical Applications:</strong> Predictive policing, resume screening, lending decisions</p>
                     </div>
                 </section>
@@ -574,6 +571,35 @@ def detect_wake_word(audio):
                         <li class="fragment">Interesting ML use case</li>
                         <li class="fragment">Errors can be very costly</li>
                     </ul>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Cost of Errors</h2>
+                    <div class="fragment">
+                        <p><strong>Mushroom Classification Example</strong></p>
+                        <p>Classifier: "20% chance this is poisonous"</p>
+                    </div>
+                    <div class="fragment" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+                        <div style="background: #F5F5F5; padding: 15px; border-radius: 8px; border: 2px solid #2DD2C0;">
+                            <h4 style="color: #2DD2C0; margin-bottom: 10px;">Eat It ✓</h4>
+                            <ul style="font-size: 0.9em;">
+                                <li>80% chance: Delicious dinner (+10)</li>
+                                <li>20% chance: Death (-∞)</li>
+                            </ul>
+                            <p style="font-weight: bold; color: #FC8484; margin-top: 10px;">Expected value: -∞</p>
+                        </div>
+                        <div style="background: #F5F5F5; padding: 15px; border-radius: 8px; border: 2px solid #10099F;">
+                            <h4 style="color: #10099F; margin-bottom: 10px;">Discard It ✗</h4>
+                            <ul style="font-size: 0.9em;">
+                                <li>100% chance: No dinner (-1)</li>
+                                <li>0% chance: Death (0)</li>
+                            </ul>
+                            <p style="font-weight: bold; color: #2DD2C0; margin-top: 10px;">Expected value: -1</p>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p><strong>Key Insight:</strong> In critical applications, even small error probabilities can be unacceptable when the cost of false negatives is catastrophic.</p>
+                    </div>
                 </section>
                 
                 <section>
@@ -728,7 +754,6 @@ def detect_wake_word(audio):
                     </ul>
                 </section>
 
-                <!-- ADDRESSED: Added slide contrasting simple vs deep models with key concepts -->
                 <section>
                     <h2 class="truncate-title">From Simple to Deep Models</h2>
                     <div class="fragment">
@@ -746,7 +771,6 @@ def detect_wake_word(audio):
                     </div>
                 </section>
 
-                <!-- ADDRESSED: Updated visualization code in basics-animations.js to show weight magnitude through line thickness -->
                 <section>
                     <h2 class="truncate-title">Neural Network Preview</h2>
                     <div id="simple-network-viz"></div>
@@ -820,7 +844,6 @@ def detect_wake_word(audio):
                     <h3 style="color: var(--ui-teal);">Measuring Success</h3>
                 </section>
 
-                <!-- ADDRESSED: Added comprehensive introduction to objective functions concept -->
                 <section>
                     <h2 class="truncate-title">Why We Need Objective Functions</h2>
                     <p>Machine learning = learning from experience</p>
@@ -853,7 +876,6 @@ def detect_wake_word(audio):
                     </div>
                 </section>
                 
-                <!-- ADDRESSED: Created smooth transition from general loss to specific MSE -->
                 <section>
                     <h2 class="truncate-title">Common Loss Functions</h2>
                     <div class="fragment">
@@ -886,7 +908,6 @@ def detect_wake_word(audio):
                     <p class="fragment">Measures prediction confidence</p>
                 </section>
 
-                <!-- ADDRESSED: Added intuitive explanation of loss function roles -->
                 <section>
                     <h2 class="truncate-title">Loss During Training vs Testing</h2>
                     <p>Loss = function of model parameters</p>
@@ -900,8 +921,7 @@ def detect_wake_word(audio):
                         <p>Like final exam scores</p>
                         <p style="font-size: 0.9em;">Measures real performance</p>
                     </div>
-                    <!-- TODO: The border left needs to be a darker version of the ui-coral color. -->
-                    <div class="fragment emphasis-box mt-lg" style="background: var(--ui-coral); color: white;">
+                    <div class="fragment emphasis-box mt-lg" style="background: var(--ui-coral); color: white; border-left: 4px solid #D65555;">
                         <p>⚠️ Good training score ≠ Good test score (overfitting)</p>
                     </div>
                 </section>
@@ -915,7 +935,6 @@ def detect_wake_word(audio):
                     </ul>
                 </section>
 
-                <!-- ADDRESSED: Enhanced viz to show extreme overfitting with high-degree polynomial -->
                 <section>
                     <h2 class="truncate-title">Overfitting Preview</h2>
                     <div id="overfitting-viz"></div>
@@ -979,8 +998,8 @@ def detect_wake_word(audio):
                         <li class="fragment">Repeat until convergence</li>
                     </ul>
                 </section>
-
-                <!-- ADDRESSED: Fixed contour rendering and added interactive controls -->
+                
+                <!-- ADDRESSED: Fixed gradient lines visibility by using direct color values (#10099F, #2DD2C0, #FFA05F, #FC8484) instead of CSS variables. Also fixed convergence to ensure the optimization point properly reaches the minimum at (0,0) by adjusting learning rate and convergence criteria. -->
                 <section>
                     <h2 class="truncate-title">The Optimization Landscape</h2>
                     <div id="loss-landscape-viz"></div>
@@ -1061,9 +1080,6 @@ def detect_wake_word(audio):
             </section>
             
             <!-- Types of Machine Learning -->
-            <!-- ADDRESSED TODO (line 866): Converted Types of ML section to vertical transitions.
-                 The slides progress through the three main paradigms with comparison table.
-                 Section ends with MCQ testing understanding of different ML types. -->
             <section>
                 <section>
                     <h1 class="truncate-title">Types of Machine Learning</h1>
@@ -1138,7 +1154,6 @@ def detect_wake_word(audio):
             </section>
             
             <!-- Supervised Learning Section -->
-            <!-- ADDRESSED: Added diverse industry examples and interactive elements -->
             <section>
                 <section>
                     <h1 class="truncate-title">Supervised Learning</h1>
@@ -1265,7 +1280,6 @@ def detect_wake_word(audio):
                     <p class="fragment mt-lg">Multiple features: $\hat{y} = w_1x_1 + w_2x_2 + ... + b$</p>
                 </section>
                 
-                <!-- ADDRESSED: Added proper CSS centering for the demo container -->
                 <section>
                     <h2 class="truncate-title">Example: House Price Prediction</h2>
                     <div id="regression-demo" style="display: flex; justify-content: center; align-items: center; margin: 0 auto;"></div>
@@ -1283,7 +1297,6 @@ def detect_wake_word(audio):
                         <li>Always positive</li>
                         <li>Lower is better</li>
                     </ul>
-                    <!-- ADDRESSED: Added interactive tooltips with detailed metric explanations -->
                     <div class="fragment emphasis-box mt-lg">
                         <p>Other metrics: 
                             <span class="tooltip" style="cursor: pointer; text-decoration: underline;">MAE<span class="tooltiptext">Mean Absolute Error: Average of absolute differences between predictions and actual values. Less sensitive to outliers than MSE.</span></span>
@@ -1416,7 +1429,6 @@ Prediction: Class 0 (highest probability)</code></pre>
                     <p class="fragment">All probabilities sum to 1.0</p>
                 </section>
                 
-                <!-- ADDRESSED: Implemented working decision boundary visualization -->
                 <section>
                     <h2 class="truncate-title">Decision Boundaries</h2>
                     <p>How classifiers separate classes:</p>
@@ -1798,23 +1810,22 @@ Tags: [Action, Comedy, Sci-Fi]</code></pre>
                     <p class="fragment">Learns latent features automatically</p>
                 </section>
 
-                <!-- ADDRESSED: Added comprehensive slide on recommendation system dangers -->
                 <section>
                     <h2 class="truncate-title">The Danger of Recommendation Rabbit Holes</h2>
                     <div class="fragment">
                         <h4 style="color: var(--ui-coral);">Filter Bubbles</h4>
-                        <p>Users only see content similar to past behavior</p>
-                        <p style="font-size: 0.9em;">Limits exposure to diverse perspectives</p>
+                        <p style="font-size: 0.9em;">Users only see content similar to past behavior</p>
+                        <p style="font-size: 0.7em;">Limits exposure to diverse perspectives</p>
                     </div>
                     <div class="fragment">
                         <h4 style="color: var(--ui-coral);">Echo Chambers</h4>
-                        <p>Reinforces existing beliefs and biases</p>
-                        <p style="font-size: 0.9em;">Can amplify misinformation</p>
+                        <p style="font-size: 0.9em;">Reinforces existing beliefs and biases</p>
+                        <p style="font-size: 0.7em;">Can amplify misinformation</p>
                     </div>
                     <div class="fragment">
                         <h4 style="color: var(--ui-coral);">Addiction Patterns</h4>
-                        <p>Optimizing for engagement can exploit psychology</p>
-                        <p style="font-size: 0.9em;">Particularly harmful for vulnerable users</p>
+                        <p style="font-size: 0.9em;">Optimizing for engagement can exploit psychology</p>
+                        <p style="font-size: 0.7em;">Particularly harmful for vulnerable users</p>
                     </div>
                     <div class="fragment emphasis-box mt-lg">
                         <p>⚠️ Recommender systems shape what billions of people see online</p>
@@ -1930,7 +1941,6 @@ Tags: [Action, Comedy, Sci-Fi]</code></pre>
                     <ul class="fragment">
                         <li>Maintains state across time steps</li>
                         <li>Can handle variable length sequences</li>
-                        <!-- ADDRESSED: Added interactive tooltips for RNN architecture variants -->
                         <li>Foundation for 
                             <span class="tooltip" style="cursor: pointer; text-decoration: underline;">LSTMs<span class="tooltiptext">Long Short-Term Memory: RNN variant with gates (forget, input, output) to control information flow, solving vanishing gradient problem</span></span> 
                             and 
@@ -2005,13 +2015,12 @@ Tags: [Action, Comedy, Sci-Fi]</code></pre>
                     </ul>
                 </section>
                 
-                <!-- ADDRESSED: Added detailed slides on modern self-supervised techniques -->
                 <section>
                     <h2 class="truncate-title">Masked Language Modeling</h2>
                     <p>Foundation of modern NLP (BERT, GPT)</p>
                     <div class="fragment">
                         <p style="font-family: monospace; background: #f5f5f5; padding: 1em;">
-                            The cat sat on the [MASK] → mat
+                            The cat sat on [MASK] mat → the
                         </p>
                     </div>
                     <ul class="fragment">
@@ -2020,11 +2029,12 @@ Tags: [Action, Comedy, Sci-Fi]</code></pre>
                         <li>No manual labels needed!</li>
                     </ul>
                     <div class="fragment emphasis-box mt-lg">
-                        <p>Powers ChatGPT, Claude, and other language models</p>
+                        <p>Powers embedding models such as BERT and other variations power GPT models</p>
                     </div>
                 </section>
                 
-                <section>
+                <!-- ADDRESSED: Added data-sources attribute with references to MAE and SimMIM papers for masked image modeling. -->
+                <section data-sources='[{"text": "Masked Autoencoders Are Scalable Vision Learners (MAE) - He et al., 2022", "url": "https://arxiv.org/abs/2111.06377"}, {"text": "SimMIM: A Simple Framework for Masked Image Modeling - Xie et al., 2022", "url": "https://arxiv.org/abs/2111.09886"}, {"text": "BEiT: BERT Pre-Training of Image Transformers - Bao et al., 2022", "url": "https://arxiv.org/abs/2106.08254"}]'>
                     <h2 class="truncate-title">Masked Image Modeling</h2>
                     <p>Self-supervised learning for computer vision</p>
                     <div class="fragment">
@@ -2034,7 +2044,7 @@ Tags: [Action, Comedy, Sci-Fi]</code></pre>
                     <ul class="fragment">
                         <li>Mask random patches of images</li>
                         <li>Model learns visual representations</li>
-                        <li>Used in MAE, SimMIM, and others</li>
+                        <li>Used in <span class="tooltip">MAE<span class="tooltiptext">Masked Autoencoders (MAE): A self-supervised learning method by Meta AI that masks 75% of image patches and trains a Vision Transformer to reconstruct them, achieving state-of-the-art results on ImageNet.</span></span>, <span class="tooltip">SimMIM<span class="tooltiptext">Simple Masked Image Modeling (SimMIM): Microsoft's approach that uses a simple random masking strategy with a lightweight prediction head, proving that complex designs aren't necessary for masked image modeling.</span></span>, and others</li>
                     </ul>
                     <div class="fragment emphasis-box mt-lg">
                         <p>Achieves state-of-the-art with less labeled data</p>
@@ -2100,75 +2110,179 @@ Tags: [Action, Comedy, Sci-Fi]</code></pre>
                 </section>
                 
                 <section>
-                    <h2 class="truncate-title">Learning from Interaction</h2>
-                    <ul>
-                        <li class="fragment">Agent takes actions</li>
-                        <li class="fragment">Environment provides rewards</li>
-                        <li class="fragment">Learn optimal behavior</li>
+                    <h2 class="truncate-title">Beyond Supervised Learning</h2>
+                    <p>Not all learning needs labeled data</p>
+                    <ul class="fragment">
+                        <li><strong>Unsupervised Learning:</strong> Find patterns without labels</li>
+                        <li><strong>Self-Supervised:</strong> Create labels from data itself</li>
+                        <li><strong>Reinforcement:</strong> Learn from interaction</li>
                     </ul>
                 </section>
                 
-                <!-- ADDRESSED: Applied proper centering CSS to the RL diagram -->
-                <section>
-                    <h2 class="truncate-title">Agent and Environment</h2>
-                    <div id="rl-diagram" style="display: flex; justify-content: center; align-items: center; margin: 0 auto;"></div>
-                    <p class="fragment">Continuous feedback loop</p>
+                <section data-sources='[{"text": "Dive into Deep Learning - Unsupervised Learning", "url": "https://d2l.ai/chapter_introduction/index.html#unsupervised-and-self-supervised-learning"}]'>
+                    <h2 class="truncate-title">Unsupervised Learning</h2>
+                    <p>"Do some data science with it!"</p>
+                    <ul class="fragment">
+                        <li><span class="tooltip">Clustering<span class="tooltiptext">Grouping similar data points together, like organizing photos by content or grouping users by behavior</span></span>: Group similar items</li>
+                        <li><span class="tooltip">Dimensionality Reduction<span class="tooltiptext">Finding the most important features that capture the essence of the data, like PCA</span></span>: Find key features</li>
+                        <li><span class="tooltip">Density Estimation<span class="tooltiptext">Learning the underlying probability distribution of the data to generate new samples</span></span>: Learn data distribution</li>
+                        <li><span class="tooltip">Anomaly Detection<span class="tooltiptext">Identifying unusual patterns that don't conform to expected behavior</span></span>: Find outliers</li>
+                    </ul>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>No labels needed - let the data speak for itself!</p>
+                    </div>
+                </section>
+                
+                <section data-sources='[{"text": "BERT: Pre-training of Deep Bidirectional Transformers - Devlin et al., 2018", "url": "https://arxiv.org/abs/1810.04805"}, {"text": "Unsupervised Visual Representation Learning - Doersch et al., 2015", "url": "https://arxiv.org/abs/1505.05192"}]'>
+                    <h2 class="truncate-title">Self-Supervised Learning</h2>
+                    <p>Creating supervision from the data itself</p>
+                    <div class="fragment">
+                        <p><strong>Text:</strong> Mask words and predict them</p>
+                        <pre><code>"The [MASK] jumped over the fence" → "dog"</code></pre>
+                    </div>
+                    <div class="fragment">
+                        <p><strong>Images:</strong> Predict relative positions or masked patches</p>
+                        <p style="font-size: 0.9em;">🖼️ → 🖼️❓❓🖼️ → 🖼️🖼️🖼️🖼️</p>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>Learn representations without manual labeling!</p>
+                    </div>
                 </section>
                 
                 <section>
-                    <h2 class="truncate-title">Rewards and Actions</h2>
+                    <h2 class="truncate-title">Offline vs Online Learning</h2>
+                    <img src="../shared/images/data-collection.svg" alt="Data collection for supervised learning" style="width: 60%;">
+                    <p class="fragment">Traditional ML: Collect data → Train → Deploy</p>
+                    <p class="fragment">But what if our model affects the environment?</p>
+                </section>
+                
+                <section data-sources='[{"text": "Reinforcement Learning: An Introduction - Sutton & Barto", "url": "http://incompleteideas.net/book/the-book.html"}]'>
+                    <h2 class="truncate-title">Reinforcement Learning</h2>
+                    <img src="../shared/images/rl-environment.svg" alt="Reinforcement learning environment" style="width: 60%;">
+                    <ul class="fragment">
+                        <li>Agent takes <strong>actions</strong></li>
+                        <li>Environment provides <strong>rewards</strong></li>
+                        <li>Learn through <strong>trial and error</strong></li>
+                    </ul>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>Actions impact future observations!</p>
+                    </div>
+                </section>
+                
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 1.3.2", "url": "https://d2l.ai/chapter_introduction/index.html#unsupervised-and-self-supervised-learning"}]'>
+                    <h2 class="truncate-title">Unsupervised and Self-Supervised Learning</h2>
+                    <p>Learning without explicit labels</p>
+                    <div class="fragment">
+                        <p style="font-size: 0.9em;">Unlike supervised learning with its "dictatorial boss" telling you exactly what to do...</p>
+                    </div>
+                    <div class="fragment">
+                        <p style="font-size: 0.9em;">Unsupervised learning is like having a boss who says:<br/>
+                        <em>"Here's data - do some data science with it!"</em></p>
+                    </div>
+                </section>
+                
+                <section data-sources='[{"text": "Principal Component Analysis", "url": "https://en.wikipedia.org/wiki/Principal_component_analysis"}, {"text": "Clustering Algorithms", "url": "https://scikit-learn.org/stable/modules/clustering.html"}]'>
+                    <h2 class="truncate-title">Key Unsupervised Learning Tasks</h2>
                     <ul>
-                        <li class="fragment">Positive rewards encourage behavior</li>
-                        <li class="fragment">Negative rewards discourage</li>
-                        <li class="fragment">Learn through trial and error</li>
+                        <li class="fragment"><span class="tooltip">Clustering<span class="tooltiptext">Finding groups in data: photos → landscapes, dogs, babies, cats</span></span>
+                            <br/><small>Group similar data points together</small></li>
+                        <li class="fragment"><span class="tooltip">Dimensionality Reduction<span class="tooltiptext">Like describing body shape with just a few measurements for tailoring</span></span>
+                            <br/><small>Find key parameters (PCA, subspace estimation)</small></li>
+                        <li class="fragment"><span class="tooltip">Representation Learning<span class="tooltiptext">Example: "Rome" - "Italy" + "France" = "Paris"</span></span>
+                            <br/><small>Map objects to meaningful vectors</small></li>
+                        <li class="fragment"><span class="tooltip">Causality Discovery<span class="tooltiptext">Understanding relationships between house prices, pollution, crime, education</span></span>
+                            <br/><small>Find root causes in data</small></li>
                     </ul>
                 </section>
                 
-                <section>
-                    <h2 class="truncate-title">Example: Game Playing</h2>
+                <section data-sources='[{"text": "BERT: Pre-training of Deep Bidirectional Transformers - Devlin et al., 2018", "url": "https://arxiv.org/abs/1810.04805"}, {"text": "Unsupervised Visual Representation Learning by Context Prediction - Doersch et al., 2015", "url": "https://arxiv.org/abs/1505.05192"}]'>
+                    <h2 class="truncate-title">Self-Supervised Learning</h2>
+                    <p>Creating supervision from the data itself</p>
+                    <div style="display: flex; justify-content: space-around; margin-top: 30px;">
+                        <div class="fragment" style="flex: 1; margin: 10px;">
+                            <h4>Text</h4>
+                            <p style="font-size: 0.8em;">Fill in the [MASK]</p>
+                            <p style="font-size: 0.7em; color: #666;">"The cat sat on the [MASK]"<br/>→ predict: "mat"</p>
+                        </div>
+                        <div class="fragment" style="flex: 1; margin: 10px;">
+                            <h4>Images</h4>
+                            <p style="font-size: 0.8em;">Predict relative positions</p>
+                            <p style="font-size: 0.7em; color: #666;">Two image patches<br/>→ predict: above/below/left/right</p>
+                        </div>
+                    </div>
+                    <p class="fragment" style="margin-top: 20px; font-size: 0.85em;">
+                        💡 No manual labeling required - the data provides its own supervision!
+                    </p>
+                </section>
+                
+                <section data-sources='[{"text": "Auto-Encoding Variational Bayes - Kingma & Welling, 2014", "url": "https://arxiv.org/abs/1312.6114"}, {"text": "Generative Adversarial Nets - Goodfellow et al., 2014", "url": "https://arxiv.org/abs/1406.2661"}, {"text": "Denoising Diffusion Probabilistic Models - Ho et al., 2020", "url": "https://arxiv.org/abs/2006.11239"}]'>
+                    <h2 class="truncate-title">Deep Generative Models</h2>
+                    <p>Learning to generate new data</p>
                     <ul>
-                        <li class="fragment">Actions: game moves</li>
-                        <li class="fragment">Rewards: points/winning</li>
-                        <li class="fragment">Learn strategy over time</li>
+                        <li class="fragment"><span class="tooltip">Variational Autoencoders (VAEs)<span class="tooltiptext">Encode data to latent space, then decode back. Can generate new samples by sampling the latent space.</span></span>
+                            <small> - 2014</small></li>
+                        <li class="fragment"><span class="tooltip">Generative Adversarial Networks (GANs)<span class="tooltiptext">Two networks compete: generator creates fake data, discriminator tries to detect fakes.</span></span>
+                            <small> - 2014</small></li>
+                        <li class="fragment"><span class="tooltip">Normalizing Flows<span class="tooltiptext">Transform simple distributions to complex ones through invertible functions.</span></span>
+                            <small> - 2014-2017</small></li>
+                        <li class="fragment"><span class="tooltip">Diffusion Models<span class="tooltiptext">Gradually add noise to data, then learn to reverse the process to generate new samples.</span></span>
+                            <small> - 2020-2021</small></li>
                     </ul>
+                    <p class="fragment" style="margin-top: 20px; font-size: 0.9em;">
+                        These models learn data distributions and can generate new, realistic samples
+                    </p>
                 </section>
                 
                 <section>
-                    <h2 class="truncate-title">Real-World Applications</h2>
-                    <ul>
-                        <li class="fragment">Robotics control</li>
-                        <li class="fragment">Resource management</li>
-                        <li class="fragment">Recommendation systems</li>
-                        <li class="fragment">Autonomous driving</li>
-                    </ul>
+                    <h2 class="truncate-title">Interacting with an Environment</h2>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <img src="../shared/images/data-collection.svg" alt="Data collection in supervised learning" style="max-width: 60%; height: auto;">
+                        <p style="font-size: 0.8em; margin-top: 10px;">Supervised Learning: Collect data → Train offline → Deploy</p>
+                    </div>
+                    <div class="fragment">
+                        <p style="font-size: 0.9em;">But real agents need to:</p>
+                        <ul style="font-size: 0.85em;">
+                            <li>Take actions that affect the environment</li>
+                            <li>Learn from consequences of actions</li>
+                            <li>Adapt to changing conditions</li>
+                        </ul>
+                    </div>
+                    <p class="fragment" style="font-size: 0.85em; color: #666;">
+                        This leads us to Reinforcement Learning...
+                    </p>
                 </section>
                 
                 <!-- Multiple Choice Question -->
                 <section>
                     <h2 class="truncate-title">Test Your Understanding</h2>
                     <div data-mcq='{
-                        "question": "Which statements about reinforcement learning are correct?",
+                        "question": "Which statements about unsupervised and self-supervised learning are correct?",
                         "type": "multiple",
                         "options": [
                             {
-                                "text": "RL agents learn by receiving rewards or penalties for their actions",
-                                "correct": true,
-                                "explanation": "Reinforcement learning is based on reward signals that guide the agent toward optimal behavior through trial and error."
-                            },
-                            {
-                                "text": "RL requires labeled training data like supervised learning",
+                                "text": "Unsupervised learning requires labeled training data",
                                 "correct": false,
-                                "explanation": "RL does not use labeled data. Instead, it learns from rewards/penalties received after taking actions in an environment."
+                                "explanation": "Unsupervised learning works with unlabeled data, finding patterns and structure without explicit labels."
                             },
                             {
-                                "text": "The agent-environment interaction forms a feedback loop",
+                                "text": "Self-supervised learning creates supervision signals from the data itself",
                                 "correct": true,
-                                "explanation": "The agent takes actions, the environment responds with new states and rewards, creating a continuous learning loop."
+                                "explanation": "Self-supervised learning cleverly uses the data structure to create training signals, like predicting masked words or image patches."
                             },
                             {
-                                "text": "RL can be used for sequential decision-making problems",
+                                "text": "Clustering is an example of unsupervised learning",
                                 "correct": true,
-                                "explanation": "RL excels at problems requiring sequences of decisions, like game playing, robotics, and resource allocation."
+                                "explanation": "Clustering groups similar data points together without needing labels, making it a classic unsupervised task."
+                            },
+                            {
+                                "text": "Deep generative models can create new data samples",
+                                "correct": true,
+                                "explanation": "Models like VAEs, GANs, and diffusion models learn data distributions and can generate new, realistic samples."
+                            },
+                            {
+                                "text": "PCA is a supervised learning technique",
+                                "correct": false,
+                                "explanation": "Principal Component Analysis (PCA) is an unsupervised technique for dimensionality reduction that finds principal components without labels."
                             }
                         ]
                     }'></div>
@@ -2176,28 +2290,159 @@ Tags: [Action, Comedy, Sci-Fi]</code></pre>
             </section>
             
             <!-- Historical Context -->
+             
             <section>
                 <section>
                     <h1 class="truncate-title">Historical Roots</h1>
                     <h3 style="color: var(--color-accent);">Where It All Began</h3>
                 </section>
                 
-                <section data-sources='[{"text": "The Master Algorithm by Pedro Domingos", "url": "https://www.basicbooks.com/titles/pedro-domingos/the-master-algorithm/9780465065707/"}]'>
-                    <h2 class="truncate-title">Early Measurement</h2>
-                    <img src="images/koebel.jpg" alt="Köbel measuring feet" style="width: 60%;">
-                    <p class="fragment">Jacob Köbel (1535): averaging measurements</p>
+                <section data-sources='[{"text": "Dive into Deep Learning - Roots", "url": "https://d2l.ai/chapter_introduction/index.html#roots"}]'>
+                    <h2 class="truncate-title">The Desire to Predict</h2>
+                    <p>Humans have sought to analyze data and predict outcomes for centuries</p>
+                    <ul class="fragment">
+                        <li><span class="tooltip">Bernoulli distribution<span class="tooltiptext">Named after Jacob Bernoulli (1655-1705), models binary outcomes with probability p</span></span> (1655-1705)</li>
+                        <li><span class="tooltip">Gaussian distribution<span class="tooltiptext">Discovered by Carl Friedrich Gauss (1777-1855), the normal distribution that appears everywhere in nature</span></span> (1777-1855)</li>
+                        <li><span class="tooltip">Least mean squares<span class="tooltiptext">Gauss's algorithm still used today for regression and optimization</span></span> algorithm</li>
+                    </ul>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>These tools enabled the experimental approach in natural sciences</p>
+                    </div>
+                </section>
+                
+                <section data-sources='[{"text": "Jacob Köbel's Geometry", "url": "https://www.maa.org/press/periodicals/convergence/mathematical-treasures-jacob-kobels-geometry"}]'>
+                    <h2 class="truncate-title">Medieval Statistics: Köbel's Algorithm</h2>
+                    <img src="images/koebel.jpg" alt="Köbel measuring feet" style="width: 30%;">
+                    <p class="fragment">Jacob Köbel (1460-1533): Early data collection</p>
+                    <ol class="fragment" style="font-size: 0.9em;">
+                        <li>Measure 16 adult men's feet</li>
+                        <li>Sum the measurements</li>
+                        <li>Divide by 16 for average</li>
+                        <li>Improvement: Remove outliers (shortest/longest)</li>
+                    </ol>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>One of the earliest examples of a <span class="tooltip">trimmed mean<span class="tooltiptext">A robust statistical measure that removes extreme values before averaging</span></span>!</p>
+                    </div>
+                </section>
+                
+                <section data-sources='[{"text": "Ronald Fisher - Wikipedia", "url": "https://en.wikipedia.org/wiki/Ronald_Fisher"}, {"text": "The Iris Dataset", "url": "https://archive.ics.uci.edu/ml/datasets/iris"}]'>
+                    <h2 class="truncate-title">The Rise of Modern Statistics</h2>
+                    <p><strong>Ronald Fisher (1890-1962)</strong></p>
+                    <ul class="fragment">
+                        <li><span class="tooltip">Linear discriminant analysis<span class="tooltiptext">A method for finding linear combinations of features that characterize or separate classes</span></span></li>
+                        <li><span class="tooltip">Fisher information matrix<span class="tooltiptext">Measures the amount of information that an observable random variable carries about unknown parameters</span></span></li>
+                        <li>Applications in genetics</li>
+                        <li>The famous <strong>Iris dataset</strong> (1936)</li>
+                    </ul>
+                    <div class="fragment" style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 20px;">
+                        <p style="font-size: 0.85em;">⚠️ Note: Fisher was also a proponent of eugenics, reminding us that data science can be misused</p>
+                    </div>
+                </section>
+                
+                <section data-sources='[{"text": "Claude Shannon - Information Theory", "url": "https://en.wikipedia.org/wiki/Claude_Shannon"}, {"text": "Computing Machinery and Intelligence - Turing, 1950", "url": "https://doi.org/10.1093/mind/LIX.236.433"}]'>
+                    <h2 class="truncate-title">Information Theory & Computation</h2>
+                    <div style="display: flex; justify-content: space-around; margin-top: 30px;">
+                        <div class="fragment" style="flex: 1; margin: 10px;">
+                            <h4>Claude Shannon (1916-2001)</h4>
+                            <p style="font-size: 0.85em;">Information theory</p>
+                            <ul style="font-size: 0.8em;">
+                                <li>Entropy</li>
+                                <li>Channel capacity</li>
+                                <li>Data compression</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="flex: 1; margin: 10px;">
+                            <h4>Alan Turing (1912-1954)</h4>
+                            <p style="font-size: 0.85em;">"Can machines think?"</p>
+                            <ul style="font-size: 0.8em;">
+                                <li>Turing test</li>
+                                <li>Computability</li>
+                                <li>Machine intelligence</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+                
+                <section data-sources='[{"text": "The Organization of Behavior - Hebb, 1949", "url": "https://doi.org/10.1002/1097-4679(195007)6:3%3C307::AID-JCLP2270060338%3E3.0.CO;2-K"}, {"text": "The Perceptron - Rosenblatt, 1958", "url": "https://doi.org/10.1037/h0042519"}]'>
+                    <h2 class="truncate-title">Biological Inspiration</h2>
+                    <p><strong>Donald Hebb (1904-1985)</strong></p>
+                    <blockquote class="fragment" style="font-size: 0.9em;">
+                        "Neurons that fire together, wire together"
+                    </blockquote>
+                    <ul class="fragment">
+                        <li><span class="tooltip">Hebbian learning rule<span class="tooltiptext">Synaptic connections strengthen when neurons activate simultaneously - the basis for associative learning</span></span></li>
+                        <li>Positive reinforcement of connections</li>
+                        <li>Foundation for gradient descent</li>
+                        <li>Inspired Rosenblatt's perceptron</li>
+                    </ul>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>The biological metaphor gave "neural networks" their name</p>
+                    </div>
+                </section>
+                
+                <section data-sources='[{"text": "Early Neural Network Models", "url": "https://en.wikipedia.org/wiki/Artificial_neural_network#History"}]'>
+                    <h2 class="truncate-title">Core Neural Network Principles</h2>
+                    <p>Key ideas that persist today:</p>
+                    <ul class="fragment">
+                        <li><strong>Layers:</strong> Alternating linear and nonlinear processing</li>
+                        <li><strong>Backpropagation:</strong> Using chain rule to adjust all parameters</li>
+                        <li><strong>Networks:</strong> Interconnected computational units</li>
+                    </ul>
+                    <p class="fragment mt-lg">But from 1995-2005, neural networks fell out of favor...</p>
                 </section>
                 
                 <section>
-                    <h2 class="truncate-title">Early Statistical Methods</h2>
-                    <ul>
-                        <li class="fragment">Linear regression (1805)</li>
-                        <li class="fragment">Least squares method</li>
-                        <li class="fragment">Foundation for ML</li>
+                    <h2 class="truncate-title">The AI Winter (1995-2005)</h2>
+                    <p>Why neural networks struggled:</p>
+                    <ul class="fragment">
+                        <li><strong>Computational expense:</strong> Training was too slow</li>
+                        <li><strong>Small datasets:</strong> MNIST's 60,000 digits was "huge"</li>
+                        <li><strong>Better alternatives:</strong> 
+                            <ul>
+                                <li>Kernel methods (SVMs)</li>
+                                <li>Decision trees</li>
+                                <li>Graphical models</li>
+                            </ul>
+                        </li>
                     </ul>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>These methods gave predictable results with theoretical guarantees</p>
+                    </div>
                 </section>
                 
-                <!-- ADDRESSED: Added academic references and interactive explanations for key milestones -->
+                <!-- Multiple Choice Question -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Which historical contributions are fundamental to modern machine learning?",
+                        "type": "multiple",
+                        "options": [
+                            {
+                                "text": "The least squares method of Gauss (1805) for optimization",
+                                "correct": true,
+                                "explanation": "Least squares remains fundamental to regression and optimization in ML, used in everything from linear models to neural network training."
+                            },
+                            {
+                                "text": "The trimmed mean of Köbel (1535) for robust statistics",
+                                "correct": true,
+                                "explanation": "The concept of removing outliers before averaging is still used in robust statistics and data preprocessing."
+                            },
+                            {
+                                "text": "The Iris dataset of Fisher (1936) proved ML was possible",
+                                "correct": false,
+                                "explanation": "While the Iris dataset is famous and still used for demonstrations, it did not prove ML was possible - it is just a convenient test dataset."
+                            },
+                            {
+                                "text": "The Hebbian learning rule (1949) inspired gradient descent",
+                                "correct": true,
+                                "explanation": "Hebbian learning about reinforcing connections directly inspired the gradient-based learning algorithms used in neural networks."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <section>
                 <section data-sources='[{"text": "McCulloch & Pitts (1943) - A Logical Calculus of Ideas", "url": "https://doi.org/10.1007/BF02478259"}, {"text": "Rosenblatt (1958) - The Perceptron", "url": "https://doi.org/10.1037/h0042519"}, {"text": "Rumelhart et al. (1986) - Learning representations by back-propagating errors", "url": "https://doi.org/10.1038/323533a0"}, {"text": "Krizhevsky et al. (2012) - ImageNet Classification with Deep CNNs", "url": "https://papers.nips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html"}]'>
                     <h2 class="truncate-title">Neural Network History</h2>
                     <ul>
@@ -2248,8 +2493,443 @@ Tags: [Action, Comedy, Sci-Fi]</code></pre>
                         ]
                     }'></div>
                 </section>
+                
+                <!-- Road to Deep Learning: Vertical Transitions -->
+                <section data-sources='[{"text": "Moore\'s Law - Intel Processors", "url": "https://www.intel.com/content/www/us/en/history/museum-gordon-moore-law.html"}, {"text": "Kryder\'s Law - Storage Density", "url": "https://doi.org/10.1109/MSSC.2009.932311"}]'>
+                    <h2 class="truncate-title">The Road to Deep Learning</h2>
+                    <div class="emphasis-box">
+                        <p>The confluence of <span class="tooltip">big data<span class="tooltiptext">World Wide Web, social networks, IoT sensors</span></span>, 
+                        <span class="tooltip">cheap storage<span class="tooltiptext">Kryder's Law: Storage density doubles annually</span></span>, and 
+                        <span class="tooltip">GPU computing<span class="tooltiptext">Originally for gaming, revolutionized deep learning</span></span> enabled the deep learning revolution</p>
+                    </div>
+                </section>
+                
+                <section>
+                    <h2 class="truncate-title">Data vs Compute Evolution</h2>
+                    <table style="font-size: 0.8em;">
+                        <thead>
+                            <tr>
+                                <th>Decade</th>
+                                <th>Dataset Size</th>
+                                <th>Memory</th>
+                                <th>Compute (FLOPS)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="fragment">
+                                <td>1970</td>
+                                <td>100 <span class="tooltip">(Iris)<span class="tooltiptext">Classic 150-sample flower classification dataset</span></span></td>
+                                <td>1 KB</td>
+                                <td>100K (Intel 8080)</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td>1980</td>
+                                <td>1K <span class="tooltip">(Boston Housing)<span class="tooltiptext">506 samples of house prices with 13 features</span></span></td>
+                                <td>100 KB</td>
+                                <td>1M (Intel 80186)</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td>1990</td>
+                                <td>10K <span class="tooltip">(MNIST)<span class="tooltiptext">60,000 handwritten digit images</span></span></td>
+                                <td>10 MB</td>
+                                <td>10M (Intel 80486)</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td>2000</td>
+                                <td>10M (Web pages)</td>
+                                <td>100 MB</td>
+                                <td>1G (Intel Core)</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td>2010</td>
+                                <td>10G (Advertising)</td>
+                                <td>1 GB</td>
+                                <td>1T <span class="tooltip">(NVIDIA C2050)<span class="tooltiptext">First Fermi GPU, 515 GFLOPS, game-changer for deep learning</span></span></td>
+                            </tr>
+                            <tr class="fragment">
+                                <td>2020</td>
+                                <td>1T (Social networks)</td>
+                                <td>100 GB</td>
+                                <td>1P <span class="tooltip">(NVIDIA DGX-2)<span class="tooltiptext">2 PFLOPS, 16 V100 GPUs, designed for AI</span></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+                
+                <section data-sources='[{"text": "Srivastava et al. (2014) - Dropout", "url": "https://jmlr.org/papers/v15/srivastava14a.html"}, {"text": "Bahdanau et al. (2014) - Attention Mechanisms", "url": "https://arxiv.org/abs/1409.0473"}, {"text": "Vaswani et al. (2017) - Attention is All You Need", "url": "https://arxiv.org/abs/1706.03762"}]'>
+                    <h2 class="truncate-title">Key Algorithmic Breakthroughs</h2>
+                    <ul>
+                        <li class="fragment"><strong>Dropout (2014)</strong>: <span class="tooltip">Regularization by noise<span class="tooltiptext">Randomly drop neurons during training to prevent overfitting</span></span></li>
+                        <li class="fragment"><strong>Attention (2014)</strong>: <span class="tooltip">Learnable memory pointers<span class="tooltiptext">Focus on relevant parts of input, solving the long-sequence problem</span></span></li>
+                        <li class="fragment"><strong>Transformers (2017)</strong>: <span class="tooltip">Attention-only architecture<span class="tooltiptext">No recurrence or convolution, just self-attention layers</span></span></li>
+                        <li class="fragment"><strong>Scaling Laws (2020)</strong>: Predictable improvements with size</li>
+                    </ul>
+                </section>
+                
+                <section data-sources='[{"text": "Brown et al. (2020) - GPT-3", "url": "https://arxiv.org/abs/2005.14165"}, {"text": "OpenAI (2023) - GPT-4", "url": "https://arxiv.org/abs/2303.08774"}, {"text": "Touvron et al. (2023) - LLaMA", "url": "https://arxiv.org/abs/2302.13971"}]'>
+                    <h2 class="truncate-title">Language Model Revolution</h2>
+                    <ul>
+                        <li class="fragment"><strong>GPT-3 (2020)</strong>: 175B parameters, <span class="tooltip">few-shot learning<span class="tooltiptext">Learn new tasks from just a few examples in the prompt</span></span></li>
+                        <li class="fragment"><strong>ChatGPT (2022)</strong>: <span class="tooltip">RLHF<span class="tooltiptext">Reinforcement Learning from Human Feedback for alignment</span></span></li>
+                        <li class="fragment"><strong>GPT-4 (2023)</strong>: Multimodal capabilities</li>
+                        <li class="fragment"><strong>Open Models</strong>: LLaMA, Mistral democratizing AI</li>
+                    </ul>
+                </section>
+                
+                <section data-sources='[{"text": "Goodfellow et al. (2014) - GANs", "url": "https://arxiv.org/abs/1406.2661"}, {"text": "Ho et al. (2020) - Denoising Diffusion", "url": "https://arxiv.org/abs/2006.11239"}, {"text": "Ramesh et al. (2022) - DALL-E 2", "url": "https://arxiv.org/abs/2204.06125"}]'>
+                    <h2 class="truncate-title">Generative Model Revolution</h2>
+                    <ul>
+                        <li class="fragment"><strong>GANs (2014)</strong>: <span class="tooltip">Adversarial training<span class="tooltiptext">Generator vs Discriminator: learning by competition</span></span></li>
+                        <li class="fragment"><strong>Diffusion Models (2020)</strong>: <span class="tooltip">Denoising approach<span class="tooltiptext">Learn to reverse noise addition process</span></span></li>
+                        <li class="fragment"><strong>DALL-E 2 (2022)</strong>: Text-to-image generation</li>
+                        <li class="fragment"><strong>Stable Diffusion</strong>: Open-source creative AI</li>
+                    </ul>
+                </section>
+                
+                <section data-sources='[{"text": "You et al. (2017) - Large Batch Training", "url": "https://arxiv.org/abs/1708.03888"}, {"text": "Jia et al. (2018) - ImageNet in 4 Minutes", "url": "https://arxiv.org/abs/1807.11205"}]'>
+                    <h2 class="truncate-title">Distributed Training Breakthroughs</h2>
+                    <ul>
+                        <li class="fragment">Training on 1000+ GPUs simultaneously</li>
+                        <li class="fragment">Batch sizes: 32 → 64,000 images</li>
+                        <li class="fragment">ResNet-50 training: Days → 7 minutes</li>
+                        <li class="fragment">Enabling massive model scale</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 class="truncate-title">Deep Learning Frameworks Evolution</h2>
+                    <ul>
+                        <li class="fragment"><strong>Gen 1</strong>: Caffe, Torch, Theano</li>
+                        <li class="fragment"><strong>Gen 2</strong>: TensorFlow, Keras, CNTK</li>
+                        <li class="fragment"><strong>Gen 3</strong>: <span class="tooltip">PyTorch<span class="tooltiptext">Imperative, Pythonic, dynamic graphs</span></span>, JAX</li>
+                        <li class="fragment">From PhD homework → 10 lines of code</li>
+                    </ul>
+                </section>
+                
+                <!-- Multiple Choice Question for Road to Deep Learning -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What key factors enabled the deep learning revolution?",
+                        "type": "multiple",
+                        "options": [
+                            {
+                                "text": "GPUs originally designed for gaming provided massive parallel computing",
+                                "correct": true,
+                                "explanation": "GPUs like NVIDIA C2050 (2010) provided teraflops of compute, making deep learning practical."
+                            },
+                            {
+                                "text": "Memory growth kept pace with dataset growth",
+                                "correct": false,
+                                "explanation": "Actually, memory growth lagged behind data growth, forcing models to be more memory-efficient."
+                            },
+                            {
+                                "text": "Attention mechanisms solved the long-sequence problem",
+                                "correct": true,
+                                "explanation": "Attention allowed models to focus on relevant parts without storing entire sequences in fixed representations."
+                            },
+                            {
+                                "text": "Deep learning frameworks made implementation accessible",
+                                "correct": true,
+                                "explanation": "Frameworks like PyTorch reduced complex implementations from research projects to 10 lines of code."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- ADDRESSED: Added success stories slides with vertical transitions covering AI applications from OCR to modern 
+                 achievements like ChatGPT, game-playing AI, and self-driving vehicles with proper citations and tooltips -->
+            
+            <!-- Success Stories Section with Vertical Transitions -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">AI Success Stories</h2>
+                    <div class="emphasis-box">
+                        <p>From hidden applications to headline-grabbing achievements</p>
+                    </div>
+                </section>
+                
+                <section data-sources='[{"text": "MNIST Dataset History", "url": "http://yann.lecun.com/exdb/mnist/"}]'>
+                    <h2 class="truncate-title">Traditional ML Applications</h2>
+                    <ul>
+                        <li class="fragment"><span class="tooltip">OCR<span class="tooltiptext">Optical Character Recognition for mail sorting since 1990s</span></span> - Source of MNIST dataset</li>
+                        <li class="fragment">Check reading & credit scoring</li>
+                        <li class="fragment">Fraud detection (PayPal, Stripe, Visa)</li>
+                        <li class="fragment">Search, recommendations, ranking</li>
+                    </ul>
+                    <p class="fragment"><em>ML has been pervasive, albeit often hidden</em></p>
+                </section>
+                
+                <section data-sources='[{"text": "Xiong et al. (2018) - Microsoft Speech Recognition", "url": "https://arxiv.org/abs/1708.02021"}]'>
+                    <h2 class="truncate-title">Intelligent Assistants</h2>
+                    <ul>
+                        <li class="fragment"><strong>Siri, Alexa, Google Assistant</strong> (before 2022)</li>
+                        <li class="fragment"><strong>ChatGPT, Claude, Gemini</strong> (after 2022)</li>
+                        <li class="fragment">Speech recognition: <span class="tooltip">Human parity<span class="tooltiptext">5.1% word error rate matching professional transcribers</span></span> (2018)</li>
+                        <li class="fragment">From light switches to appointments</li>
+                        <li class="fragment">Most visible AI in daily life</li>
+                    </ul>
+                </section>
+                
+                <section data-sources='[{"text": "Lin et al. (2010) - ImageNet Baseline", "url": "https://ieeexplore.ieee.org/document/5540121"}, {"text": "Hu et al. (2018) - SENet", "url": "https://arxiv.org/abs/1709.01507"}]'>
+                    <h2 class="truncate-title">Computer Vision Breakthroughs</h2>
+                    <table style="font-size: 0.9em;">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>ImageNet Top-5 Error</th>
+                                <th>Model</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="fragment">
+                                <td>2010</td>
+                                <td>28%</td>
+                                <td>Traditional ML</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td>2012</td>
+                                <td>16%</td>
+                                <td><span class="tooltip">AlexNet<span class="tooltiptext">First deep CNN, started the revolution</span></span></td>
+                            </tr>
+                            <tr class="fragment">
+                                <td>2015</td>
+                                <td>3.5%</td>
+                                <td><span class="tooltip">ResNet<span class="tooltiptext">152 layers with skip connections</span></span></td>
+                            </tr>
+                            <tr class="fragment">
+                                <td>2017</td>
+                                <td>2.25%</td>
+                                <td><span class="tooltip">SENet<span class="tooltiptext">Squeeze-and-Excitation Networks</span></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="fragment">Also: Birdsong ID, skin cancer diagnosis</p>
+                </section>
+                
+                <section data-sources='[{"text": "Campbell et al. (2002) - Deep Blue", "url": "https://doi.org/10.1016/S0004-3702(01)00129-1"}, {"text": "Silver et al. (2016) - AlphaGo", "url": "https://doi.org/10.1038/nature16961"}, {"text": "Brown & Sandholm (2017) - Libratus", "url": "https://www.ijcai.org/proceedings/2017/772"}]'>
+                    <h2 class="truncate-title">Game-Playing AI Milestones</h2>
+                    <ul>
+                        <li class="fragment"><strong>1992</strong>: TD-Gammon (Backgammon)</li>
+                        <li class="fragment"><strong>1997</strong>: <span class="tooltip">Deep Blue<span class="tooltiptext">Beat Kasparov using massive parallelism & special hardware</span></span> (Chess)</li>
+                        <li class="fragment"><strong>2016</strong>: <span class="tooltip">AlphaGo<span class="tooltiptext">Deep learning + Monte Carlo tree search</span></span> (Go)</li>
+                        <li class="fragment"><strong>2017</strong>: <span class="tooltip">Libratus<span class="tooltiptext">Handled partial observability in no-limit poker</span></span> (Poker)</li>
+                        <li class="fragment"><strong>2019</strong>: AlphaStar (StarCraft II)</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 class="truncate-title">Self-Driving Vehicles</h2>
+                    <ul>
+                        <li class="fragment">Tesla Autopilot, Waymo, NVIDIA Drive</li>
+                        <li class="fragment">Deep learning for <span class="tooltip">perception<span class="tooltiptext">Object detection, lane detection, pedestrian tracking</span></span></li>
+                        <li class="fragment">Challenges: Reasoning, rule incorporation</li>
+                        <li class="fragment">Partial autonomy achieved, full autonomy pending</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 class="truncate-title">Scientific Applications</h2>
+                    <ul>
+                        <li class="fragment"><strong>Biology</strong>: <span class="tooltip">AlphaFold<span class="tooltiptext">Protein structure prediction breakthrough</span></span></li>
+                        <li class="fragment"><strong>Physics</strong>: Particle detection, gravitational waves</li>
+                        <li class="fragment"><strong>Astronomy</strong>: Galaxy classification, exoplanet discovery</li>
+                        <li class="fragment"><strong>Medicine</strong>: Drug discovery, diagnosis</li>
+                        <li class="fragment"><strong>Climate</strong>: Weather prediction, climate modeling</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 class="truncate-title">AI Ethics & Concerns</h2>
+                    <ul>
+                        <li class="fragment">Not AGI: Task-specific, engineered systems</li>
+                        <li class="fragment">Real concerns:
+                            <ul>
+                                <li>Job automation impact</li>
+                                <li>Algorithmic bias</li>
+                                <li>Privacy & surveillance</li>
+                                <li>Decision transparency</li>
+                            </ul>
+                        </li>
+                        <li class="fragment">Need careful, ethical deployment</li>
+                    </ul>
+                </section>
+                
+                <!-- Multiple Choice Question for Success Stories -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Which statements about AI success stories are true?",
+                        "type": "multiple",
+                        "options": [
+                            {
+                                "text": "ImageNet error rates dropped from 28% to 2.25% between 2010-2017",
+                                "correct": true,
+                                "explanation": "This dramatic improvement showcases the power of deep learning in computer vision."
+                            },
+                            {
+                                "text": "Full self-driving has been achieved by multiple companies",
+                                "correct": false,
+                                "explanation": "Only partial autonomy has been achieved. Full autonomy remains challenging due to reasoning and rule incorporation requirements."
+                            },
+                            {
+                                "text": "Speech recognition has achieved human parity for some applications",
+                                "correct": true,
+                                "explanation": "Microsoft achieved 5.1% word error rate in 2018, matching professional transcribers."
+                            },
+                            {
+                                "text": "AI systems today have artificial general intelligence",
+                                "correct": false,
+                                "explanation": "Current AI systems are task-specific and engineered. AGI that can reason about itself and modify its architecture does not exist."
+                            }
+                        ]
+                    }'></div>
+                </section>
             </section>
             
+            <!-- ADDRESSED: Created essence of deep learning slides explaining what makes deep learning "deep", 
+                 end-to-end training, the shift from feature engineering to learned representations, and the empirical 
+                 open-source culture with proper references and tooltips -->
+            
+            <!-- The Essence of Deep Learning Section with Vertical Transitions -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">The Essence of Deep Learning</h2>
+                    <div class="emphasis-box">
+                        <p>What makes deep learning <em>deep</em> and why it revolutionized AI</p>
+                    </div>
+                </section>
+                
+                <section>
+                    <h2 class="truncate-title">What Makes It "Deep"?</h2>
+                    <ul>
+                        <li class="fragment">Many <span class="tooltip">layers<span class="tooltiptext">Each layer learns increasingly abstract representations</span></span> of transformations</li>
+                        <li class="fragment">Operations at each layer learned <em>jointly</em> from data</li>
+                        <li class="fragment">Not just stacked processing steps</li>
+                        <li class="fragment">Depth enables hierarchical feature learning</li>
+                    </ul>
+                </section>
+                
+                <section data-sources='[{"text": "Canny (1987) - Edge Detection", "url": "https://doi.org/10.1109/TPAMI.1986.4767851"}, {"text": "Lowe (2004) - SIFT Features", "url": "https://doi.org/10.1023/B:VISI.0000029664.99615.94"}]'>
+                    <h2 class="truncate-title">End-to-End Training Revolution</h2>
+                    <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+                        <div class="fragment" style="flex: 1; padding: 10px;">
+                            <h4>Traditional ML Pipeline</h4>
+                            <ol style="font-size: 0.8em;">
+                                <li><span class="tooltip">Feature Engineering<span class="tooltiptext">Canny edges, SIFT, HOG, manually designed</span></span></li>
+                                <li>Feature Selection</li>
+                                <li>Model Training</li>
+                                <li>Separate tuning</li>
+                            </ol>
+                        </div>
+                        <div class="fragment" style="flex: 1; padding: 10px;">
+                            <h4>Deep Learning Pipeline</h4>
+                            <ol style="font-size: 0.8em;">
+                                <li>Raw Data Input</li>
+                                <li><span class="tooltip">Learned Features<span class="tooltiptext">Network discovers optimal representations</span></span></li>
+                                <li>Joint Optimization</li>
+                                <li>End-to-end training</li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+                
+                <section>
+                    <h2 class="truncate-title">From Manual to Learned Features</h2>
+                    <ul>
+                        <li class="fragment"><strong>Before</strong>: Domain experts design features</li>
+                        <li class="fragment"><strong>Problem</strong>: Human ingenuity is limited</li>
+                        <li class="fragment"><strong>Deep Learning</strong>: Automatic feature discovery</li>
+                        <li class="fragment"><strong>Result</strong>: Superior accuracy across domains</li>
+                    </ul>
+                    <p class="fragment"><em>Millions of automatic choices beat manual design</em></p>
+                </section>
+                
+                <section>
+                    <h2 class="truncate-title">Unified Tools Across Domains</h2>
+                    <ul>
+                        <li class="fragment">Same architectures work for:
+                            <ul>
+                                <li>Computer Vision</li>
+                                <li>Natural Language Processing</li>
+                                <li>Speech Recognition</li>
+                                <li>Medical Imaging</li>
+                            </ul>
+                        </li>
+                        <li class="fragment">Eliminated domain-specific boundaries</li>
+                        <li class="fragment">Transfer learning across modalities</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 class="truncate-title">Parametric → Nonparametric</h2>
+                    <ul>
+                        <li class="fragment"><strong>Scarce data era</strong>: Simplifying assumptions needed</li>
+                        <li class="fragment"><strong>Big data era</strong>: Let data speak for itself</li>
+                        <li class="fragment">Like physics: Analytical → Numerical simulations</li>
+                        <li class="fragment">Trade-off: Accuracy vs Interpretability</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 class="truncate-title">The Empirical Revolution</h2>
+                    <ul>
+                        <li class="fragment">Accept <span class="tooltip">suboptimal solutions<span class="tooltiptext">Good enough often beats theoretically perfect</span></span></li>
+                        <li class="fragment">Embrace <span class="tooltip">nonconvex optimization<span class="tooltiptext">Local minima are often good enough in practice</span></span></li>
+                        <li class="fragment">Try first, prove later</li>
+                        <li class="fragment">Rapid experimentation culture</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 class="truncate-title">Open Source Culture</h2>
+                    <ul>
+                        <li class="fragment">Shared tools across academia & industry</li>
+                        <li class="fragment">Released models & datasets</li>
+                        <li class="fragment">Collaborative progress</li>
+                        <li class="fragment">Lowered barriers to entry</li>
+                    </ul>
+                    <p class="fragment"><em>From PhD homework → 10 lines of code</em></p>
+                </section>
+                
+                <!-- Multiple Choice Question for Essence of Deep Learning -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What are the key characteristics that define deep learning?",
+                        "type": "multiple",
+                        "options": [
+                            {
+                                "text": "Many layers of transformations learned jointly from data",
+                                "correct": true,
+                                "explanation": "The depth and joint optimization of all layers is what makes deep learning powerful."
+                            },
+                            {
+                                "text": "Manual feature engineering followed by neural networks",
+                                "correct": false,
+                                "explanation": "Deep learning replaces manual feature engineering with automatic feature learning."
+                            },
+                            {
+                                "text": "End-to-end training from raw data to outputs",
+                                "correct": true,
+                                "explanation": "Deep learning trains the entire pipeline jointly, from raw inputs to final predictions."
+                            },
+                            {
+                                "text": "Requires theoretical proofs before implementation",
+                                "correct": false,
+                                "explanation": "Deep learning embraces empiricism - trying things that work before proving why they work."
+                            },
+                            {
+                                "text": "Unified tools working across different domains",
+                                "correct": true,
+                                "explanation": "The same architectures work for vision, language, speech, eliminating domain boundaries."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
             <!-- Summary -->
             <section>
                 <h2 class="truncate-title">Key Concepts Recap</h2>
@@ -2299,6 +2979,201 @@ Tags: [Action, Comedy, Sci-Fi]</code></pre>
     <script src="js/gradient-viz.js"></script>
     
     <script>
+        // Loss Landscape Visualization
+        function createLossLandscape() {
+            const container = document.getElementById('loss-landscape-viz');
+            if (!container || container.hasChildNodes()) return;
+            
+            const width = 600;
+            const height = 400;
+            const margin = {top: 20, right: 20, bottom: 40, left: 40};
+            
+            const svg = d3.select(container)
+                .append('svg')
+                .attr('viewBox', `0 0 ${width} ${height}`)
+                .attr('preserveAspectRatio', 'xMidYMid meet')
+                .style('max-width', '100%')
+                .style('height', 'auto');
+            
+            // Create scales
+            const xScale = d3.scaleLinear()
+                .domain([-3, 3])
+                .range([margin.left, width - margin.right]);
+            
+            const yScale = d3.scaleLinear()
+                .domain([-3, 3])
+                .range([height - margin.bottom, margin.top]);
+            
+            // Loss function (quadratic bowl)
+            const lossFunction = (x, y) => x*x + y*y;
+            
+            // Create contour lines
+            const contourData = [];
+            const levels = [0.5, 1, 2, 4, 8, 16];
+            
+            levels.forEach(level => {
+                const points = [];
+                for (let angle = 0; angle <= 2 * Math.PI; angle += 0.1) {
+                    const r = Math.sqrt(level);
+                    points.push([
+                        xScale(r * Math.cos(angle)),
+                        yScale(r * Math.sin(angle))
+                    ]);
+                }
+                contourData.push(points);
+            });
+            
+            // Draw contour lines
+            const lineGenerator = d3.line();
+            
+            contourData.forEach((contour, i) => {
+                svg.append('path')
+                    .attr('d', lineGenerator(contour))
+                    .attr('fill', 'none')
+                    .attr('stroke', '#EEEEEE')
+                    .attr('stroke-width', 1)
+                    .attr('opacity', 0.6);
+            });
+            
+            // Gradient descent path
+            let currentX = 2.5;
+            let currentY = 2;
+            const learningRate = 0.1;
+            const path = [[currentX, currentY]];
+            
+            // Compute gradient descent steps
+            for (let i = 0; i < 50; i++) {
+                const gradX = 2 * currentX;
+                const gradY = 2 * currentY;
+                
+                currentX -= learningRate * gradX;
+                currentY -= learningRate * gradY;
+                
+                path.push([currentX, currentY]);
+                
+                // Stop if converged (close to minimum)
+                if (Math.abs(currentX) < 0.01 && Math.abs(currentY) < 0.01) {
+                    break;
+                }
+            }
+            
+            // Draw gradient lines with direct colors
+            const gradientGroup = svg.append('g').attr('class', 'gradient-lines');
+            
+            for (let i = 0; i < path.length - 1; i++) {
+                const [x1, y1] = path[i];
+                const [x2, y2] = path[i + 1];
+                
+                // Draw gradient arrow with direct color
+                gradientGroup.append('line')
+                    .attr('x1', xScale(x1))
+                    .attr('y1', yScale(y1))
+                    .attr('x2', xScale(x2))
+                    .attr('y2', yScale(y2))
+                    .attr('stroke', '#FFA05F')  // Direct orange color
+                    .attr('stroke-width', 2)
+                    .attr('marker-end', 'url(#arrowhead)')
+                    .attr('opacity', 0)
+                    .transition()
+                    .delay(i * 100)
+                    .duration(300)
+                    .attr('opacity', 0.8);
+            }
+            
+            // Add arrow marker definition
+            svg.append('defs').append('marker')
+                .attr('id', 'arrowhead')
+                .attr('markerWidth', 10)
+                .attr('markerHeight', 10)
+                .attr('refX', 8)
+                .attr('refY', 3)
+                .attr('orient', 'auto')
+                .append('polygon')
+                .attr('points', '0 0, 10 3, 0 6')
+                .attr('fill', '#FFA05F');  // Direct orange color
+            
+            // Animated point
+            const point = svg.append('circle')
+                .attr('cx', xScale(path[0][0]))
+                .attr('cy', yScale(path[0][1]))
+                .attr('r', 8)
+                .attr('fill', '#10099F')  // Direct blue color
+                .attr('stroke', '#FFFFFF')
+                .attr('stroke-width', 2);
+            
+            // Animate the point along the path
+            let stepIndex = 0;
+            function animateStep() {
+                if (stepIndex < path.length - 1) {
+                    stepIndex++;
+                    const [x, y] = path[stepIndex];
+                    
+                    point.transition()
+                        .duration(300)
+                        .attr('cx', xScale(x))
+                        .attr('cy', yScale(y))
+                        .on('end', () => {
+                            setTimeout(animateStep, 100);
+                        });
+                    
+                    // Color changes as it approaches minimum
+                    if (stepIndex === path.length - 1) {
+                        point.transition()
+                            .duration(500)
+                            .attr('fill', '#2DD2C0');  // Direct teal color at minimum
+                    }
+                }
+            }
+            
+            // Start animation after a delay
+            setTimeout(animateStep, 1000);
+            
+            // Add axes
+            svg.append('g')
+                .attr('transform', `translate(0,${yScale(0)})`)
+                .call(d3.axisBottom(xScale).ticks(5))
+                .attr('opacity', 0.3);
+            
+            svg.append('g')
+                .attr('transform', `translate(${xScale(0)},0)`)
+                .call(d3.axisLeft(yScale).ticks(5))
+                .attr('opacity', 0.3);
+            
+            // Add labels
+            svg.append('text')
+                .attr('x', width / 2)
+                .attr('y', height - 5)
+                .attr('text-anchor', 'middle')
+                .attr('font-size', '12px')
+                .attr('fill', '#666')
+                .text('Parameter 1');
+            
+            svg.append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('x', -height / 2)
+                .attr('y', 15)
+                .attr('text-anchor', 'middle')
+                .attr('font-size', '12px')
+                .attr('fill', '#666')
+                .text('Parameter 2');
+            
+            // Add minimum point marker
+            svg.append('circle')
+                .attr('cx', xScale(0))
+                .attr('cy', yScale(0))
+                .attr('r', 4)
+                .attr('fill', '#FC8484')  // Direct coral color
+                .attr('stroke', '#FFFFFF')
+                .attr('stroke-width', 2);
+            
+            svg.append('text')
+                .attr('x', xScale(0) + 10)
+                .attr('y', yScale(0) - 10)
+                .attr('font-size', '11px')
+                .attr('fill', '#FC8484')  // Direct coral color
+                .text('Minimum');
+        }
+        
         // Initialize Reveal.js
         Reveal.initialize({
             hash: true,
@@ -2323,6 +3198,17 @@ Tags: [Action, Comedy, Sci-Fi]</code></pre>
         Reveal.on('ready', () => {
             if (typeof initBasicsAnimations !== 'undefined') {
                 initBasicsAnimations();
+            }
+            // Initialize loss landscape on the appropriate slide
+            createLossLandscape();
+        });
+        
+        // Reinitialize visualizations when changing slides
+        Reveal.on('slidechanged', () => {
+            // Check if we're on the loss landscape slide
+            const lossViz = document.getElementById('loss-landscape-viz');
+            if (lossViz && !lossViz.hasChildNodes()) {
+                createLossLandscape();
             }
         });
     </script>

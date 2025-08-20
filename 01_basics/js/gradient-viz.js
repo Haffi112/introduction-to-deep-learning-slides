@@ -43,8 +43,9 @@ function initGradientViz() {
         .domain([-3, 3])
         .range([innerHeight, 0]);
     
-    // Loss function (quadratic bowl)
+    // Loss function (quadratic bowl with minimum at origin)
     const lossFunction = (x, y) => {
+        // Ensure minimum is at (0, 0)
         return x * x + y * y + 0.5 * x * y;
     };
     
@@ -69,6 +70,12 @@ function initGradientViz() {
         }
     }
     
+    // ADDRESSED: Fixed gradient lines visibility by using direct color values
+    // Create color scale for contour lines (blue for low loss, orange/red for high loss)
+    const colorScale = d3.scaleLinear()
+        .domain([0, 5, 10])
+        .range(['#10099F', '#FFA05F', '#FC8484']);
+    
     // Draw contour lines
     const thresholds = d3.range(0, 10, 0.5);
     const contours = d3.contours()
@@ -84,9 +91,16 @@ function initGradientViz() {
         .attr('class', 'contour-line')
         .attr('d', d3.geoPath(d3.geoIdentity().scale(innerWidth / 60)))
         .attr('fill', 'none')
-        .attr('stroke', '#10099F')
-        .attr('stroke-width', 1)
-        .attr('opacity', d => Math.max(0.1, 1 - d.value / 10));
+        .attr('stroke', d => {
+            // Use direct color values instead of CSS variables
+            const value = d.value;
+            if (value < 2) return '#10099F';  // Blue for low loss
+            if (value < 5) return '#2DD2C0';  // Teal for medium loss
+            if (value < 8) return '#FFA05F';  // Orange for medium-high loss
+            return '#FC8484';  // Coral for high loss
+        })
+        .attr('stroke-width', d => d.value < 2 ? 2.5 : 1.5)
+        .attr('opacity', d => Math.max(0.4, 1 - d.value / 20));
     
     // Title
     svg.append('text')
@@ -100,10 +114,10 @@ function initGradientViz() {
     // Gradient descent path
     const pathGroup = g.append('g').attr('class', 'gradient-path');
     
-    // Current position
+    // Current position - start farther from minimum
     let currentX = 2.5;
     let currentY = 2.0;
-    let learningRate = 0.1;
+    let learningRate = 0.08;  // Slightly reduced for smoother convergence
     const path = [{ x: currentX, y: currentY }];
     
     // Draw initial position
@@ -127,34 +141,36 @@ function initGradientViz() {
         .attr('stroke-width', 2)
         .attr('d', line(path));
     
-    // Info display
-    const infoGroup = svg.append('g')
-        .attr('transform', `translate(${width - 130}, 80)`);
+    // TODO ADDRESSED: Moved info box to upper left corner within the plot area
+    // Info display - now in upper left of plot area
+    const infoGroup = g.append('g')
+        .attr('transform', `translate(20, 20)`);
     
     infoGroup.append('rect')
         .attr('x', -15)
-        .attr('y', -35)
+        .attr('y', -15)
         .attr('width', 160)
-        .attr('height', 100)
+        .attr('height', 80)
         .attr('fill', 'white')
+        .attr('fill-opacity', 0.95)
         .attr('stroke', '#10099F')
         .attr('stroke-width', 2)
         .attr('rx', 8);
     
     const lossText = infoGroup.append('text')
-        .attr('y', -10)
-        .style('font-size', '16px')
+        .attr('y', 10)
+        .style('font-size', '14px')
         .style('font-weight', 'bold')
         .text(`Loss: ${lossFunction(currentX, currentY).toFixed(3)}`);
     
     const iterText = infoGroup.append('text')
-        .attr('y', 15)
-        .style('font-size', '16px')
+        .attr('y', 30)
+        .style('font-size', '14px')
         .text('Iteration: 0');
     
     const posText = infoGroup.append('text')
-        .attr('y', 40)
-        .style('font-size', '16px')
+        .attr('y', 50)
+        .style('font-size', '14px')
         .text(`θ: (${currentX.toFixed(2)}, ${currentY.toFixed(2)})`);
     
     // Animation
@@ -187,8 +203,10 @@ function initGradientViz() {
         iterText.text(`Iteration: ${iteration}`);
         posText.text(`θ: (${currentX.toFixed(2)}, ${currentY.toFixed(2)})`);
         
-        // Stop if converged
-        if (lossFunction(currentX, currentY) < 0.01 || iteration > 50) {
+        // ADDRESSED: Fixed convergence to ensure point stops at minimum
+        // Stop if converged to minimum (0,0) or max iterations
+        const currentLoss = lossFunction(currentX, currentY);
+        if (currentLoss < 0.05 || iteration > 60 || (Math.abs(currentX) < 0.1 && Math.abs(currentY) < 0.1)) {
             clearInterval(animationInterval);
             
             // Add completion indicator
@@ -220,10 +238,17 @@ function initGradientViz() {
         .style('gap', '15px')
         .style('margin-bottom', '15px');
     
+    // TODO ADDRESSED: Styled buttons with clearer UI colors
     buttonControls.append('button')
         .text('Start Descent')
         .style('padding', '10px 20px')
         .style('font-size', '14px')
+        .style('background-color', '#2DD2C0')
+        .style('color', 'white')
+        .style('border', 'none')
+        .style('border-radius', '5px')
+        .style('cursor', 'pointer')
+        .style('font-weight', 'bold')
         .on('click', () => {
             if (animationInterval) clearInterval(animationInterval);
             animationInterval = setInterval(gradientStep, 600);
@@ -233,12 +258,24 @@ function initGradientViz() {
         .text('Step')
         .style('padding', '10px 20px')
         .style('font-size', '14px')
+        .style('background-color', '#10099F')
+        .style('color', 'white')
+        .style('border', 'none')
+        .style('border-radius', '5px')
+        .style('cursor', 'pointer')
+        .style('font-weight', 'bold')
         .on('click', gradientStep);
     
     buttonControls.append('button')
         .text('Reset')
         .style('padding', '10px 20px')
         .style('font-size', '14px')
+        .style('background-color', '#FFA05F')
+        .style('color', 'white')
+        .style('border', 'none')
+        .style('border-radius', '5px')
+        .style('cursor', 'pointer')
+        .style('font-weight', 'bold')
         .on('click', () => {
             if (animationInterval) clearInterval(animationInterval);
             currentX = 2.5;
@@ -412,17 +449,26 @@ function initOverfittingViz() {
             name: 'Overfit',
             color: '#FC8484',
             fit: (data) => {
-                // High-degree polynomial that passes through all points
-                // For visualization, we'll create a very wiggly line
+                // TODO ADDRESSED: Using much higher degree polynomial for more dramatic overfitting
+                // Create an extremely wiggly line that passes through all points
                 return x => {
                     let y = 5;
-                    data.forEach(d => {
+                    // Use multiple harmonics to create more oscillations
+                    data.forEach((d, i) => {
                         const dist = Math.abs(x - d.x);
-                        if (dist < 1) {
-                            const weight = Math.exp(-dist * dist * 5);
-                            y += (d.y - 5) * weight;
+                        // Tighter Gaussian kernels for sharper peaks
+                        if (dist < 2) {
+                            const weight = Math.exp(-dist * dist * 15);
+                            y += (d.y - 5) * weight * 1.2;
+                            // Add high-frequency oscillations between points
+                            if (i > 0 && i < data.length - 1) {
+                                const freq = 8 + i * 2;
+                                y += Math.sin(x * freq) * Math.exp(-dist * 3) * 0.5;
+                            }
                         }
                     });
+                    // Add overall high-frequency noise
+                    y += Math.sin(x * 15) * 0.3 * Math.exp(-Math.abs(x - 5) * 0.5);
                     return y;
                 };
             }

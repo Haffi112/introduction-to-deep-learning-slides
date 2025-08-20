@@ -34,18 +34,25 @@
     max-width: 90%;
 }
 
-.mcq-container {
+/* Wrapper for fixed height container */
+.mcq-wrapper {
     max-width: 800px;
-    max-height: 60vh;
+    height: 500px;  /* Fixed height for consistent sizing */
     margin: 0 auto;
+    position: relative;
+}
+
+.mcq-container {
+    width: 100%;
+    height: 100%;
     padding: 10px;
     background: #FFFFFF;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(16, 9, 159, 0.1);
     border: 1px solid #EEEEEE;
-    overflow-y: auto;
-    overflow-x: hidden;
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;  /* Prevent container overflow */
 }
 
 /* Custom scrollbar styling */
@@ -71,6 +78,17 @@
 .mcq-header {
     margin-bottom: 10px;
     text-align: center;
+    flex-shrink: 0;  /* Prevent header from shrinking */
+}
+
+/* Scrollable content area */
+.mcq-scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 10px 0;
+    padding-right: 8px;  /* Space for scrollbar */
+    min-height: 0;  /* Important for Firefox */
 }
 
 .mcq-title {
@@ -96,7 +114,29 @@
 }
 
 .mcq-options {
-    margin: 10px 0;
+    /* Remove scrolling from options, now handled by scroll-content */
+    margin: 0;
+    padding: 0;
+}
+
+/* Custom scrollbar for scroll content */
+.mcq-scroll-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.mcq-scroll-content::-webkit-scrollbar-track {
+    background: #F5F5F5;
+    border-radius: 4px;
+}
+
+.mcq-scroll-content::-webkit-scrollbar-thumb {
+    background: #10099F;
+    border-radius: 4px;
+    opacity: 0.6;
+}
+
+.mcq-scroll-content::-webkit-scrollbar-thumb:hover {
+    background: #0D077F;
 }
 
 .mcq-option {
@@ -254,7 +294,12 @@ input[type="checkbox"] + .mcq-option-label .mcq-option-indicator {
 
 .mcq-footer {
     text-align: center;
-    margin-top: 10px;
+    margin-top: auto;  /* Push to bottom */
+    /* Keep footer always visible */
+    flex-shrink: 0;
+    padding-top: 10px;
+    border-top: 1px solid #EEEEEE;
+    background: white;
 }
 
 .mcq-submit-btn,
@@ -298,13 +343,15 @@ input[type="checkbox"] + .mcq-option-label .mcq-option-indicator {
 }
 
 .mcq-feedback {
-    margin-top: 20px;
-    padding: 15px;
+    margin-top: 15px;
+    padding: 12px;
     border-radius: 8px;
     text-align: center;
     opacity: 0;
     transform: translateY(-10px);
     transition: all 0.3s ease;
+    /* Keep feedback visible */
+    flex-shrink: 0;
 }
 
 .mcq-feedback.show {
@@ -326,10 +373,12 @@ input[type="checkbox"] + .mcq-option-label .mcq-option-indicator {
 
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
+    .mcq-wrapper {
+        height: 450px;  /* Slightly smaller on mobile */
+    }
+    
     .mcq-container {
         padding: 8px;
-        margin: 8px auto;
-        max-height: 70vh;
         text-align: center;
     }
     
@@ -375,7 +424,7 @@ input[type="checkbox"] + .mcq-option-label .mcq-option-indicator {
     }
 }
 
-.mcq-container {
+.mcq-wrapper {
     animation: slideIn 0.5s ease-out;
 }
 

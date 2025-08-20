@@ -248,13 +248,14 @@ function initSimpleNetwork() {
     });
 }
 
+// TODO ADDRESSED: Fixed diagram centering and text positioning
 // Reinforcement Learning Diagram
 function initRLDiagram() {
     const container = document.getElementById('rl-diagram');
     if (!container || container.querySelector('svg')) return;
     
     const width = 800;
-    const height = 400;
+    const height = 450;  // Increased height to accommodate description below
     
     // Create SVG
     const svg = d3.select(container)
@@ -482,21 +483,22 @@ function initRLDiagram() {
     setTimeout(animateFlow, 1000);
     setInterval(animateFlow, 3000);
     
-    // Add description box
+    // Add description box - properly centered
     const descGroup = svg.append('g')
-        .attr('transform', `translate(${width / 2}, 320)`);
+        .attr('transform', `translate(${width / 2}, ${height - 50})`);
     
     descGroup.append('rect')
         .attr('x', -200)
-        .attr('y', -15)
+        .attr('y', -20)
         .attr('width', 400)
-        .attr('height', 30)
+        .attr('height', 40)
         .attr('fill', '#F5F5F5')
         .attr('stroke', '#EEEEEE')
         .attr('rx', 15);
     
     descGroup.append('text')
         .attr('text-anchor', 'middle')
+        .attr('y', 5)  // Vertically center text within the rectangle
         .style('font-size', '14px')
         .style('font-weight', 'bold')
         .style('fill', '#262626')

@@ -30,20 +30,25 @@
         }
 
         render() {
+            // TODO ADDRESSED: Updated container structure for better scrolling with fixed height wrapper
             const questionHTML = `
-                <div class="mcq-container">
-                    <div class="mcq-header">
-                        ${this.config.question ? `<p class="mcq-question">${this.config.question}</p>` : ''}
-                    </div>
-                    <div class="mcq-options">
-                        ${this.renderOptions()}
-                    </div>
-                    <div class="mcq-footer">
-                        <button class="mcq-submit-btn" disabled>Submit Answer</button>
-                        <button class="mcq-reset-btn" style="display: none;">Try Again</button>
-                    </div>
-                    <div class="mcq-feedback" style="display: none;">
-                        <div class="mcq-feedback-content"></div>
+                <div class="mcq-wrapper">
+                    <div class="mcq-container">
+                        <div class="mcq-header">
+                            ${this.config.question ? `<p class="mcq-question">${this.config.question}</p>` : ''}
+                        </div>
+                        <div class="mcq-scroll-content">
+                            <div class="mcq-options">
+                                ${this.renderOptions()}
+                            </div>
+                        </div>
+                        <div class="mcq-footer">
+                            <button class="mcq-submit-btn" disabled>Submit Answer</button>
+                            <button class="mcq-reset-btn" style="display: none;">Try Again</button>
+                            <div class="mcq-feedback" style="display: none;">
+                                <div class="mcq-feedback-content"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
