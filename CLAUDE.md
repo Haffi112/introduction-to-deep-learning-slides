@@ -97,12 +97,119 @@ Note: The logo positioning is handled automatically by CSS - no need for manual 
 - Parameter ranges clearly labeled
 - Visual feedback for user actions
 
+### Control Positioning for Interactive Visualizations
+
+When adding controls (sliders, buttons, inputs) to interactive demos, ensure they are visible and accessible:
+
+#### 1. Above visualization approach (recommended)
+Place controls above the visualization for better visibility:
+```html
+<div class="controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+    <label style="display: flex; align-items: center; gap: 8px;">
+        Parameter: 
+        <input type="range" id="param-slider" style="width: 150px;">
+        <span id="param-value" style="font-family: monospace;">0</span>
+    </label>
+    <button style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Action</button>
+</div>
+<div class="demo-container">
+    <!-- visualization content -->
+</div>
+```
+
+#### 2. Overlay approach for space-constrained slides
+Use absolute positioning when space is limited:
+```html
+<div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.95); padding: 10px 20px; border-radius: 8px;">
+    <!-- control elements -->
+</div>
+```
+
+#### Best Practices
+- **Always use inline styles** for critical UI elements to avoid CSS conflicts
+- **Test visibility** at different zoom levels and screen sizes
+- **Use UI brand colors** (#10099F) for buttons and interactive elements
+- **Provide visual feedback** with hover states and clear labels
+- **Center controls** for better visual balance on slides
+
 ### Slides that transition vertically
 - Slides that transition vertically go deeper into the content. They should be closely linked to the previous slide.
 - If there is a strong thematic progression from one slide to the next, you should use a vertical transition.
 - If the slides only split up a concept into two subsections, you should not use a vertical transition.
-- Close to the bottom most slide of the vertical transition there should always have a multiple choice question that students should answer to test their understanding. The implementation for the multiple choice question should be in the shared/js/multiple-choice.js file. Each option should have an explanation for why it is correct and why it is wrong that is revealed when the user clicks on the option.
+- Close to the bottom most slide of the vertical transition there should always have a multiple choice question that students should answer to test their understanding.
 - Multiple choice questions should also be placed after important slides.
+
+### Multiple Choice Questions
+
+All presentations must use the standardized multiple choice question system for consistency and proper functionality.
+
+#### Implementation
+
+Use the `data-mcq` attribute on a div element with a JSON configuration:
+
+```html
+<section>
+    <h2 class="truncate-title">Test Your Understanding</h2>
+    <div data-mcq='{
+        "question": "What is the main purpose of gradient descent?",
+        "type": "single",
+        "options": [
+            {
+                "text": "To increase the loss function",
+                "correct": false,
+                "explanation": "Gradient descent minimizes, not maximizes, the loss function."
+            },
+            {
+                "text": "To find parameters that minimize the loss function",
+                "correct": true,
+                "explanation": "Correct! Gradient descent iteratively updates parameters to minimize the loss."
+            },
+            {
+                "text": "To calculate derivatives",
+                "correct": false,
+                "explanation": "While it uses derivatives, the purpose is optimization, not just calculation."
+            },
+            {
+                "text": "To visualize the data",
+                "correct": false,
+                "explanation": "Gradient descent is an optimization algorithm, not a visualization tool."
+            }
+        ]
+    }'></div>
+</section>
+```
+
+#### Required Structure
+- **question**: The question text to display
+- **type**: Either "single" (radio buttons) or "multiple" (checkboxes for multiple correct answers)
+- **options**: Array of answer options, each with:
+  - **text**: The option text
+  - **correct**: Boolean indicating if this is a correct answer
+  - **explanation**: Detailed explanation shown after submission (explain why correct or why incorrect)
+
+#### Features
+- Questions are automatically shuffled on each page load
+- Visual feedback for correct/incorrect answers
+- Detailed explanations appear after submission
+- Mobile-friendly interface
+- "Try Again" button reshuffles and resets the question
+- Supports both single-choice and multiple-choice questions
+
+#### Placement Guidelines
+- Add a "Test Your Understanding" slide at the end of each vertical slide section
+- Place after important concept explanations
+- Use 4-5 options per question for optimal engagement
+- Ensure explanations are educational and helpful
+- Write clear, unambiguous questions
+- Avoid "all of the above" or "none of the above" options (they don't work well with shuffling)
+
+#### Important Notes
+- **NEVER** use the old `quiz-container` class format
+- **ALWAYS** include the `multiple-choice.js` script from shared/js/
+- Questions automatically initialize when slides load
+- The JSON must be properly formatted (use single quotes for the HTML attribute)
+- Test questions work correctly with shuffling enabled
+- Explanations should teach, not just state correct/incorrect
 
 ### Math Notation
 - Use LaTeX for equations
@@ -110,6 +217,16 @@ Note: The logo positioning is handled automatically by CSS - no need for manual 
 - Provide intuitive explanations alongside formulas
 - Example: `$$\frac{\partial L}{\partial w} = \frac{\partial L}{\partial z} \cdot \frac{\partial z}{\partial w}$$`
 - Color parts of the equation if necessary to highlight the different parts and explain them using the same color.
+
+#### MathJax Configuration
+When configuring Reveal.js with MathJax, use MathJax 2 for compatibility:
+```javascript
+math: {
+    mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js',
+    config: 'TeX-AMS_HTML-full'
+}
+```
+**Important:** Use MathJax 2, not MathJax 3. The standard Reveal.js math plugin is designed for MathJax 2, and MathJax 3 requires different configuration that can cause errors.
 
 ### Source Citations
 - Never put sources directly at the bottom of slides - they take up too much vertical space
@@ -366,13 +483,34 @@ This ensures users can always read the full title while maintaining clean slide 
 
 ## Tooltips for Technical Terms
 
+**REQUIRED**: All presentations must use the click-based modal tooltip system for consistency and mobile-friendliness.
+
 Use tooltips to provide quick explanations for technical terms without cluttering slides:
 
 ```html
 <span class="tooltip">ReLU<span class="tooltiptext">Rectified Linear Unit: An activation function defined as f(x) = max(0, x)</span></span>
 ```
 
-The tooltip appears on hover (desktop) or click (mobile). Include `tooltip-modal.js` if you need click-based modal tooltips.
+**Implementation Requirements:**
+- **REQUIRED**: Include `tooltip-modal.js` from shared/js/ in all presentations
+- This creates click-based modal tooltips that work consistently across all devices
+- Tooltips appear as centered modals with a backdrop when clicked
+- Mobile-friendly with touch support
+- Automatically closes with Escape key or backdrop click
+
+```html
+<!-- Include in your HTML -->
+<script src="../shared/js/tooltip-modal.js"></script>
+```
+
+**Features:**
+- Terms with tooltips are visually indicated with dotted underline
+- Click/tap to open modal with definition
+- Modal displays centered on screen for optimal readability
+- Backdrop blur effect focuses attention on the tooltip content
+- Consistent behavior across all presentations
+
+**Note**: Do not use `tooltip-handler-v2.js` as it provides hover-based tooltips which are less accessible and not mobile-friendly.
 
 ## Table Styling
 

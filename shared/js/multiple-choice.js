@@ -21,7 +21,34 @@
             this.isAnswered = false;
             this.isMultiple = config.type === 'multiple';
             
+            // Create shuffled options with index mapping
+            this.shuffleOptions();
+            
             this.init();
+        }
+
+        // Fisher-Yates shuffle algorithm
+        shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        shuffleOptions() {
+            // Create an array of indices
+            const indices = Array.from({length: this.config.options.length}, (_, i) => i);
+            
+            // Shuffle the indices
+            this.shuffledIndices = this.shuffleArray(indices);
+            
+            // Create shuffled options array
+            this.shuffledOptions = this.shuffledIndices.map(index => ({
+                ...this.config.options[index],
+                originalIndex: index
+            }));
         }
 
         init() {
@@ -64,18 +91,18 @@
         }
 
         renderOptions() {
-            return this.config.options.map((option, index) => {
-                const optionId = `option-${Date.now()}-${index}`;
+            return this.shuffledOptions.map((option, displayIndex) => {
+                const optionId = `option-${Date.now()}-${displayIndex}`;
                 const inputType = this.isMultiple ? 'checkbox' : 'radio';
-                const inputName = this.isMultiple ? `mcq-${Date.now()}-${index}` : `mcq-${Date.now()}`;
+                const inputName = this.isMultiple ? `mcq-${Date.now()}-${displayIndex}` : `mcq-${Date.now()}`;
                 
                 return `
-                    <div class="mcq-option" data-index="${index}">
+                    <div class="mcq-option" data-index="${displayIndex}" data-original-index="${option.originalIndex}">
                         <input type="${inputType}" 
                                id="${optionId}" 
                                name="${inputName}" 
                                class="mcq-option-input"
-                               value="${index}">
+                               value="${option.originalIndex}">
                         <label for="${optionId}" class="mcq-option-label">
                             <span class="mcq-option-indicator"></span>
                             <span class="mcq-option-text">${option.text}</span>
@@ -164,12 +191,13 @@
             }
 
             // Show individual option feedback
-            this.config.options.forEach((option, index) => {
-                const optionEl = this.container.querySelector(`.mcq-option[data-index="${index}"]`);
+            this.shuffledOptions.forEach((option, displayIndex) => {
+                const originalIndex = option.originalIndex;
+                const optionEl = this.container.querySelector(`.mcq-option[data-index="${displayIndex}"]`);
                 const explanationEl = optionEl.querySelector('.mcq-option-explanation');
                 const iconEl = optionEl.querySelector('.mcq-explanation-icon');
                 
-                const isSelected = this.selectedAnswers.has(index);
+                const isSelected = this.selectedAnswers.has(originalIndex);
                 const isCorrect = option.correct;
                 
                 // Add visual feedback classes
@@ -188,7 +216,7 @@
                     explanationEl.style.display = 'block';
                     setTimeout(() => {
                         explanationEl.classList.add('show');
-                    }, 100 * index);
+                    }, 100 * displayIndex);
                 }
             });
 
@@ -214,30 +242,12 @@
             this.isAnswered = false;
             this.selectedAnswers.clear();
             
-            // Reset UI
-            this.submitBtn.style.display = 'inline-block';
-            this.submitBtn.disabled = true;
-            this.resetBtn.style.display = 'none';
+            // Reshuffle options for a fresh experience
+            this.shuffleOptions();
             
-            // Reset options
-            const options = this.container.querySelectorAll('.mcq-option');
-            options.forEach(option => {
-                option.classList.remove('mcq-correct', 'mcq-incorrect');
-                const input = option.querySelector('.mcq-option-input');
-                input.disabled = false;
-                input.checked = false;
-                const explanation = option.querySelector('.mcq-option-explanation');
-                explanation.classList.remove('show');
-                setTimeout(() => {
-                    explanation.style.display = 'none';
-                }, 300);
-            });
-            
-            // Hide feedback
-            this.feedbackEl.classList.remove('show');
-            setTimeout(() => {
-                this.feedbackEl.style.display = 'none';
-            }, 300);
+            // Re-render the entire question with new shuffle
+            this.render();
+            this.attachEventListeners();
         }
     }
 
