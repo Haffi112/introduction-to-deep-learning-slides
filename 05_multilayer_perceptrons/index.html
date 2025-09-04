@@ -1,0 +1,3218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multilayer Perceptrons - Introduction to Deep Learning</title>
+    
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+    <link rel="stylesheet" href="../shared/css/reveal-theme.css">
+    <link rel="stylesheet" href="../shared/css/common.css">
+    <link rel="stylesheet" href="css/mlp-custom.css">
+    <link rel="stylesheet" href="../shared/css/quiz.css">
+    
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/monokai.css">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- Title Slide -->
+            <section class="title-slide">
+                <img src="../shared/images/uoi_logo_blue.png" alt="University of Iceland Logo" class="ui-logo">
+                <h1 class="truncate-title">Multilayer Perceptrons</h1>
+                <p>Chapter 5: Your First Truly Deep Network</p>
+                <p>Based on "Dive into Deep Learning" by Zhang et al.</p>
+                <p class="mt-lg">
+                    <small>Instructor: Hafsteinn Einarsson</small><br>
+                    <small>University of Iceland</small>
+                </p>
+            </section>
+            
+            <!-- Section 1: Introduction to MLPs (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 5", "url": "https://d2l.ai/chapter_multilayer-perceptrons/index.html"}]'>
+                    <h2 class="truncate-title">From Linear to Deep Networks</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <h4>What We've Learned</h4>
+                            <ul>
+                                <li class="fragment">Linear regression</li>
+                                <li class="fragment">Softmax regression</li>
+                                <li class="fragment">Single affine transformations</li>
+                                <li class="fragment">Direct input-to-output mapping</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>Where We're Going</h4>
+                            <ul>
+                                <li class="fragment">Multiple layers of neurons</li>
+                                <li class="fragment">Nonlinear activations</li>
+                                <li class="fragment">Deep neural networks</li>
+                                <li class="fragment">Universal approximation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>Multilayer Perceptrons: The simplest deep networks</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">What Makes a Network "Deep"?</h2>
+                    <div class="fragment">
+                        <img src="images/mlp.svg" alt="MLP Architecture" style="width: 40%; margin: 20px auto; display: block;">
+                    </div>
+                    <div class="fragment">
+                        <ul>
+                            <li>Multiple layers of neurons</li>
+                            <li>Each layer fully connected to the next</li>
+                            <li>Hidden layers between input and output</li>
+                            <li>Nonlinear activation functions</li>
+                        </ul>
+                    </div>
+                    <div class="fragment emphasis-box mt-md" style="font-size: 0.7em;">
+                        <p>This MLP has 4 inputs, 5 hidden units, 3 outputs = 2 computational layers</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Key Concepts We'll Master</h2>
+                    <div class="grid-2x2 mt-md" style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <h4>🧠 Network Architecture</h4>
+                            <p>How to stack layers to create deep networks</p>
+                        </div>
+                        <div class="fragment">
+                            <h4>📊 Gradient Calculation</h4>
+                            <p>How automatic differentiation works in deep networks</p>
+                        </div>
+                        <div class="fragment">
+                            <h4>⚡ Activation Functions</h4>
+                            <p>ReLU, Sigmoid, Tanh and their properties</p>
+                        </div>
+                        <div class="fragment">
+                            <h4>🎯 Practical Training</h4>
+                            <p>Initialization, regularization, and avoiding overfitting</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What distinguishes a multilayer perceptron from linear models we studied earlier?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "MLPs have more parameters",
+                                "correct": false,
+                                "explanation": "While MLPs often have more parameters, this alone doesnt make them fundamentally different."
+                            },
+                            {
+                                "text": "MLPs use nonlinear activation functions between layers",
+                                "correct": true,
+                                "explanation": "Correct! Nonlinear activations allow MLPs to learn complex, non-linear patterns that linear models cannot."
+                            },
+                            {
+                                "text": "MLPs always have exactly three layers",
+                                "correct": false,
+                                "explanation": "MLPs can have any number of layers greater than two (input and output)."
+                            },
+                            {
+                                "text": "MLPs can only be used for classification",
+                                "correct": false,
+                                "explanation": "MLPs can be used for both classification and regression tasks."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 2: Hidden Layers (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Hidden Layers: Breaking Linear Limitations</h2>
+                    <p>Why do we need hidden layers?</p>
+                    <div class="fragment">
+                        <h4>The Problem with Linearity</h4>
+                        <p>Linear models assume <span class="tooltip">monotonicity<span class="tooltiptext">Any increase in input always causes the same direction of change in output</span></span></p>
+                    </div>
+                    <div class="fragment mt-md">
+                        <div class="emphasis-box">
+                            <p><strong>Example:</strong> Predicting health from body temperature</p>
+                            <ul style="text-align: left;">
+                                <li>Above 37°C: Higher temp → Greater risk ↑</li>
+                                <li>Below 37°C: Lower temp → Greater risk ↑</li>
+                            </ul>
+                            <p class="mt-sm">Linear models can't capture this U-shaped relationship!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Real-World Limitation: Image Classification</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <h4>The Cat vs Dog Problem</h4>
+                            <div class="fragment" style="font-size: 0.7em;">
+                                <p>Should pixel (13, 17) brightness always increase dog likelihood?</p>
+                            </div>
+                            <div class="fragment" style="font-size: 0.7em;">
+                                <p><strong>No!</strong> Context matters:</p>
+                                <ul>
+                                    <li>Surrounding pixels</li>
+                                    <li>Overall patterns</li>
+                                    <li>Spatial relationships</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <h4>What We Need</h4>
+                            <div class="fragment" style="font-size: 0.7em;">
+                                <p>A way to learn representations that capture:</p>
+                                <ul style="font-size: 0.9em;">
+                                    <li>Complex interactions</li>
+                                    <li>Hierarchical features</li>
+                                    <li>Non-linear patterns</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>Deep networks learn representations AND predictions jointly from data</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Mathematical Foundation: Adding Hidden Layers</h2>
+                    <p style="font-size: 0.7em;">For a minibatch $\mathbf{X} \in \mathbb{R}^{n \times d}$ with $n$ examples and $d$ features:</p>
+                    <div class="fragment" style="font-size: 0.7em;">
+                        <h4>Layer Components</h4>
+                        <ul style="font-size: 0.7em;">
+                            <li>Hidden layer output: $\mathbf{H} \in \mathbb{R}^{n \times h}$ ($h$ hidden units)</li>
+                            <li>Hidden weights: $\mathbf{W}^{(1)} \in \mathbb{R}^{d \times h}$</li>
+                            <li>Hidden bias: $\mathbf{b}^{(1)} \in \mathbb{R}^{1 \times h}$</li>
+                            <li>Output weights: $\mathbf{W}^{(2)} \in \mathbb{R}^{h \times q}$</li>
+                            <li>Output bias: $\mathbf{b}^{(2)} \in \mathbb{R}^{1 \times q}$</li>
+                        </ul>
+                    </div>
+                    <div class="fragment" style="font-size: 0.7em;">
+                        <h4>Forward Pass (Without Activation)</h4>
+                        $$\begin{aligned}
+                        \mathbf{H} &= \mathbf{X} \mathbf{W}^{(1)} + \mathbf{b}^{(1)} \\
+                        \mathbf{O} &= \mathbf{H}\mathbf{W}^{(2)} + \mathbf{b}^{(2)}
+                        \end{aligned}$$
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Critical Problem: Linear Collapse</h2>
+                    <p>Without activation functions, multiple layers don't help!</p>
+                    <div class="fragment">
+                        <h4>Mathematical Proof</h4>
+                        <p>Substituting the hidden layer equation:</p>
+                        $$\begin{aligned}
+                        \mathbf{O} &= (\mathbf{X} \mathbf{W}^{(1)} + \mathbf{b}^{(1)})\mathbf{W}^{(2)} + \mathbf{b}^{(2)}\\
+                        &= \mathbf{X} \mathbf{W}^{(1)}\mathbf{W}^{(2)} + \mathbf{b}^{(1)} \mathbf{W}^{(2)} + \mathbf{b}^{(2)}\\
+                        &= \mathbf{X} \mathbf{W} + \mathbf{b}
+                        \end{aligned}$$
+                        <p>where $\mathbf{W} = \mathbf{W}^{(1)}\mathbf{W}^{(2)}$ and $\mathbf{b} = \mathbf{b}^{(1)} \mathbf{W}^{(2)} + \mathbf{b}^{(2)}$</p>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>⚠️ An affine function of an affine function is still affine!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Solution: Nonlinear Activations</h2>
+                    <p>Adding activation function $\sigma$ breaks the linearity:</p>
+                    <div class="fragment">
+                        $$\begin{aligned}
+                        \mathbf{H} &= \sigma(\mathbf{X} \mathbf{W}^{(1)} + \mathbf{b}^{(1)})\\
+                        \mathbf{O} &= \mathbf{H}\mathbf{W}^{(2)} + \mathbf{b}^{(2)}
+                        \end{aligned}$$
+                    </div>
+                    <div class="fragment mt-md">
+                        <h4>Popular Choice: ReLU</h4>
+                        <p>$\sigma(x) = \mathrm{max}(0, x)$</p>
+                        <div class="three-column" style="display: flex; gap: 15px; margin-top: 15px; font-size: 0.7em;">
+                            <div class="column" style="background: #e8f4fd; padding: 15px; border-radius: 8px; flex: 1; text-align: center;">
+                                <strong>Simple to compute</strong>
+                            </div>
+                            <div class="column" style="background: #e8f8f5; padding: 15px; border-radius: 8px; flex: 1; text-align: center;">
+                                <strong><span class="tooltip">Effective gradient flow<span class="tooltiptext">ReLU has a gradient of 1 for positive inputs and 0 for negative inputs, avoiding the vanishing gradient problem that affects sigmoid and tanh activations</span></span></strong>
+                            </div>
+                            <div class="column" style="background: #fff5e6; padding: 15px; border-radius: 8px; flex: 1; text-align: center;">
+                                <strong>Widely successful in practice</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>Now the network can no longer be collapsed to a linear model!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Building Deeper Networks</h2>
+                    <p>We can stack multiple hidden layers:</p>
+                    <div class="fragment">
+                        $$\begin{aligned}
+                        \mathbf{H}^{(1)} &= \sigma_1(\mathbf{X} \mathbf{W}^{(1)} + \mathbf{b}^{(1)})\\
+                        \mathbf{H}^{(2)} &= \sigma_2(\mathbf{H}^{(1)} \mathbf{W}^{(2)} + \mathbf{b}^{(2)})\\
+                        &\vdots\\
+                        \mathbf{O} &= \mathbf{H}^{(L-1)}\mathbf{W}^{(L)} + \mathbf{b}^{(L)}
+                        \end{aligned}$$
+                    </div>
+                    <div class="fragment">
+                        <h4>Each Layer Learns Different Features</h4>
+                        <ul>
+                            <li><strong>Early layers:</strong> Simple patterns (edges, colors)</li>
+                            <li><strong>Middle layers:</strong> Combinations (shapes, textures)</li>
+                            <li><strong>Deep layers:</strong> Complex concepts (objects, scenes)</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why do hidden layers without activation functions fail to increase model expressiveness?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "They make the network too complex to train",
+                                "correct": false,
+                                "explanation": "Without activations, the network actually remains as simple as a linear model."
+                            },
+                            {
+                                "text": "Multiple linear transformations can be collapsed into a single linear transformation",
+                                "correct": true,
+                                "explanation": "Correct! The composition of linear functions is still linear, so the entire network reduces to a single affine transformation."
+                            },
+                            {
+                                "text": "They cause the gradients to vanish",
+                                "correct": false,
+                                "explanation": "Gradient vanishing is a different problem that can occur with certain activation functions."
+                            },
+                            {
+                                "text": "They require too many parameters",
+                                "correct": false,
+                                "explanation": "The parameter count is independent of whether we use activation functions."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 3: Universal Approximation (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Cybenko, 1989 - Approximation by Superpositions", "url": "https://link.springer.com/article/10.1007/BF02551274"}, {"text": "Micchelli, 1984 - Interpolation of Scattered Data", "url": "https://link.springer.com/chapter/10.1007/978-94-009-6466-2_7"}]'>
+                    <h2 class="truncate-title">Universal Approximation Theorem</h2>
+                    <p class="fragment">A fundamental theoretical result about neural networks</p>
+                    <div class="fragment">
+                        <div class="emphasis-box" style="font-size: 0.7em;">
+                            <p><strong>The Theorem (Cybenko, 1989):</strong></p>
+                            <p>A feedforward network with a single hidden layer containing a finite number of neurons can approximate any continuous function on a compact subset of ℝⁿ to arbitrary accuracy.</p>
+                        </div>
+                    </div>
+                    <div class="fragment mt-md">
+                        <h4>What This Means</h4>
+                        <ul>
+                            <li>Neural networks are universal function approximators</li>
+                            <li>Even one hidden layer is theoretically sufficient</li>
+                            <li>Given enough neurons, we can model any function</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Catch: Theory vs Practice</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <h4>What the Theorem Says ✓</h4>
+                            <ul class="fragment">
+                                <li>Existence of a solution</li>
+                                <li>Theoretical capability</li>
+                                <li>Universal expressiveness</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>What It Doesn't Say ✗</h4>
+                            <ul class="fragment">
+                                <li>How to find the weights</li>
+                                <li>How many neurons needed</li>
+                                <li>How to train efficiently</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>Think of it like a programming language: C can express any computable program, but writing the right program is the hard part!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Why Go Deep Instead of Wide?</h2>
+                    <div class="fragment">
+                        <h4>Deeper Networks Are More Efficient</h4>
+                        <p>Research shows deeper networks can approximate functions more compactly than shallow ones</p>
+                    </div>
+                    <div class="fragment mt-md">
+                        <div class="two-column">
+                            <div class="column">
+                                <h5>Shallow & Wide</h5>
+                                <ul style="font-size: 0.7em;">
+                                    <li>May need exponentially many neurons</li>
+                                    <li>Less parameter sharing</li>
+                                    <li>Harder to train</li>
+                                </ul>
+                            </div>
+                            <div class="column">
+                                <h5>Deep & Narrow</h5>
+                                <ul style="font-size: 0.7em;">
+                                    <li>Hierarchical feature learning</li>
+                                    <li>Better generalization</li>
+                                    <li>More efficient representation</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>Modern networks like ResNet have 100+ layers, not millions of neurons in one layer!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Historical Context</h2>
+                    <div class="timeline" style="font-size: 0.45em;">
+                        <div class="fragment">
+                            <p><strong>1894 - Cajal:</strong> Discovered neurons feed into other neurons</p>
+                        </div>
+                        <div class="fragment">
+                            <p><strong>1950 - Aronszajn:</strong> Kernel methods for nonlinear dependencies</p>
+                        </div>
+                        <div class="fragment">
+                            <p><strong>1984 - Micchelli:</strong> RBF networks approximation results</p>
+                        </div>
+                        <div class="fragment">
+                            <p><strong>1989 - Cybenko:</strong> Universal approximation for MLPs</p>
+                        </div>
+                        <div class="fragment">
+                            <p><strong>2010s - Deep Learning:</strong> Practical training of very deep networks</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "According to the universal approximation theorem, what is true about neural networks?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "They can solve any problem perfectly",
+                                "correct": false,
+                                "explanation": "The theorem only guarantees approximation capability, not that we can find or train such a network."
+                            },
+                            {
+                                "text": "A single hidden layer network can theoretically approximate any continuous function",
+                                "correct": true,
+                                "explanation": "Correct! The theorem proves existence of weights that can approximate any continuous function, though finding them is another matter."
+                            },
+                            {
+                                "text": "Deeper networks are always better than shallow ones",
+                                "correct": false,
+                                "explanation": "While often more efficient, deeper networks are not universally superior for all tasks."
+                            },
+                            {
+                                "text": "We need infinite neurons for universal approximation",
+                                "correct": false,
+                                "explanation": "The theorem states a finite (though possibly very large) number of neurons suffices."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 4: Activation Functions (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Activation Functions: Adding Nonlinearity</h2>
+                    <p>Activation functions decide whether a neuron should be activated</p>
+                    <div class="fragment">
+                        <h4>Key Properties</h4>
+                        <ul>
+                            <li><strong>Nonlinearity:</strong> Enables learning complex patterns</li>
+                            <li><strong>Differentiability:</strong> Allows gradient-based optimization</li>
+                            <li><strong>Computational efficiency:</strong> Fast forward and backward passes</li>
+                        </ul>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>Let's explore the three most common activation functions</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">ReLU: Rectified Linear Unit</h2>
+                    <div class="activation-demo">
+                        <div class="two-column mt-md">
+                            <div class="column">
+                                <div id="relu-plot" style="width: 100%; height: 250px;"></div>
+                            </div>
+                            <div class="column">
+                                <div id="relu-derivative-plot" style="width: 100%; height: 250px;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="demo-controls mt-md">
+                            <label>
+                                Input x: 
+                                <input type="range" id="relu-input" min="-5" max="5" step="0.1" value="0">
+                                <span id="relu-value" style="font-size: 0.7em;">0.0</span>
+                            </label>
+                        </div>
+                        
+                        <div class="fragment">
+                            <div class="two-column">
+                                <div class="column">
+                                    <h4>Properties</h4>
+                                    <ul style="font-size: 0.5em;">
+                                        <li>Sparse activation (zeros for negative inputs)</li>
+                                        <li>No gradient vanishing for positive inputs</li>
+                                        <li>Computationally efficient</li>
+                                        <li>Derivative: 1 if x > 0, else 0</li>
+                                    </ul>
+                                </div>
+                                <div class="column">
+                                    <h4>PyTorch Code</h4>
+                                    <pre><code class="python" style="font-size: 0.5em;">import torch
+import torch.nn.functional as F
+
+x = torch.randn(5)
+y = F.relu(x)  # or torch.relu(x)
+# Derivative (gradient)
+x.requires_grad_(True)
+y = F.relu(x)
+y.backward(torch.ones_like(x))
+print(x.grad)  # Will be 1 where x > 0, else 0</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Sigmoid Function</h2>
+                    <div class="activation-demo">
+                        <div class="two-column mt-md">
+                            <div class="column">
+                                <div id="sigmoid-plot" style="width: 100%; height: 250px;"></div>
+                            </div>
+                            <div class="column">
+                                <div id="sigmoid-derivative-plot" style="width: 100%; height: 250px;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="demo-controls mt-md">
+                            <label>
+                                Input x: 
+                                <input type="range" id="sigmoid-input" min="-5" max="5" step="0.1" value="0">
+                                <span id="sigmoid-value" style="font-size: 0.7em;">0.0</span>
+                            </label>
+                        </div>
+                        <div class="fragment">
+                            <div class="two-column">
+                                <div class="column">
+                                    <h4>Properties</h4>
+                                    <ul style="font-size: 0.5em;">
+                                        <li>Output range: (0, 1)</li>
+                                        <li>Smooth and differentiable everywhere</li>
+                                        <li>Derivative: $\sigma(x)(1-\sigma(x))$</li>
+                                        <li>Max derivative at x=0: 0.25</li>
+                                        <li>⚠️ Gradient vanishing for large |x|</li>
+                                    </ul>
+                                </div>
+                                <div class="column">
+                                    <h4>PyTorch Code</h4>
+                                    <pre><code class="python" style="font-size: 0.5em;">x = torch.randn(5, requires_grad=True)
+y = torch.sigmoid(x)
+
+# Compute derivative
+y.backward(torch.ones_like(x))
+print(f"Sigmoid derivative: {x.grad}")
+# Derivative = sigmoid(x) * (1 - sigmoid(x))</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title"><span class="tooltip">Tanh: Hyperbolic Tangent<span class="tooltiptext">$$\operatorname{tanh}(x) = \frac{1 - \exp(-2x)}{1 + \exp(-2x)}$$</span></span></h2>
+                    <div class="activation-demo">                        
+                        <div class="two-column mt-md">
+                            <div class="column">
+                                <div id="tanh-plot" style="width: 100%; height: 250px;"></div>
+                            </div>
+                            <div class="column">
+                                <div id="tanh-derivative-plot" style="width: 100%; height: 250px;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="demo-controls mt-md">
+                            <label>
+                                Input x: 
+                                <input type="range" id="tanh-input" min="-5" max="5" step="0.1" value="0">
+                                <span id="tanh-value" style="font-size: 0.7em;">0.0</span>
+                            </label>
+                        </div>
+                        
+                        <div class="fragment">
+                            <div class="two-column">
+                                <div class="column">
+                                    <h4>Properties</h4>
+                                    <ul style="font-size: 0.5em;">
+                                        <li>Output range: (-1, 1)</li>
+                                        <li>Zero-centered (unlike sigmoid)</li>
+                                        <li>Derivative: $1 - \tanh^2(x)$</li>
+                                        <li>Max derivative at x=0: 1.0</li>
+                                        <li>Point symmetry about origin</li>
+                                    </ul>
+                                </div>
+                                <div class="column">
+                                    <h4>PyTorch Code</h4>
+                                    <pre><code class="python" style="font-size: 0.5em;">x = torch.randn(5, requires_grad=True)
+y = torch.tanh(x)
+
+# Compute derivative
+y.backward(torch.ones_like(x))
+print(f"Tanh derivative: {x.grad}")
+# Derivative = 1 - tanh²(x)</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Comparing Activation Functions</h2>
+                    <div class="comparison-table">
+                        <table style="font-size: 0.8em;">
+                            <thead>
+                                <tr>
+                                    <th>Property</th>
+                                    <th>ReLU</th>
+                                    <th>Sigmoid</th>
+                                    <th>Tanh</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="fragment">
+                                    <td><strong>Range</strong></td>
+                                    <td>[0, ∞)</td>
+                                    <td>(0, 1)</td>
+                                    <td>(-1, 1)</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td><strong>Zero-centered</strong></td>
+                                    <td>No</td>
+                                    <td>No</td>
+                                    <td>Yes</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td><strong>Gradient vanishing</strong></td>
+                                    <td>No (for x>0)</td>
+                                    <td>Yes</td>
+                                    <td>Yes</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td><strong>Computation</strong></td>
+                                    <td>Very fast</td>
+                                    <td>Moderate</td>
+                                    <td>Moderate</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td><strong>Sparsity</strong></td>
+                                    <td>Yes</td>
+                                    <td>No</td>
+                                    <td>No</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p><strong>Fun Fact:</strong> $\tanh(x) = 2\sigma(2x) - 1$</p>
+                        <p>Tanh and sigmoid are related transformations!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Modern Activation Functions</h2>
+                    <p>Research in activation functions continues!</p>
+                    <div class="fragment two-column" style="font-size: 0.5em;">
+                        <div class="column">
+                            <h4>GELU (Gaussian Error Linear Unit)</h4>
+                            <p>$$\text{GELU}(x) = x \cdot \Phi(x)$$</p>
+                            <p>where $\Phi(x)$ is the standard Gaussian CDF</p>
+                            <ul>
+                                <li>Used in BERT and GPT models</li>
+                                <li>Smooth approximation to ReLU</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>Swish</h4>
+                            <p>$$\text{Swish}(x) = x \cdot \sigma(\beta x)$$</p>
+                            <ul>
+                                <li>Self-gated activation</li>
+                                <li>Often outperforms ReLU in deep networks</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>ReLU's simplicity and effectiveness made deep learning's resurgence possible!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Which activation function property is most important for training very deep networks?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Having a bounded output range",
+                                "correct": false,
+                                "explanation": "Bounded outputs can actually cause gradient vanishing in deep networks."
+                            },
+                            {
+                                "text": "Being zero-centered",
+                                "correct": false,
+                                "explanation": "While helpful, this is not the most critical property for deep networks."
+                            },
+                            {
+                                "text": "Avoiding gradient vanishing for active neurons",
+                                "correct": true,
+                                "explanation": "Correct! ReLUs success comes from maintaining gradient flow through active neurons, enabling training of much deeper networks."
+                            },
+                            {
+                                "text": "Having continuous derivatives everywhere",
+                                "correct": false,
+                                "explanation": "ReLU is not differentiable at 0, yet it works excellently in practice."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 5: Summary and Exercises -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Summary: Key Takeaways</h2>
+                    <div class="summary-grid" style="font-size: 0.5em;">
+                        <div class="fragment">
+                            <h4>🎯 Core Concepts</h4>
+                            <ul>
+                                <li>MLPs: Multiple layers with nonlinear activations</li>
+                                <li>Hidden layers learn hierarchical representations</li>
+                                <li>Without activations, deep = shallow</li>
+                            </ul>
+                        </div>
+                        <div class="fragment">
+                            <h4>🧮 Mathematics</h4>
+                            <ul>
+                                <li>Forward pass: $\mathbf{H} = \sigma(\mathbf{XW} + \mathbf{b})$</li>
+                                <li>Universal approximation theorem</li>
+                                <li>Gradient flow through activations</li>
+                            </ul>
+                        </div>
+                        <div class="fragment">
+                            <h4>⚡ Activation Functions</h4>
+                            <ul>
+                                <li>ReLU: Simple, effective, sparse</li>
+                                <li>Sigmoid/Tanh: Smooth but gradient issues</li>
+                                <li>Modern: GELU, Swish for better performance</li>
+                            </ul>
+                        </div>
+                        <div class="fragment">
+                            <h4>💡 Practical Insights</h4>
+                            <ul>
+                                <li>Depth > Width for efficiency</li>
+                                <li>ReLU revolutionized deep learning</li>
+                                <li>Automatic differentiation handles gradients</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Your Knowledge in 1990 vs Today</h2>
+                    <div class="two-column" style="font-size: 0.5em;">
+                        <div class="column">
+                            <h4>1990s Practitioner</h4>
+                            <ul class="fragment">
+                                <li>Coded layers in C/Fortran</li>
+                                <li>Computed derivatives by hand</li>
+                                <li>Limited to shallow networks</li>
+                                <li>Sigmoid/Tanh only</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>You Today</h4>
+                            <ul class="fragment">
+                                <li>High-level frameworks (PyTorch)</li>
+                                <li>Automatic differentiation</li>
+                                <li>100+ layer networks</li>
+                                <li>ReLU and modern activations</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>You now understand the foundations that power modern AI!</p>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section 6: Implementation from Scratch (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Dive into Deep Learning - MLP Implementation", "url": "https://d2l.ai/chapter_multilayer-perceptrons/mlp-implementation.html"}]'>
+                    <h2 class="truncate-title">Implementation from Scratch</h2>
+                    <p>Building an MLP with pure PyTorch tensors</p>
+                    <div class="fragment">
+                        <h4>What We'll Build</h4>
+                        <ul>
+                            <li>Fashion-MNIST classifier</li>
+                            <li>784 inputs (28×28 images)</li>
+                            <li>256 hidden units</li>
+                            <li>10 output classes</li>
+                        </ul>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>Understanding the low-level implementation helps you debug and optimize</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Architecture Overview</h2>
+                    <div class="network-architecture">
+                        <div id="mlp-architecture-viz" style="width: 100%; height: 400px;"></div>
+                    </div>
+                    <div class="fragment">
+                        <h4>Network Dimensions</h4>
+                        <div class="two-column">
+                            <div class="column">
+                                <ul style="font-size: 0.4em;">
+                                    <li><strong>Input:</strong> $\mathbf{X} \in \mathbb{R}^{n \times 784}$ (flattened images)</li>
+                                    <li><strong>Hidden weights:</strong> $\mathbf{W}^{(1)} \in \mathbb{R}^{784 \times 256}$</li>
+                                    <li><strong>Hidden bias:</strong> $\mathbf{b}^{(1)} \in \mathbb{R}^{256}$</li>
+                                </ul>
+                            </div>
+                            <div class="column">
+                                <ul style="font-size: 0.4em;">
+                                    <li><strong>Output weights:</strong> $\mathbf{W}^{(2)} \in \mathbb{R}^{256 \times 10}$</li>
+                                    <li><strong>Output bias:</strong> $\mathbf{b}^{(2)} \in \mathbb{R}^{10}$</li>
+                                    <li><strong>Total parameters:</strong> 784×256 + 256 + 256×10 + 10 = <strong>203,530</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Initializing Model Parameters</h2>
+                    <p>Setting up weights and biases with proper initialization</p>
+                    <div class="fragment">
+                        <pre><code class="python">import torch
+from torch import nn
+from d2l import torch as d2l
+
+class MLPScratch(d2l.Classifier):
+    def __init__(self, num_inputs, num_outputs, num_hiddens, lr, sigma=0.01):
+        super().__init__()
+        self.save_hyperparameters()
+        
+        # Initialize weights with small random values
+        self.W1 = nn.Parameter(torch.randn(num_inputs, num_hiddens) * sigma)
+        self.b1 = nn.Parameter(torch.zeros(num_hiddens))
+        self.W2 = nn.Parameter(torch.randn(num_hiddens, num_outputs) * sigma)
+        self.b2 = nn.Parameter(torch.zeros(num_outputs))</code></pre>
+                    </div>
+                    <div class="fragment">
+                        <h4>Key Points</h4>
+                        <ul style="font-size: 0.5em;">
+                            <li><span class="tooltip">nn.Parameter<span class="tooltiptext">Wraps tensors to mark them as model parameters for automatic gradient tracking</span></span> for automatic gradient tracking</li>
+                            <li>Weights initialized with small random values (σ = 0.01)</li>
+                            <li>Biases initialized to zero</li>
+                            <li>Layer widths often powers of 2 for hardware efficiency</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">ReLU Implementation and Forward Pass</h2>
+                    <div class="fragment">
+                        <h4>Custom ReLU Function</h4>
+                        <pre><code class="python">def relu(X):
+    a = torch.zeros_like(X)
+    return torch.max(X, a)</code></pre>
+                    </div>
+                    <div class="fragment">
+                        <h4>Forward Propagation</h4>
+                        <pre><code class="python">@d2l.add_to_class(MLPScratch)
+def forward(self, X):
+    X = X.reshape((-1, self.num_inputs))  # Flatten images
+    H = relu(torch.matmul(X, self.W1) + self.b1)  # Hidden layer
+    return torch.matmul(H, self.W2) + self.b2  # Output layer</code></pre>
+                    </div>
+                    <div class="fragment">
+                        <h4>Mathematical Flow</h4>
+                        $$\begin{aligned}
+                        \mathbf{X}_{\text{flat}} &= \text{reshape}(\mathbf{X}, [-1, 784])\\
+                        \mathbf{H} &= \text{ReLU}(\mathbf{X}_{\text{flat}} \mathbf{W}^{(1)} + \mathbf{b}^{(1)})\\
+                        \mathbf{O} &= \mathbf{H}\mathbf{W}^{(2)} + \mathbf{b}^{(2)}
+                        \end{aligned}$$
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Forward Propagation</h2>
+                    <p>Visualize data flowing through the network</p>
+                    <div class="forward-prop-demo">
+                        <div id="forward-prop-viz" style="width: 100%; height: 350px;"></div>
+                        <div class="demo-controls mt-md" style="display: flex; align-items: center; justify-content: center; gap: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100; position: relative;">
+                            <button id="fp-start" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Start Animation</button>
+                            <button id="fp-reset" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Reset</button>
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Speed: 
+                                <input type="range" id="fp-speed" min="0.5" max="3" step="0.5" value="1" style="width: 100px;">
+                                <span id="fp-speed-value" style="font-family: monospace;">1x</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p style="font-size: 0.7em;">Watch how input values propagate through weights and activations</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Training the Network</h2>
+                    <p>Using the same training loop as softmax regression</p>
+                    <div class="fragment">
+                        <pre><code class="python"># Create model with Fashion-MNIST dimensions
+model = MLPScratch(num_inputs=784, num_outputs=10, 
+                   num_hiddens=256, lr=0.1)
+
+# Load Fashion-MNIST dataset
+data = d2l.FashionMNIST(batch_size=256)
+
+# Create trainer and start training
+trainer = d2l.Trainer(max_epochs=10)
+trainer.fit(model, data)</code></pre>
+                    </div>
+                    <div class="fragment">
+                        <h4>Training Process</h4>
+                        <ul style="font-size: 0.7em;">
+                            <li>Forward pass computes predictions</li>
+                            <li>Loss function measures error (cross-entropy)</li>
+                            <li>Backward pass computes gradients via autograd</li>
+                            <li>SGD updates parameters: $\mathbf{w} \leftarrow \mathbf{w} - \eta \nabla_\mathbf{w} L$</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why do we reshape the input X to (-1, num_inputs) in the forward pass?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To make the computation faster",
+                                "correct": false,
+                                "explanation": "Reshaping does not inherently speed up computation; it is about tensor dimensions."
+                            },
+                            {
+                                "text": "To flatten the 2D images into 1D vectors for the fully connected layer",
+                                "correct": true,
+                                "explanation": "Correct! The MLP expects 1D input vectors, so we flatten the 28×28 images into 784-dimensional vectors."
+                            },
+                            {
+                                "text": "To increase the batch size",
+                                "correct": false,
+                                "explanation": "The -1 preserves the batch size; it only flattens the other dimensions."
+                            },
+                            {
+                                "text": "To apply the ReLU activation",
+                                "correct": false,
+                                "explanation": "ReLU can be applied to tensors of any shape; reshaping is for the linear transformation."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 7: Concise Implementation (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Concise Implementation with PyTorch</h2>
+                    <p>Leveraging high-level APIs for cleaner code</p>
+                    <div class="fragment">
+                        <h4>Benefits of High-Level APIs</h4>
+                        <ul>
+                            <li>Less boilerplate code</li>
+                            <li>Built-in optimizations</li>
+                            <li>Better maintainability</li>
+                            <li>Framework handles parameter management</li>
+                        </ul>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>Same functionality, fraction of the code!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Using nn.Sequential</h2>
+                    <p>Building networks as a sequence of layers</p>
+                    <div class="fragment">
+                        <pre><code class="python">class MLP(d2l.Classifier):
+    def __init__(self, num_outputs, num_hiddens, lr):
+        super().__init__()
+        self.save_hyperparameters()
+        self.net = nn.Sequential(
+            nn.Flatten(),                  # Reshape input
+            nn.LazyLinear(num_hiddens),    # Hidden layer (size inferred)
+            nn.ReLU(),                      # Activation
+            nn.LazyLinear(num_outputs)     # Output layer
+        )</code></pre>
+                    </div>
+                    <div class="fragment">
+                        <h4>Key Components</h4>
+                        <ul style="font-size: 0.9em;">
+                            <li><strong>nn.Flatten():</strong> Automatically reshapes inputs</li>
+                            <li><strong>nn.LazyLinear:</strong> Infers input dimensions on first use</li>
+                            <li><strong>nn.ReLU():</strong> Built-in activation function</li>
+                            <li><strong>nn.Sequential:</strong> Chains operations together</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Code Comparison: Scratch vs Concise</h2>
+                    <div class="two-column" style="font-size: 0.8em;">
+                        <div class="column">
+                            <h4>From Scratch</h4>
+                            <pre><code class="python">class MLPScratch(d2l.Classifier):
+    def __init__(self, num_inputs, 
+                 num_outputs, num_hiddens, 
+                 lr, sigma=0.01):
+        super().__init__()
+        self.save_hyperparameters()
+        self.W1 = nn.Parameter(
+            torch.randn(num_inputs, 
+                       num_hiddens) * sigma)
+        self.b1 = nn.Parameter(
+            torch.zeros(num_hiddens))
+        self.W2 = nn.Parameter(
+            torch.randn(num_hiddens, 
+                       num_outputs) * sigma)
+        self.b2 = nn.Parameter(
+            torch.zeros(num_outputs))
+    
+    def forward(self, X):
+        X = X.reshape((-1, self.num_inputs))
+        H = relu(torch.matmul(X, self.W1) 
+                + self.b1)
+        return torch.matmul(H, self.W2) + self.b2</code></pre>
+                        </div>
+                        <div class="column">
+                            <h4>High-Level API</h4>
+                            <pre><code class="python">class MLP(d2l.Classifier):
+    def __init__(self, num_outputs, 
+                 num_hiddens, lr):
+        super().__init__()
+        self.save_hyperparameters()
+        self.net = nn.Sequential(
+            nn.Flatten(),
+            nn.LazyLinear(num_hiddens),
+            nn.ReLU(),
+            nn.LazyLinear(num_outputs)
+        )
+    
+    # forward() inherited from Module
+    # Just calls self.net(X)</code></pre>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>High-level API: 8 lines vs 20+ lines, same functionality!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Understanding the Module Class</h2>
+                    <p>How PyTorch's nn.Module handles the forward pass</p>
+                    <div class="fragment">
+                        <div class="two-column" style="font-size: 0.85em;">
+                            <div class="column">
+                                <h4>The Sequential Pipeline</h4>
+                                <pre><code class="python"># What happens internally when you call model(X):
+def forward(self, X):
+    # Sequential automatically chains operations
+    X = self.net[0](X)  # nn.Flatten()
+    X = self.net[1](X)  # nn.LazyLinear(256)
+    X = self.net[2](X)  # nn.ReLU()
+    X = self.net[3](X)  # nn.LazyLinear(10)
+    return X</code></pre>
+                            </div>
+                            <div class="column">
+                                <h4>Benefits of nn.Sequential</h4>
+                                <ul style="font-size: 0.8em;">
+                                    <li>Automatic parameter registration</li>
+                                    <li>Clean, readable architecture definition</li>
+                                    <li>Easy to modify (add/remove layers)</li>
+                                    <li>Built-in gradient flow management</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>Sequential abstracts the forward process, letting you focus on architecture</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Training with High-Level APIs</h2>
+                    <p>Identical training process, cleaner implementation</p>
+                    <div class="fragment">
+                        <pre><code class="python"># Create model - note we don't specify num_inputs!
+model = MLP(num_outputs=10, num_hiddens=256, lr=0.1)
+
+# Same training loop as before
+trainer.fit(model, data)</code></pre>
+                    </div>
+                    <div class="fragment">
+                        <div class="two-column" style="font-size: 0.8em;">
+                            <div class="column">
+                                <h4>LazyLinear Magic</h4>
+                                <p>First forward pass with actual data:</p>
+                                <ul>
+                                    <li>LazyLinear sees input shape</li>
+                                    <li>Automatically creates weight matrix with correct dimensions</li>
+                                    <li>No need to specify input size explicitly!</li>
+                                </ul>
+                            </div>
+                            <div class="column">
+                                <h4>Performance</h4>
+                                <ul>
+                                    <li>Framework optimizations may improve speed</li>
+                                    <li>Same convergence behavior</li>
+                                    <li>Identical accuracy achieved</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">When to Use Each Approach</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <h4>Use From Scratch When:</h4>
+                            <ul style="font-size: 0.75em;" class="fragment">
+                                <li>Learning/teaching fundamentals</li>
+                                <li>Implementing novel architectures</li>
+                                <li>Need fine-grained control</li>
+                                <li>Debugging specific behaviors</li>
+                                <li>Research on new layer types</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>Use High-Level APIs When:</h4>
+                            <ul style="font-size: 0.75em;" class="fragment">
+                                <li>Building production models</li>
+                                <li>Using standard architectures</li>
+                                <li>Rapid prototyping</li>
+                                <li>Want framework optimizations</li>
+                                <li>Code maintainability matters</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>Modern practitioners use both - understand scratch, implement with APIs</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the main advantage of nn.LazyLinear over regular nn.Linear?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It runs faster during training",
+                                "correct": false,
+                                "explanation": "LazyLinear has similar performance to Linear; the difference is in initialization."
+                            },
+                            {
+                                "text": "It automatically infers input dimensions from the first forward pass",
+                                "correct": true,
+                                "explanation": "Correct! LazyLinear delays weight creation until it sees actual data, automatically inferring the input dimension."
+                            },
+                            {
+                                "text": "It uses less memory",
+                                "correct": false,
+                                "explanation": "Once initialized, LazyLinear uses the same amount of memory as regular Linear."
+                            },
+                            {
+                                "text": "It prevents overfitting",
+                                "correct": false,
+                                "explanation": "LazyLinear is just a convenience feature for initialization; it does not affect overfitting."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 8: Forward Propagation (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Dive into Deep Learning - Backpropagation", "url": "https://d2l.ai/chapter_multilayer-perceptrons/backprop.html"}]'>
+                    <h2 class="truncate-title">Forward Propagation: Computing Network Output</h2>
+                    <p>How neural networks process input to produce output</p>
+                    <div class="fragment two-column">
+                        <div class="column">
+                            <h4>What is Forward Propagation?</h4>
+                            <p style="font-size: 0.75em;"><strong>Forward propagation</strong> (or forward pass) refers to the calculation and storage of intermediate variables for a neural network from input to output layer.</p>
+                        </div>
+                        <div class="column">
+                            <h4>Why It Matters</h4>
+                            <ul style="font-size: 0.75em;">
+                                <li>Computes network predictions</li>
+                                <li>Stores intermediate values for backpropagation</li>
+                                <li>Determines memory requirements</li>
+                                <li>Foundation of neural network inference</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>"You must pay the cost to be the boss" - James Brown</p>
+                        <p style="font-size: 0.9em;">Understanding the mechanics is essential for mastery!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Mathematical Framework: Layer-by-Layer</h2>
+                    <p>One-hidden-layer MLP with L2 regularization</p>
+                    <div class="fragment two-column">
+                        <div class="column">
+                            <h4>Network Setup</h4>
+                            <ul style="font-size: 0.9em;">
+                                <li>Input: $\mathbf{x} \in \mathbb{R}^d$ (no bias for simplicity)</li>
+                                <li>Hidden weights: $\mathbf{W}^{(1)} \in \mathbb{R}^{h \times d}$</li>
+                                <li>Output weights: $\mathbf{W}^{(2)} \in \mathbb{R}^{q \times h}$</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>Forward Pass Equations</h4>
+                            <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; font-size: 0.75em; text-align: left;">
+                                <p><strong>1. Hidden layer pre-activation:</strong></p>
+                                <p>$$\mathbf{z} = \mathbf{W}^{(1)} \mathbf{x}$$</p>
+                                
+                                <p><strong>2. Hidden layer activation:</strong></p>
+                                <p>$$\mathbf{h} = \phi(\mathbf{z})$$</p>
+                                
+                                <p><strong>3. Output layer:</strong></p>
+                                <p>$$\mathbf{o} = \mathbf{W}^{(2)} \mathbf{h}$$</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Loss and Regularization</h2>
+                    <p>Computing the objective function</p>
+                    <div class="two-column">
+                        <div class="fragment column" style="font-size: 0.75em;">
+                            <h4>Loss Computation</h4>
+                            <p>For a single example with label $y$:</p>
+                            <p>$$L = l(\mathbf{o}, y)$$</p>
+                            <p style="font-size: 0.9em;">where $l$ is the loss function (e.g., cross-entropy)</p>
+                        </div>
+                        <div class="fragment column" style="font-size: 0.75em;">
+                            <h4>L2 Regularization Term</h4>
+                            <p>Given hyperparameter $\lambda$:</p>
+                            <p>$$s = \frac{\lambda}{2} \left(\|\mathbf{W}^{(1)}\|_\textrm{F}^2 + \|\mathbf{W}^{(2)}\|_\textrm{F}^2\right)$$</p>
+                            <p style="font-size: 0.9em;">where $\|\cdot\|_\textrm{F}$ is the <span class="tooltip">Frobenius norm<span class="tooltiptext">The L2 norm of a matrix when flattened into a vector: $\sqrt{\sum_{i,j} w_{ij}^2}$</span></span></p>
+                        </div>
+                    </div>
+                    <div class="fragment mt-md">
+                        <h4>Final Objective Function</h4>
+                        <div class="emphasis-box">
+                            <p>$$J = L + s$$</p>
+                            <p>Combines data fit (L) with model complexity penalty (s)</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Computational Graph Visualization</h2>
+                    <p>Visualizing dependencies in forward propagation</p>
+                    <div class="fragment">
+                        <div id="computational-graph-container" style="width: 100%; height: 400px; position: relative;">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="fragment mt-md">
+                        <h4>Graph Elements</h4>
+                        <div class="two-column" style="font-size: 0.7em;">
+                            <div class="column">
+                                <ul>
+                                    <li><strong>Squares:</strong> Variables (data)</li>
+                                    <li><strong>Circles:</strong> Operations (functions)</li>
+                                </ul>
+                            </div>
+                            <div class="column">
+                                <ul>
+                                    <li><strong>Arrows:</strong> Data flow direction</li>
+                                    <li><strong>Flow:</strong> Left-to-right, bottom-to-top</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "Dive into Deep Learning - Figure 5.7.1", "url": "https://d2l.ai/chapter_multilayer-perceptrons/backprop.html#computational-graph-of-forward-propagation"}]'>
+                    <h2 class="truncate-title">Standard Computational Graph Notation</h2>
+                    <p>The computational graph from the textbook</p>
+                    <div class="fragment">
+                        <img src="images/forward-graph.svg" alt="Forward Propagation Computational Graph" style="width: 80%; max-width: 600px; margin: 20px auto; display: block; background: white; padding: 20px; border-radius: 5px;">
+                    </div>
+                    <div class="fragment mt-md">
+                        <h4>Reading the Graph</h4>
+                        <ul style="font-size: 0.9em;">
+                            <li>Input $\mathbf{x}$ flows from lower-left</li>
+                            <li>Parameters $\mathbf{W}^{(1)}$, $\mathbf{W}^{(2)}$ enter from left</li>
+                            <li>Operations transform data rightward and upward</li>
+                            <li>Final objective $J$ emerges at upper-right</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Forward Propagation</h2>
+                    <p>Watch data flow through the network</p>
+                    <div class="forward-prop-full-demo">
+                        <div id="forward-prop-full-viz" style="width: 100%; height: 350px;"></div>
+                        <div class="demo-controls mt-md" style="display: flex; align-items: center; justify-content: center; gap: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100; position: relative;">
+                            <button id="fp-full-start" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Start Forward Pass</button>
+                            <button id="fp-full-step" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Step Through</button>
+                            <button id="fp-full-reset" style="background: #FC8484; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Reset</button>
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Speed: 
+                                <input type="range" id="fp-full-speed" min="0.5" max="3" step="0.5" value="1" style="width: 100px;">
+                                <span id="fp-full-speed-value" style="font-family: monospace;">1x</span>
+                            </label>
+                        </div>
+                        <div class="mt-md" style="background: #f5f5f5; padding: 10px; border-radius: 5px;">
+                            <p id="fp-full-status" style="font-family: monospace; margin: 0;">Ready to start forward propagation...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the primary purpose of storing intermediate variables during forward propagation?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To make the computation faster",
+                                "correct": false,
+                                "explanation": "Storing values actually uses more memory; the purpose is not speed but enabling backpropagation."
+                            },
+                            {
+                                "text": "To avoid recomputing them during backpropagation",
+                                "correct": true,
+                                "explanation": "Correct! We store intermediate values like h and z during forward pass so we can use them to compute gradients efficiently during backpropagation."
+                            },
+                            {
+                                "text": "To reduce the number of parameters",
+                                "correct": false,
+                                "explanation": "Storing intermediate variables does not affect the number of model parameters."
+                            },
+                            {
+                                "text": "To improve model accuracy",
+                                "correct": false,
+                                "explanation": "Storing intermediate values is a computational necessity, not a technique for improving accuracy."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 9: Backward Propagation (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Backpropagation: Computing Gradients</h2>
+                    <p>The algorithm that makes deep learning possible</p>
+                    <div class="two-column">
+                        <div class="column fragment" style="font-size: 0.5em;">
+                            <h4>What is Backpropagation?</h4>
+                            <p><strong>Backpropagation</strong> calculates gradients of the loss with respect to parameters by traversing the network in reverse order using the chain rule.</p>
+                        </div>
+                        <div class="column fragment" style="font-size: 0.5em;">
+                            <h4>Historical Impact</h4>
+                            <ul>
+                                <li>Before: Derivatives calculated by hand</li>
+                                <li>Papers devoted pages to update rules</li>
+                                <li>Small model changes → recalculate everything</li>
+                                <li>Now: Automatic differentiation handles it all!</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>Backpropagation + automatic differentiation = Deep Learning Revolution</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Chain Rule: Mathematical Foundation</h2>
+                    <p>How gradients flow through compositions</p>
+                    <div class="fragment" style="font-size: 0.7em;">
+                        <h4>Chain Rule for Tensors</h4>
+                        <p>For functions $\mathsf{Y} = f(\mathsf{X})$ and $\mathsf{Z} = g(\mathsf{Y})$:</p>
+                        <p>$$\frac{\partial \mathsf{Z}}{\partial \mathsf{X}} = \textrm{prod}\left(\frac{\partial \mathsf{Z}}{\partial \mathsf{Y}}, \frac{\partial \mathsf{Y}}{\partial \mathsf{X}}\right)$$</p>
+                        <p style="font-size: 0.9em;">The $\textrm{prod}$ operator handles matrix multiplication and necessary transposes</p>
+                    </div>
+                    <div class="fragment mt-md" style="font-size: 0.7em;">
+                        <h4>Our goal is to calculate the gradients</h4>
+                        <ul>
+                            <li>$\frac{\partial J}{\partial \mathbf{W}^{(1)}}$ - gradient for hidden layer weights</li>
+                            <li>$\frac{\partial J}{\partial \mathbf{W}^{(2)}}$ - gradient for output layer weights</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Step-by-Step Gradient Calculation</h2>
+                    <p>Working backwards from output to input</p>
+                    <div class="fragment" style="font-size: 0.8em; margin-bottom: 15px;">
+                        <p><strong>Notation:</strong> 
+                            <span class="tooltip">J<span class="tooltiptext">Total objective function: J = L + s (loss + regularization)</span></span> = total objective, 
+                            <span class="tooltip">L<span class="tooltiptext">Loss function measuring prediction error (e.g., cross-entropy)</span></span> = loss function, 
+                            <span class="tooltip">s<span class="tooltiptext">Regularization term: s = λ/2(||W¹||² + ||W²||²) to prevent overfitting</span></span> = regularization term
+                        </p>
+                    </div>
+                    <div class="gradient-steps" style="font-size: 0.7em; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px;">
+                        <div class="fragment">
+                            <h4>Step 1: Gradient of J w.r.t. loss components</h4>
+                            <p>$$\frac{\partial J}{\partial L} = 1 \quad \text{and} \quad \frac{\partial J}{\partial s} = 1$$</p>
+                        </div>
+                        <div class="fragment">
+                            <h4>Step 2: Gradient w.r.t. output</h4>
+                            <p>$$\frac{\partial J}{\partial \mathbf{o}} = \frac{\partial L}{\partial \mathbf{o}} \in \mathbb{R}^q$$</p>
+                        </div>
+                        <div class="fragment">
+                            <h4>Step 3: Gradient of regularization</h4>
+                            <p>$$\frac{\partial s}{\partial \mathbf{W}^{(1)}} = \lambda \mathbf{W}^{(1)}, \quad \frac{\partial s}{\partial \mathbf{W}^{(2)}} = \lambda \mathbf{W}^{(2)}$$</p>
+                        </div>
+                        <div class="fragment">
+                            <h4>Step 4: <span class="tooltip">Gradient w.r.t. $\mathbf{W}^{(2)}$<span class="tooltiptext">Since $\mathbf{o} = \mathbf{h}\mathbf{W}^{(2)} + \mathbf{b}^{(2)}$, we have $\frac{\partial \mathbf{o}}{\partial \mathbf{W}^{(2)}} = \mathbf{h}^\top$. By chain rule: $\frac{\partial J}{\partial \mathbf{W}^{(2)}} = \frac{\partial J}{\partial \mathbf{o}} \frac{\partial \mathbf{o}}{\partial \mathbf{W}^{(2)}} + \frac{\partial s}{\partial \mathbf{W}^{(2)}} = \frac{\partial J}{\partial \mathbf{o}} \mathbf{h}^\top + \lambda \mathbf{W}^{(2)}$</span></span></h4>
+                            <p style="background: #e8f4ff; padding: 10px; border-radius: 5px;">
+                                $$\frac{\partial J}{\partial \mathbf{W}^{(2)}} = \frac{\partial J}{\partial \mathbf{o}} \mathbf{h}^\top + \lambda \mathbf{W}^{(2)}$$
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Backpropagating Through Hidden Layer</h2>
+                    <div class="gradient-steps" style="font-size: 0.7em; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px;">
+                        <div class="fragment">
+                            <h4>Step 5: <span class="tooltip">Gradient w.r.t. hidden output<span class="tooltiptext">Since $\mathbf{o} = \mathbf{h}\mathbf{W}^{(2)} + \mathbf{b}^{(2)}$, by chain rule: $\frac{\partial J}{\partial \mathbf{h}} = \frac{\partial J}{\partial \mathbf{o}} \frac{\partial \mathbf{o}}{\partial \mathbf{h}} = \frac{\partial J}{\partial \mathbf{o}} {\mathbf{W}^{(2)}}^\top$. This propagates the output gradient back to the hidden layer.</span></span></h4>
+                            <p>$$\frac{\partial J}{\partial \mathbf{h}} = {\mathbf{W}^{(2)}}^\top \frac{\partial J}{\partial \mathbf{o}}$$</p>
+                        </div>
+                        <div class="fragment">
+                            <h4>Step 6: <span class="tooltip">Through activation function<span class="tooltiptext">Since $\mathbf{h} = \phi(\mathbf{z})$ where $\phi$ is applied element-wise, we have $\frac{\partial \mathbf{h}}{\partial \mathbf{z}} = \text{diag}(\phi'(\mathbf{z}))$. The gradient becomes: $\frac{\partial J}{\partial \mathbf{z}} = \frac{\partial J}{\partial \mathbf{h}} \odot \phi'(\mathbf{z})$ using element-wise multiplication.</span></span></h4>
+                            <p>Using element-wise multiplication $\odot$:</p>
+                            <p>$$\frac{\partial J}{\partial \mathbf{z}} = \frac{\partial J}{\partial \mathbf{h}} \odot \phi'(\mathbf{z})$$</p>
+                        </div>
+                        <div class="fragment">
+                            <h4>Step 7: <span class="tooltip">Final gradient w.r.t. $\mathbf{W}^{(1)}$<span class="tooltiptext">Since $\mathbf{z} = \mathbf{x}\mathbf{W}^{(1)} + \mathbf{b}^{(1)}$, we have $\frac{\partial \mathbf{z}}{\partial \mathbf{W}^{(1)}} = \mathbf{x}^\top$. By chain rule: $\frac{\partial J}{\partial \mathbf{W}^{(1)}} = \frac{\partial J}{\partial \mathbf{z}} \frac{\partial \mathbf{z}}{\partial \mathbf{W}^{(1)}} + \frac{\partial s}{\partial \mathbf{W}^{(1)}} = \frac{\partial J}{\partial \mathbf{z}} \mathbf{x}^\top + \lambda \mathbf{W}^{(1)}$</span></span></h4>
+                            <p style="background: #e8f4ff; padding: 10px; border-radius: 5px;">
+                                $$\frac{\partial J}{\partial \mathbf{W}^{(1)}} = \frac{\partial J}{\partial \mathbf{z}} \mathbf{x}^\top + \lambda \mathbf{W}^{(1)}$$</p>
+                        </div>
+                        <div class="fragment">
+                            <h4><span class="tooltip">Complete Gradient Flow<span class="tooltiptext">The complete backpropagation chain: $\frac{\partial J}{\partial \mathbf{W}^{(1)}} = \frac{\partial J}{\partial \mathbf{o}} \frac{\partial \mathbf{o}}{\partial \mathbf{h}} \frac{\partial \mathbf{h}}{\partial \mathbf{z}} \frac{\partial \mathbf{z}}{\partial \mathbf{W}^{(1)}} + \frac{\partial s}{\partial \mathbf{W}^{(1)}}$. Each step uses values computed during the forward pass, making backpropagation efficient.</span></span></h4>
+                            <p style="font-size: 0.9em;">The gradient flows backward through:</p>
+                            <p style="font-size: 0.85em;">Output → Hidden → Activation → Weights</p>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-md" style="font-size: 0.7em;">
+                        <p>Notice: Each gradient uses values computed during forward pass! And $\phi'$ is the derivative of the activation function</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Backpropagation Visualization</h2>
+                    <p>Watch gradients flow backward through the network</p>
+                    <div class="backprop-demo">
+                        <div id="backprop-viz" style="width: 100%; height: 350px;"></div>
+                        <div class="demo-controls mt-md" style="display: flex; align-items: center; justify-content: center; gap: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100; position: relative;">
+                            <button id="bp-start" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Start Backprop</button>
+                            <button id="bp-step" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Step Through</button>
+                            <button id="bp-reset" style="background: #FC8484; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Reset</button>
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Show Math: 
+                                <input type="checkbox" id="bp-show-math" checked>
+                            </label>
+                        </div>
+                        <div class="mt-md" style="background: #f5f5f5; padding: 10px; border-radius: 5px;">
+                            <p id="bp-status" style="font-family: monospace; margin: 0;">Ready to start backpropagation...</p>
+                            <div id="bp-equation" style="margin-top: 10px; display: none;">
+                                <!-- Equations will be shown here during animation -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Gradient Vanishing and Exploding</h2>
+                    <p>Common challenges in deep networks</p>
+                    <div class="fragment" style="font-size:0.7em;">
+                        <h4>The Problem</h4>
+                        <p>As gradients flow through many layers:</p>
+                        <ul>
+                            <li><strong>Vanishing:</strong> Gradients become too small (→0)</li>
+                            <li><strong>Exploding:</strong> Gradients become too large (→∞)</li>
+                        </ul>
+                    </div>
+                    <div class="fragment mt-md" style="font-size:0.7em">
+                        <h4>Why It Happens</h4>
+                        <div class="two-column">
+                            <div class="column">
+                                <h5>Sigmoid/Tanh</h5>
+                                <ul style="font-size: 0.85em;">
+                                    <li>Max derivative: 0.25 (sigmoid)</li>
+                                    <li>Many layers: $0.25^n$ → 0</li>
+                                    <li>Deep layers stop learning</li>
+                                </ul>
+                            </div>
+                            <div class="column">
+                                <h5>Poor Initialization</h5>
+                                <ul style="font-size: 0.85em;">
+                                    <li>Large weights → exploding</li>
+                                    <li>Small weights → vanishing</li>
+                                    <li>Need careful initialization</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-md" style="font-size:0.7em">
+                        <p>Solution: ReLU + proper initialization + normalization techniques</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why does backpropagation traverse the network in reverse order?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It is computationally faster this way",
+                                "correct": false,
+                                "explanation": "The reverse order is not about speed but about the mathematical requirement of the chain rule."
+                            },
+                            {
+                                "text": "The chain rule requires computing gradients from output to input",
+                                "correct": true,
+                                "explanation": "Correct! The chain rule computes gradients by multiplying local gradients, which naturally flows from the loss (output) back to the parameters (input direction)."
+                            },
+                            {
+                                "text": "To save memory",
+                                "correct": false,
+                                "explanation": "Backpropagation actually requires storing intermediate values, using more memory."
+                            },
+                            {
+                                "text": "To avoid numerical instability",
+                                "correct": false,
+                                "explanation": "While numerical stability is important, it is not the reason for the reverse traversal."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 10: Training Neural Networks (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Training Neural Networks: The Complete Picture</h2>
+                    <p>Bringing forward and backward propagation together</p>
+                    <div class="fragment">
+                        <h4>The Training Loop</h4>
+                        <ol>
+                            <li><strong>Initialize:</strong> Set random weights</li>
+                            <li><strong>Forward:</strong> Compute predictions</li>
+                            <li><strong>Loss:</strong> Measure error</li>
+                            <li><strong>Backward:</strong> Compute gradients</li>
+                            <li><strong>Update:</strong> Adjust parameters</li>
+                            <li><strong>Repeat:</strong> Until convergence</li>
+                        </ol>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>Forward and backward propagation are interdependent!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Forward-Backward Dependencies</h2>
+                    <p>Why they need each other</p>
+                    <div class="two-column" style="font-size:0.7em">
+                        <div class="column">
+                            <h4>Forward Needs Backward</h4>
+                            <ul class="fragment" style="font-size: 0.9em;">
+                                <li>Parameters from previous update</li>
+                                <li>Weights adjusted by gradients</li>
+                                <li>Learning from past errors</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>Backward Needs Forward</h4>
+                            <ul class="fragment" style="font-size: 0.9em;">
+                                <li>Hidden layer outputs ($\mathbf{h}$)</li>
+                                <li>Pre-activation values ($\mathbf{z}$)</li>
+                                <li>Loss value to differentiate</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Memory Requirements: The Hidden Cost</h2>
+                    <p>Why training needs more memory than inference</p>
+                    <div class="two-column" style="font-size: 0.7em;">
+                        <div class="column fragment">
+                            <h4>During Inference (Forward Only)</h4>
+                            <ul>
+                                <li>Store only current layer's output</li>
+                                <li>Overwrite previous activations</li>
+                                <li>Memory: O(largest layer)</li>
+                            </ul>
+                        </div>
+                        <div class="column fragment">
+                            <h4>During Training (Forward + Backward)</h4>
+                            <ul>
+                                <li>Store ALL intermediate values</li>
+                                <li>Keep $\mathbf{z}$, $\mathbf{h}$, $\mathbf{o}$ for all layers</li>
+                                <li>Memory: O(network depth × batch size)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment mt-md">
+                        <div class="emphasis-box">
+                            <p><strong>Example:</strong> ResNet-50 with batch size 32</p>
+                            <ul style="font-size: 0.9em; text-align: left;">
+                                <li>Inference: ~200 MB</li>
+                                <li>Training: ~5 GB</li>
+                                <li>25× more memory!</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Complete Training Algorithm</h2>
+                    <p>Putting it all together with code</p>
+                    <div class="fragment">
+                        <pre><code class="python">def train_step(model, X, y, learning_rate):
+    # 1. Forward propagation
+    z = model.W1 @ X        # Pre-activation
+    h = relu(z)             # Hidden layer (store for backprop!)
+    o = model.W2 @ h        # Output
+    
+    # 2. Compute loss
+    loss = cross_entropy(o, y)
+    reg = lambda/2 * (||W1||² + ||W2||²)
+    J = loss + reg
+    
+    # 3. Backward propagation  
+    # Gradients use stored values from forward pass!
+    dL_do = grad_cross_entropy(o, y)
+    dJ_dW2 = dL_do @ h.T + lambda * W2
+    
+    dJ_dh = W2.T @ dL_do
+    dJ_dz = dJ_dh * relu_derivative(z)
+    dJ_dW1 = dJ_dz @ X.T + lambda * W1
+    
+    # 4. Parameter update
+    model.W1 -= learning_rate * dJ_dW1
+    model.W2 -= learning_rate * dJ_dW2
+    
+    return J</code></pre>
+                    </div>
+                    <div class="fragment emphasis-box mt-sm" style="font-size:0.7em">
+                        <p>Notice how backward uses h and z computed during forward!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Automatic Differentiation: Modern Approach</h2>
+                    <div class="fragment">
+                        <h4>Manual vs Automatic</h4>
+                        <div class="two-column" style="font-size: 0.85em;">
+                            <div class="column">
+                                <h5>Manual (Old Way)</h5>
+                                <pre><code class="python"># Derive gradients by hand
+# Pages of math...
+dW2 = dL_do @ h.T + lambda * W2
+dW1 = dJ_dz @ X.T + lambda * W1
+# Error-prone!</code></pre>
+                            </div>
+                            <div class="column">
+                                <h5>Automatic (PyTorch)</h5>
+                                <pre><code class="python"># Framework handles it!
+loss.backward()
+# All gradients computed
+# and stored in .grad
+# Error-free!</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fragment mt-md">
+                        <h4>How Autograd Works</h4>
+                        <ul style="font-size: 0.7em;">
+                            <li>Build computational graph during forward pass</li>
+                            <li>Each operation knows its local gradient</li>
+                            <li>Chain rule applied automatically</li>
+                            <li>Gradients accumulated in .grad attributes</li>
+                        </ul>
+                    </div>
+                    <div class="fragment emphasis-box mt-md" style="font-size:0.7em">
+                        <p>You understand the math, the framework does the work!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Optimization Challenges and Solutions</h2>
+                    <p>Common issues when training deep networks</p>
+                    <div class="fragment">
+                        <table style="font-size: 0.8em;">
+                            <thead>
+                                <tr>
+                                    <th>Challenge</th>
+                                    <th>Symptom</th>
+                                    <th>Solution</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="fragment">
+                                    <td><strong>Gradient Vanishing</strong></td>
+                                    <td>Deep layers don't learn</td>
+                                    <td>ReLU, BatchNorm, ResNet</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td><strong>Gradient Exploding</strong></td>
+                                    <td>NaN losses</td>
+                                    <td>Gradient clipping, careful init</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td><strong>Memory Overflow</strong></td>
+                                    <td>Out of memory errors</td>
+                                    <td>Smaller batch, gradient checkpointing</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td><strong>Slow Convergence</strong></td>
+                                    <td>Loss plateaus</td>
+                                    <td>Learning rate scheduling, momentum</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>Modern techniques make training deep networks practical and reliable</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why does training require significantly more memory than inference?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Training uses larger batch sizes",
+                                "correct": false,
+                                "explanation": "While batch size affects memory, this is not the fundamental reason for the difference."
+                            },
+                            {
+                                "text": "Training must store all intermediate activations for backpropagation",
+                                "correct": true,
+                                "explanation": "Correct! During training, we must keep all intermediate values (z, h, o) from the forward pass to compute gradients during backpropagation, while inference can discard them."
+                            },
+                            {
+                                "text": "Training uses more complex models",
+                                "correct": false,
+                                "explanation": "The same model is used for both training and inference."
+                            },
+                            {
+                                "text": "Training requires storing the dataset in memory",
+                                "correct": false,
+                                "explanation": "Datasets are typically loaded in batches, not stored entirely in memory."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section: Numerical Stability and Initialization (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Dive into Deep Learning - Numerical Stability", "url": "https://d2l.ai/chapter_multilayer-perceptrons/numerical-stability-and-init.html"}, {"text": "Understanding the difficulty of training deep feedforward neural networks - Glorot & Bengio", "url": "http://proceedings.mlr.press/v9/glorot10a.html"}]'>
+                    <h2 class="truncate-title">Numerical Stability and Initialization</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <h4>The Challenge</h4>
+                            <ul>
+                                <li class="fragment">Deep networks multiply many gradients</li>
+                                <li class="fragment">Values can vanish (→0) or explode (→∞)</li>
+                                <li class="fragment">Poor initialization amplifies problems</li>
+                                <li class="fragment">Symmetry prevents learning</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>The Solutions</h4>
+                            <ul>
+                                <li class="fragment">Careful weight initialization</li>
+                                <li class="fragment">Proper activation functions</li>
+                                <li class="fragment">Normalization techniques</li>
+                                <li class="fragment">Gradient clipping</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg" style="font-size:0.7em">
+                        <p>Initialization is not a detail - it's crucial for training success!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Vanishing and Exploding Gradients: The Math</h2>
+                    <p>Consider a deep network with L layers</p>
+                    <div class="fragment">
+                        <p>Network computation:</p>
+                        $$\mathbf{h}^{(l)} = f_l(\mathbf{h}^{(l-1)}) \quad \text{and} \quad \mathbf{o} = f_L \circ \cdots \circ f_1(\mathbf{x})$$
+                    </div>
+                    <div class="fragment mt-md">
+                        <p>Gradient with respect to layer l parameters:</p>
+                        $$\color{#10099F}{\partial_{\mathbf{W}^{(l)}} \mathbf{o}} = 
+                        \underbrace{\color{#2DD2C0}{\partial_{\mathbf{h}^{(L-1)}} \mathbf{h}^{(L)}}}_{\text{M}^{(L)}} \cdots 
+                        \underbrace{\color{#2DD2C0}{\partial_{\mathbf{h}^{(l)}} \mathbf{h}^{(l+1)}}}_{\text{M}^{(l+1)}} 
+                        \underbrace{\color{#FC8484}{\partial_{\mathbf{W}^{(l)}} \mathbf{h}^{(l)}}}_{\text{v}^{(l)}}$$
+                    </div>
+                    <div class="fragment emphasis-box mt-md">
+                        <p>Product of L-l matrices! Each can shrink or amplify gradients</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Vanishing Gradients: The Sigmoid Problem</h2>
+                    <p style="font-size:0.7em">Why sigmoid causes vanishing gradients</p>
+                    <div class="fragment">
+                        <pre><code class="python"># Sigmoid and its gradient
+x = torch.arange(-8.0, 8.0, 0.1, requires_grad=True)
+y = torch.sigmoid(x)
+y.backward(torch.ones_like(x))</code></pre>
+                    </div>
+                    <div class="fragment mt-md">
+                        <div id="sigmoid-gradient-viz" style="width: 100%; height: 300px;"></div>
+                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Input x: 
+                                <input type="range" id="sigmoid-x-input" min="-8" max="8" step="0.1" value="0" style="width: 150px;">
+                                <span id="sigmoid-x-value" style="font-family: monospace; width: 50px;">0.0</span>
+                            </label>
+                            <span style="font-family: monospace;">σ(x) = <span id="sigmoid-output">0.500</span></span>
+                            <span style="font-family: monospace;">σ'(x) = <span id="sigmoid-gradient">0.250</span></span>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-md" style="font-size:0.7em">
+                        <p>Maximum gradient is only 0.25! Multiple layers compound the problem</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Exploding Gradients: Matrix Multiplication</h2>
+                    <div class="fragment">
+                        <pre><code class="python"># Multiply 100 random matrices
+M = torch.normal(0, 1, size=(4, 4))
+print('Single matrix:', M)
+for i in range(100):
+    M = M @ torch.normal(0, 1, size=(4, 4))
+print('After 100 multiplications:', M)
+# Values explode to ~10^25!</code></pre>
+                    </div>
+                    <div class="fragment mt-md">
+                        <div id="matrix-explosion-viz" style="width: 100%; height: 250px;"></div>
+                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Variance σ²: 
+                                <input type="range" id="matrix-variance" min="0.1" max="2" step="0.1" value="1.0" style="width: 120px;">
+                                <span id="matrix-var-value" style="font-family: monospace;">1.0</span>
+                            </label>
+                            <button id="matrix-multiply" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Start Multiplication</button>
+                            <button id="matrix-reset" style="background: #FC8484; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Reset</button>
+                        </div>
+                        <div class="mt-sm" style="background: #f5f5f5; padding: 10px; border-radius: 5px;">
+                            <p style="font-family: monospace; margin: 2px 0;">Iteration: <span id="matrix-iter">0</span>/100</p>
+                            <p style="font-family: monospace; margin: 2px 0;">Max element: <span id="matrix-max">1.00</span></p>
+                            <p style="font-family: monospace; margin: 2px 0;">Status: <span id="matrix-status">Ready</span></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Breaking the Symmetry</h2>
+                    <p>Why identical initialization fails</p>
+                    <div class="two-column" style="font-size:0.5em">
+                        <div class="column">
+                            <h4>The Problem</h4>
+                            <div class="fragment">
+                                <p>If all weights start identical:</p>
+                                <ul style="font-size: 0.85em;">
+                                    <li>All hidden units compute same function</li>
+                                    <li>All receive same gradient</li>
+                                    <li>All update identically</li>
+                                    <li>Network acts like single unit!</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <h4>The Solution</h4>
+                            <div class="fragment">
+                                <p>Random initialization breaks symmetry:</p>
+                                <ul style="font-size: 0.85em;">
+                                    <li>Each unit learns different features</li>
+                                    <li>Gradients differ across units</li>
+                                    <li>Network can use full capacity</li>
+                                    <li>But variance matters!</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fragment mt-md">
+                        <div id="symmetry-breaking-viz" style="width: 100%; height: 250px;"></div>
+                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+                            <button id="sym-identical" style="background: #FC8484; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Identical Init</button>
+                            <button id="sym-random" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Random Init</button>
+                            <button id="sym-train-step" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Train Step</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Xavier/Glorot Initialization</h2>
+                    <p>Maintaining variance through layers</p>
+                    <div class="two-column" style="font-size:0.5em">
+                        <div class="column">
+                            <div class="fragment">
+                                <h4>The Goal</h4>
+                                <p>Keep variance stable during forward and backward passes</p>
+                            </div>
+                            <div class="fragment mt-md">
+                                <h4>Forward Pass Requirement</h4>
+                                <p>For output $o_i = \sum_{j=1}^{n_{\text{in}}} w_{ij} x_j$:</p>
+                                <p>If $\text{Var}[x_j] = \gamma^2$ and $\text{Var}[w_{ij}] = \sigma^2$:</p>
+                                $$\text{Var}[o_i] = n_{\text{in}} \sigma^2 \gamma^2$$
+                                <p>To maintain variance: $n_{\text{in}} \sigma^2 = 1$</p>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="fragment mt-md">
+                                <h4>Backward Pass Requirement</h4>
+                                <p>Similarly, for gradients: $n_{\text{out}} \sigma^2 = 1$</p>
+                            </div>
+                            <div class="fragment emphasis-box mt-md">
+                                <p><strong>Xavier Solution:</strong> Compromise between both requirements</p>
+                                $$\sigma = \sqrt{\frac{2}{n_{\text{in}} + n_{\text{out}}}}$$
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Xavier Initialization: Distributions</h2>
+                    <p>Two common implementations</p>
+                    <div class="two-column mt-md" style="font-size:0.5em">
+                        <div class="column">
+                            <h4>Gaussian Distribution</h4>
+                            <div class="fragment">
+                                $$W \sim \mathcal{N}\left(0, \frac{2}{n_{\text{in}} + n_{\text{out}}}\right)$$
+                                <pre><code class="python"># PyTorch implementation
+torch.nn.init.xavier_normal_(
+    tensor, 
+    gain=1.0
+)</code></pre>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <h4>Uniform Distribution</h4>
+                            <div class="fragment">
+                                $$W \sim U\left(-\sqrt{\frac{6}{n_{\text{in}} + n_{\text{out}}}}, \sqrt{\frac{6}{n_{\text{in}} + n_{\text{out}}}}\right)$$
+                                <pre><code class="python"># PyTorch implementation
+torch.nn.init.xavier_uniform_(
+    tensor, 
+    gain=1.0
+)</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg" style="font-size:0.7em">
+                        <p>Note: For uniform distribution $U(-a, a)$, variance = $a^2/3$</p>
+                    </div>
+                </section>
+
+                
+                <section>
+                    <h2 class="truncate-title">Modern Initialization Techniques</h2>
+                    <p>Beyond Xavier: Advanced methods</p>
+                    <div class="fragment">
+                        <table style="font-size: 0.75em;">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Formula</th>
+                                    <th>Best For</th>
+                                    <th>Key Insight</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="fragment">
+                                    <td><strong>Xavier/Glorot</strong></td>
+                                    <td>$\sigma = \sqrt{\frac{2}{n_{in} + n_{out}}}$</td>
+                                    <td>Tanh, Sigmoid</td>
+                                    <td>Preserves variance</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td><strong>He/Kaiming</strong></td>
+                                    <td>$\sigma = \sqrt{\frac{2}{n_{in}}}$</td>
+                                    <td>ReLU, variants</td>
+                                    <td>Accounts for ReLU's effect</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td><strong>LeCun</strong></td>
+                                    <td>$\sigma = \sqrt{\frac{1}{n_{in}}}$</td>
+                                    <td>SELU</td>
+                                    <td>Self-normalizing networks</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td><strong>LSUV</strong></td>
+                                    <td>Data-dependent</td>
+                                    <td>Very deep nets</td>
+                                    <td>Layer-sequential unit variance</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td><strong>Fixup</strong></td>
+                                    <td>Residual-specific</td>
+                                    <td>ResNets w/o BN</td>
+                                    <td>Enables training without normalization</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="fragment emphasis-box mt-md" style="font-size:0.7em">
+                        <p>Choice depends on: activation function, network depth, and architecture</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Practical Guidelines</h2>
+                    <div class="two-column" style="font-size:0.5em">
+                        <div class="column">
+                            <h4>Do's ✓</h4>
+                            <ul style="font-size: 0.85em;">
+                                <li class="fragment">Use framework defaults as starting point</li>
+                                <li class="fragment">Match initialization to activation</li>
+                                <li class="fragment">Monitor gradient norms during training</li>
+                                <li class="fragment">Consider batch normalization</li>
+                                <li class="fragment">Use gradient clipping for RNNs</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>Don'ts ✗</h4>
+                            <ul style="font-size: 0.85em;">
+                                <li class="fragment">Initialize all weights to zero</li>
+                                <li class="fragment">Use same init for all layers</li>
+                                <li class="fragment">Ignore exploding gradients</li>
+                                <li class="fragment">Use very small/large initial values</li>
+                                <li class="fragment">Forget about biases (usually init to 0)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment mt-lg">
+                        <h4>Framework Defaults (PyTorch)</h4>
+                        <pre><code class="python"># Linear layers use Kaiming uniform by default
+layer = nn.Linear(256, 128)
+# Equivalent to:
+nn.init.kaiming_uniform_(layer.weight, a=math.sqrt(5))
+nn.init.uniform_(layer.bias, -bound, bound)
+# where bound = 1 / math.sqrt(fan_in)</code></pre>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Key Research Milestones</h2>
+                    <div style="font-size: 0.8em;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Contribution</th>
+                                    <th>Impact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="fragment">
+                                    <td>1998</td>
+                                    <td>LeCun initialization</td>
+                                    <td>First principled approach</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td>2010</td>
+                                    <td>Xavier/Glorot initialization</td>
+                                    <td>Enabled deeper networks</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td>2015</td>
+                                    <td>He initialization</td>
+                                    <td>Critical for ReLU networks</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td>2015</td>
+                                    <td>Batch Normalization</td>
+                                    <td>Less sensitive to initialization</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td>2018</td>
+                                    <td>Fixup initialization</td>
+                                    <td>10,000-layer networks possible</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>Research continues: initialization remains an active area!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why does Xavier initialization use sqrt(2/(n_in + n_out)) instead of just sqrt(1/n_in)?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It makes the math simpler",
+                                "correct": false,
+                                "explanation": "Actually, using just n_in would be simpler mathematically."
+                            },
+                            {
+                                "text": "To balance variance preservation in both forward and backward passes",
+                                "correct": true,
+                                "explanation": "Correct! Forward pass needs n_in*σ²=1 while backward needs n_out*σ²=1. Xavier compromises between both requirements."
+                            },
+                            {
+                                "text": "Because n_out is always larger than n_in",
+                                "correct": false,
+                                "explanation": "n_out can be smaller, equal to, or larger than n_in depending on the layer."
+                            },
+                            {
+                                "text": "To prevent the weights from being too large",
+                                "correct": false,
+                                "explanation": "While this does make weights smaller, the real reason is variance preservation through the network."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Generalization in Deep Learning Section -->
+            <section>
+                <section class="title-slide" data-background="#10099F">
+                    <h1 class="truncate-title" style="color: white;">Generalization in Deep Learning</h1>
+                    <p style="color: white;">From Training to Real-World Performance</p>
+                    <p class="mt-lg">
+                        <small style="color: white;">The Ultimate Goal of Machine Learning</small>
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Core Challenge</h2>
+                    <div class="container">
+                        <div class="emphasis-box">
+                            <p><strong>Fitting training data is only an intermediate goal</strong></p>
+                            <p>Our real quest: discovering <em>general patterns</em> for accurate predictions on new examples</p>
+                        </div>
+                        <div class="mt-lg">
+                            <p class="fragment">Machine learning researchers are <strong>consumers</strong> of optimization algorithms</p>
+                            <p class="fragment">Optimization is merely a means to an end</p>
+                            <p class="fragment">At its core, ML is a <strong>statistical discipline</strong></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Good News and Bad News</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <h3 style="color: #2DD2C0;">✓ The Good News</h3>
+                            <ul style="font-size: 0.9em;">
+                                <li class="fragment">Deep networks generalize remarkably well</li>
+                                <li class="fragment">Work across diverse domains:
+                                    <ul>
+                                        <li>Computer vision</li>
+                                        <li>Natural language processing</li>
+                                        <li>Time series</li>
+                                        <li>Protein folding</li>
+                                        <li>Game playing</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h3 style="color: #FC8484;">✗ The Bad News</h3>
+                            <ul style="font-size: 0.9em;">
+                                <li class="fragment">Theory lags behind practice</li>
+                                <li class="fragment">We don't fully understand:
+                                    <ul>
+                                        <li>Why we can optimize them</li>
+                                        <li>How they generalize so well</li>
+                                    </ul>
+                                </li>
+                                <li class="fragment">Current state: "wild west"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Vertical Section 1: Revisiting Overfitting and Regularization -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Revisiting Overfitting and Regularization</h2>
+                    <div class="emphasis-box">
+                        <p>According to the "no free lunch" theorem:</p>
+                        <p><em>Any learning algorithm generalizes better on some distributions, worse on others</em></p>
+                    </div>
+                    <div class="mt-lg">
+                        <p class="fragment">Models rely on <strong>inductive biases</strong></p>
+                        <p class="fragment">Deep MLPs have bias towards <em>composing simple functions</em></p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Training Process</h2>
+                    <div class="container">
+                        <ol>
+                            <li class="fragment">
+                                <strong>Fit the training data</strong>
+                                <p style="font-size: 0.8em;">Minimize training loss through optimization</p>
+                            </li>
+                            <li class="fragment">
+                                <strong>Estimate generalization error</strong>
+                                <p style="font-size: 0.8em;">Evaluate on holdout test data</p>
+                            </li>
+                        </ol>
+                        <div class="emphasis-box fragment">
+                            <p><strong>Generalization Gap</strong> = Test Error - Training Error</p>
+                            <p style="font-size: 0.9em;">Large gap → <em>Overfitting</em></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Deep Learning Paradox</h2>
+                    <div id="overfitting-demo-container">
+                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Model Capacity: 
+                                <input type="range" id="capacity-slider" min="1" max="100" value="10" style="width: 150px;">
+                                <span id="capacity-value" style="font-family: monospace; width: 40px;">10</span>
+                            </label>
+                            <button id="animate-training" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Animate Training</button>
+                        </div>
+                        <div id="overfitting-viz" style="width: 100%; height: 400px;"></div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg" style="font-size:0.7em">
+                        <p>Strangely: Making models <em>more expressive</em> can reduce overfitting!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Classical View vs Reality</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <h3>Classical View</h3>
+                            <ul style="font-size: 0.85em;">
+                                <li>More complex → worse generalization</li>
+                                <li>Need to reduce:
+                                    <ul>
+                                        <li>Number of features</li>
+                                        <li>Number of parameters</li>
+                                        <li>Size of parameters</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h3>Deep Learning Reality</h3>
+                            <ul style="font-size: 0.85em;">
+                                <li>Can perfectly fit millions of examples</li>
+                                <li>All models achieve zero training error</li>
+                                <li>More layers/nodes can <em>help</em></li>
+                                <li>"Double descent" phenomenon</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What makes deep learning generalization particularly puzzling?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Deep networks cannot fit the training data well",
+                                "correct": false,
+                                "explanation": "Actually, deep networks can perfectly fit training data, even with millions of examples."
+                            },
+                            {
+                                "text": "Networks that can fit arbitrary labels still generalize well",
+                                "correct": true,
+                                "explanation": "Correct! Despite being able to memorize random labels, deep networks still generalize well on real data - this defies classical learning theory."
+                            },
+                            {
+                                "text": "Deep networks always need early stopping",
+                                "correct": false,
+                                "explanation": "Early stopping helps in some cases but is not always necessary, especially with clean labels."
+                            },
+                            {
+                                "text": "Regularization completely prevents overfitting",
+                                "correct": false,
+                                "explanation": "Regularization helps but networks can still interpolate training data even with regularization."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Vertical Section 2: Inspiration from Nonparametrics -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Inspiration from Nonparametrics</h2>
+                    <div class="emphasis-box">
+                        <p>Paradox: Neural networks <em>have</em> parameters but <em>behave</em> like nonparametric models</p>
+                    </div>
+                    <div class="mt-lg">
+                        <p class="fragment"><strong>Nonparametric models:</strong> Complexity grows with data</p>
+                        <p class="fragment"><strong>Neural networks:</strong> Over-parametrized, interpolate training data</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">k-Nearest Neighbors: A Simple Nonparametric Model</h2>
+                    <div id="knn-demo-container">
+                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100;">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                k value: 
+                                <input type="range" id="k-slider" min="1" max="10" value="1" style="width: 120px;">
+                                <span id="k-value" style="font-family: monospace; width: 30px;">1</span>
+                            </label>
+                            <button id="add-point" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Add Test Point</button>
+                            <button id="reset-knn" style="background: #FC8484; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Reset</button>
+                        </div>
+                        <div id="knn-viz" style="width: 100%; height: 400px;"></div>
+                    </div>
+                    <p class="fragment" style="font-size: 0.9em;">When k=1: Zero training error, but can still generalize!</p>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Distance Metric Connection</h2>
+                    <div class="container">
+                        <p>k-NN requires a distance function $d(\mathbf{x}, \mathbf{x}_i')$</p>
+                        <p class="fragment">Or equivalently, a feature function $\phi(\mathbf{x})$</p>
+                        
+                        <div class="emphasis-box fragment">
+                            <p>Different distance metrics = Different <span class="tooltip">inductive biases<span class="tooltiptext">Built-in assumptions about what patterns or relationships the model should prefer to learn. For example, assuming nearby points should have similar labels, or that smooth functions are better than jagged ones. These biases guide learning when data is limited.</span></span></p>
+                        </div>
+                        
+                        <p class="fragment" style="margin-top: 30px;">Similarly, neural networks encode inductive biases through:</p>
+                        <ul class="fragment">
+                            <li>Architecture choices</li>
+                            <li>Activation functions</li>
+                            <li>Optimization procedures</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Neural Tangent Kernel</h2>
+                    <div class="container">
+                        <div class="emphasis-box">
+                            <p><strong>Key insight (Jacot et al., 2018):</strong></p>
+                            <p>As MLPs with random weights grow infinitely wide, they become equivalent to <span class="tooltip">kernel methods<span class="tooltiptext">A class of machine learning algorithms that make predictions by comparing new data points to training examples using a similarity function (kernel). Instead of learning explicit parameters, they memorize training data and use similarity measures to classify new points. Think of it like asking "which training examples is this new point most similar to?" Examples include Support Vector Machines and Gaussian Processes.</span></span></p>
+                        </div>
+                        
+                        <div class="mt-lg">
+                            <p class="fragment">This kernel is called the <span class="tooltip">Neural Tangent Kernel<span class="tooltiptext">A kernel function that describes the training dynamics of infinitely wide neural networks</span></span></p>
+                            <p class="fragment">Helps explain why over-parametrized networks generalize</p>
+                            <p class="fragment">Bridge between deep learning and classical kernel theory</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why is the connection to nonparametric models important for understanding deep learning?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It proves neural networks dont need parameters",
+                                "correct": false,
+                                "explanation": "Neural networks still have parameters; the connection is about their behavior, not their structure."
+                            },
+                            {
+                                "text": "It helps explain why over-parametrized networks can generalize well",
+                                "correct": true,
+                                "explanation": "Correct! Like nonparametric models that can achieve zero training error yet generalize, over-parametrized networks interpolate data but still generalize."
+                            },
+                            {
+                                "text": "It shows that k-NN is better than neural networks",
+                                "correct": false,
+                                "explanation": "The comparison illustrates similar behaviors, not superiority of one method over another."
+                            },
+                            {
+                                "text": "It means we should use kernels instead of neural networks",
+                                "correct": false,
+                                "explanation": "The kernel connection is theoretical; practical deep learning still uses neural networks."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Vertical Section 3: Early Stopping -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Early Stopping</h2>
+                    <div class="emphasis-box">
+                        <p><strong>Key discovery:</strong> Neural networks fit clean data before noisy data</p>
+                    </div>
+                    <div class="mt-lg">
+                        <p class="fragment">Networks learn patterns before memorizing noise</p>
+                        <p class="fragment">This translates directly to generalization guarantees</p>
+                        <p class="fragment">Stop training before fitting the noise!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Early Stopping Demonstration</h2>
+                    <div id="early-stopping-container">
+                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Patience: 
+                                <input type="range" id="patience-slider" min="1" max="20" value="5" style="width: 120px;">
+                                <span id="patience-value" style="font-family: monospace; width: 30px;">5</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Noise Level: 
+                                <input type="range" id="noise-slider" min="0" max="50" value="20" style="width: 120px;">
+                                <span id="noise-value" style="font-family: monospace; width: 35px;">20%</span>
+                            </label>
+                            <button id="start-training" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Start Training</button>
+                            <button id="reset-training" style="background: #FC8484; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Reset</button>
+                        </div>
+                        <div id="early-stopping-viz" style="width: 100%; height: 400px;"></div>
+                        <div id="training-status" style="text-align: center; margin-top: 10px; font-weight: bold;"></div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Patience Criterion</h2>
+                    <div class="container">
+                        <div class="emphasis-box">
+                            <p><strong>Algorithm:</strong></p>
+                            <ol style="text-align: left; display: inline-block;">
+                                <li>Monitor validation error after each epoch</li>
+                                <li>Track best validation error so far</li>
+                                <li>If no improvement for <em>patience</em> epochs → stop</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="mt-lg fragment">
+                            <p><strong>Typical patience values:</strong> 5-20 epochs</p>
+                            <p><strong>Improvement threshold:</strong> ε = 0.001 or 0.01%</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Benefits of Early Stopping</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <h3 style="color: #2DD2C0;">Generalization</h3>
+                            <ul style="font-size: 0.85em;">
+                                <li>Prevents memorizing noise</li>
+                                <li>Crucial with label noise</li>
+                                <li>Acts as implicit regularization</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h3 style="color: #FFA05F;">Computational</h3>
+                            <ul style="font-size: 0.85em;">
+                                <li>Saves training time</li>
+                                <li>Reduces GPU costs</li>
+                                <li>Days → Hours for large models</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="emphasis-box fragment mt-lg">
+                        <p><strong>When it helps:</strong> Noisy labels, intrinsic variability</p>
+                        <p><strong>When it doesn't:</strong> Clean, separable datasets</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "When is early stopping most beneficial?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "When training data is perfectly clean and separable",
+                                "correct": false,
+                                "explanation": "With clean, separable data, early stopping typically doesnt improve generalization significantly."
+                            },
+                            {
+                                "text": "When there is label noise or intrinsic variability in the data",
+                                "correct": true,
+                                "explanation": "Correct! Early stopping prevents the model from memorizing noisy or inconsistent labels, improving generalization."
+                            },
+                            {
+                                "text": "Only when training very small models",
+                                "correct": false,
+                                "explanation": "Early stopping is especially valuable for large models that take days to train."
+                            },
+                            {
+                                "text": "When you want the lowest possible training loss",
+                                "correct": false,
+                                "explanation": "Early stopping deliberately stops before achieving minimum training loss to prevent overfitting."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Vertical Section 4: Classical Regularization Methods -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Classical Regularization Methods for Deep Networks</h2>
+                    <div class="emphasis-box">
+                        <p>Traditional techniques remain popular despite theoretical mysteries</p>
+                    </div>
+                    <div class="mt-lg">
+                        <p class="fragment">Weight decay / L2 regularization</p>
+                        <p class="fragment">L1 regularization (Lasso)</p>
+                        <p class="fragment">Adding noise to inputs</p>
+                        <p class="fragment">Dropout (coming later...)</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter on Regularization", "url": "https://d2l.ai"}]'>
+                    <h2 class="truncate-title">Weight Decay (L2 Regularization)</h2>
+                    <div class="container" style="font-size:0.7em">
+                        <p><strong>Original loss:</strong></p>
+                        <p>$$L(\mathbf{w}) = \frac{1}{n}\sum_{i=1}^{n} l(y_i, f(\mathbf{x}_i; \mathbf{w}))$$</p>
+                        
+                        <p class="fragment"><strong>With L2 regularization:</strong></p>
+                        <p class="fragment">$$L_{reg}(\mathbf{w}) = L(\mathbf{w}) + \frac{\lambda}{2} ||\mathbf{w}||^2_2$$</p>
+                        
+                        <p class="fragment">$$L_{reg}(\mathbf{w}) = L(\mathbf{w}) + \frac{\lambda}{2} \sum_{j} w_j^2$$</p>
+                        
+                        <div class="emphasis-box fragment">
+                            <p>λ controls regularization strength</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">L1 Regularization (Lasso)</h2>
+                    <div class="container">
+                        <p><strong>With L1 regularization:</strong></p>
+                        <p>$$L_{reg}(\mathbf{w}) = L(\mathbf{w}) + \lambda ||\mathbf{w}||_1$$</p>
+                        
+                        <p class="fragment">$$L_{reg}(\mathbf{w}) = L(\mathbf{w}) + \lambda \sum_{j} |w_j|$$</p>
+                        
+                        <div class="two-column fragment">
+                            <div class="column">
+                                <h4>L2 (Weight Decay)</h4>
+                                <ul style="font-size: 0.8em;">
+                                    <li>Shrinks all weights</li>
+                                    <li>Smooth penalty</li>
+                                    <li>Dense solutions</li>
+                                </ul>
+                            </div>
+                            <div class="column">
+                                <h4>L1 (Lasso)</h4>
+                                <ul style="font-size: 0.8em;">
+                                    <li>Drives weights to zero</li>
+                                    <li>Non-smooth at origin</li>
+                                    <li>Sparse solutions</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TODO: Not good enough for now.
+                <section>
+                    <h2 class="truncate-title">Interactive Regularization Effects</h2>
+                  
+                    <div id="regularization-container" style="width:100%;">
+                  
+                      <div class="demo-controls"
+                           style="display:flex; align-items:center; justify-content:center; gap:15px;
+                                  margin:12px 0 18px 0; padding:10px 14px; background:#f9f9f9;
+                                  border-radius:8px; box-shadow:0 1px 0 rgba(0,0,0,.04);">
+                        <label style="display:flex; align-items:center; gap:8px;">
+                          Regularization:
+                          <select id="reg-type" style="padding:5px;">
+                            <option value="none">None</option>
+                            <option value="l2">L2 (Weight Decay)</option>
+                            <option value="l1">L1 (Lasso)</option>
+                          </select>
+                        </label>
+                  
+                        <label style="display:flex; align-items:center; gap:8px;">
+                          λ:
+                          <input type="range" id="lambda-slider" min="0" max="200" value="20" style="width:160px;">
+                          <span id="lambda-value" style="font-family:monospace; width:50px; text-align:right;">0.20</span>
+                        </label>
+                  
+                        <button id="train-model"
+                                style="background:#10099F; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;">
+                          Train
+                        </button>
+                        <button id="reset-model"
+                                style="background:#6b7280; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;">
+                          Reset
+                        </button>
+                      </div>
+                  
+                      <div id="regularization-viz"
+                           style="width:100%; display:flex; flex-wrap:nowrap; gap:24px; justify-content:center; align-items:flex-start;"></div>
+                    </div>
+                </section>
+                -->
+
+                <section>
+                    <h2 class="truncate-title">The Paradox in Deep Learning</h2>
+                    <div class="container">
+                        <div class="emphasis-box">
+                            <p>Classical view: Regularization restricts model capacity</p>
+                            <p class="fragment">Reality: Networks still interpolate training data!</p>
+                        </div>
+                        
+                        <div class="mt-lg fragment">
+                            <p><strong>Why do they still work?</strong></p>
+                            <ul>
+                                <li class="fragment">May encode useful inductive biases</li>
+                                <li class="fragment">Work in combination with early stopping</li>
+                                <li class="fragment">Change optimization dynamics favorably</li>
+                                <li class="fragment">Theoretical basis remains mysterious</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why is weight decay still useful in deep learning despite not preventing interpolation?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It completely prevents the model from overfitting",
+                                "correct": false,
+                                "explanation": "Models with weight decay can still perfectly fit training data (interpolate)."
+                            },
+                            {
+                                "text": "It encodes useful inductive biases and changes optimization dynamics",
+                                "correct": true,
+                                "explanation": "Correct! While not restricting capacity as classically thought, weight decay may guide optimization toward solutions that generalize better."
+                            },
+                            {
+                                "text": "It reduces the number of parameters in the network",
+                                "correct": false,
+                                "explanation": "Weight decay doesnt change the number of parameters, only their magnitudes."
+                            },
+                            {
+                                "text": "It makes training faster",
+                                "correct": false,
+                                "explanation": "Weight decay typically doesnt speed up training; it adds an extra term to compute."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Summary: Generalization in Deep Learning</h2>
+                    <div class="container">
+                        
+                        <ul style="font-size: 0.9em;">
+                            <li class="fragment">Deep networks are over-parametrized yet generalize well</li>
+                            <li class="fragment">They behave like nonparametric models in some ways</li>
+                            <li class="fragment">Classical theory cannot fully explain their success</li>
+                            <li class="fragment">Practical techniques (early stopping, regularization) help despite theoretical gaps</li>
+                            <li class="fragment">The field resembles the "wild west" - practice leads theory</li>
+                        </ul>
+                        
+                        <div class="emphasis-box fragment mt-lg">
+                            <p><strong>Open Questions:</strong></p>
+                            <p style="font-size: 0.9em;">Why certain choices lead to better generalization remains largely mysterious</p>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section: Dropout Regularization -->
+            <section>
+                <!-- Introduction to Dropout -->
+                <section data-sources='[{"text": "Dropout: A Simple Way to Prevent Neural Networks from Overfitting - Srivastava et al. 2014", "url": "https://jmlr.org/papers/v15/srivastava14a.html"}, {"text": "Improving neural networks by preventing co-adaptation of feature detectors - Hinton et al. 2012", "url": "https://arxiv.org/abs/1207.0580"}]'>
+                    <h2 class="truncate-title">Dropout: A Powerful Regularization Technique</h2>
+                    <div class="container">
+                        <div class="emphasis-box">
+                            <p><strong>Key Insight:</strong> Randomly "dropping out" neurons during training prevents overfitting</p>
+                        </div>
+                        
+                        <div class="two-column mt-lg" style="font-size:0.5em">
+                            <div class="column">
+                                <h4>Motivation</h4>
+                                <ul>
+                                    <li class="fragment">Need for simple models that generalize well</li>
+                                    <li class="fragment">Classical view: smoothness and simplicity</li>
+                                    <li class="fragment">Input noise ≈ Tikhonov regularization</li>
+                                    <li class="fragment">What about internal layers?</li>
+                                </ul>
+                            </div>
+                            <div class="column">
+                                <h4>The Dropout Innovation</h4>
+                                <ul>
+                                    <li class="fragment">Inject noise in hidden layers</li>
+                                    <li class="fragment">Randomly zero out neurons</li>
+                                    <li class="fragment">Break co-adaptation patterns</li>
+                                    <li class="fragment">Standard technique since 2014</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Theoretical Foundation -->
+                <section data-sources='[{"text": "Training with Noise is Equivalent to Tikhonov Regularization - Bishop 1995", "url": "https://www.microsoft.com/en-us/research/publication/training-with-noise-is-equivalent-to-tikhonov-regularization/"}]'>
+                    <h2 class="truncate-title">Theoretical Foundation: From Input Noise to Dropout</h2>
+                    <div class="container">
+                        <h4>Bishop's Insight (1995)</h4>
+                        <div class="emphasis-box">
+                            <p>Training with input noise ≈ <span class="tooltip">Tikhonov regularization<span class="tooltiptext">Also known as ridge regression (L2 regularization). A mathematical technique that prevents overfitting by adding a penalty term to the loss function. It encourages the model to have smaller weights, making it smoother and less likely to memorize noise in the training data.</span></span></p>
+                            <p>Smoothness requirement ↔ Perturbation resilience</p>
+                        </div>
+                        
+                        <div class="two-column mt-lg" style="font-size:0.5em">
+                            <div class="column">
+                                <h4>Gaussian Noise on Inputs</h4>
+                                <p>Add noise: $\epsilon \sim \mathcal{N}(0, \sigma^2)$</p>
+                                <p>Perturbed input: $\mathbf{x}' = \mathbf{x} + \epsilon$</p>
+                                <p>In expectation: $E[\mathbf{x}'] = \mathbf{x}$ (unbiased)</p>
+                            </div>
+                            <div class="column">
+                                <h4>The Biological Analogy</h4>
+                                <p class="tooltip">Co-adaptation<span class="tooltiptext">When neurons become overly specialized to work only with specific patterns from other neurons</span></span> in neural networks ≈ Co-adapted genes</p>
+                                <p>Sexual reproduction breaks up co-adapted genes</p>
+                                <p>Dropout breaks up co-adapted features</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Mathematical Formulation -->
+                <section>
+                    <h2 class="truncate-title">Dropout: Mathematical Formulation</h2>
+                    <div class="container">
+                        <h4>The Dropout Operation</h4>
+                        <div class="emphasis-box">
+                            <p>With dropout probability $p$, each activation $h$ becomes:</p>
+                        </div>
+                        
+                        <div class="math-large mt-lg">
+                            $$h' = \begin{cases}
+                                0 & \text{with probability } p \\
+                                \frac{h}{1-p} & \text{otherwise}
+                            \end{cases}$$
+                        </div>
+                        
+                        <div class="fragment mt-lg" style="font-size:0.5em">
+                            <h4>Key Properties</h4>
+                            <ul>
+                                <li><strong>Unbiased:</strong> $E[h'] = h$</li>
+                                <li><strong>Training only:</strong> Disabled at test time</li>
+                                <li><strong>Layer-specific:</strong> Different $p$ for different layers</li>
+                                <li><strong>Rescaling:</strong> Division by $(1-p)$ maintains expected value</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Visual Explanation -->
+                <section>
+                    <h2 class="truncate-title">Dropout in Practice: Visual Explanation</h2>
+                    <div class="container">
+                        <img src="images/dropout2.svg" alt="MLP before and after dropout" style="max-width: 80%; height: auto;">
+                        <div class="mt-lg">
+                            <h4>What Happens During Dropout?</h4>
+                            <ul style="font-size: 0.9em;">
+                                <li class="fragment">Neurons $h_2$ and $h_5$ are "dropped" (zeroed out)</li>
+                                <li class="fragment">Output calculation no longer depends on dropped neurons</li>
+                                <li class="fragment">Gradients for dropped neurons become zero</li>
+                                <li class="fragment">Network can't rely on any single neuron</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Interactive Dropout Visualization -->
+                <section>
+                    <h2 class="truncate-title">Interactive Dropout Demonstration</h2>
+                    <div class="container">
+                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100;">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Dropout Rate: 
+                                <input type="range" id="dropout-rate" min="0" max="100" value="50" style="width: 150px;">
+                                <span id="dropout-value" style="font-family: monospace; min-width: 40px;">0.5</span>
+                            </label>
+                            <button id="apply-dropout" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Apply Dropout</button>
+                            <button id="reset-dropout" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Reset</button>
+                        </div>
+                        <div id="dropout-viz" style="width: 100%; height: 400px;"></div>
+                    </div>
+                </section>
+
+                <!-- Test Understanding 1 -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why is the dropout operation divided by (1-p) during training?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To make the computation faster",
+                                "correct": false,
+                                "explanation": "The division actually adds computational overhead, not reduces it."
+                            },
+                            {
+                                "text": "To keep the expected value of activations unchanged",
+                                "correct": true,
+                                "explanation": "Correct! Dividing by (1-p) ensures E[h′] = h, making the operation unbiased and allowing the same weights to work at test time."
+                            },
+                            {
+                                "text": "To increase the learning rate",
+                                "correct": false,
+                                "explanation": "Dropout rescaling is about maintaining activation magnitudes, not adjusting learning dynamics."
+                            },
+                            {
+                                "text": "To reduce memory usage",
+                                "correct": false,
+                                "explanation": "The rescaling operation does not affect memory usage."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section: Implementation from Scratch -->
+            <section>
+                <!-- Dropout Layer Implementation -->
+                <section>
+                    <h2 class="truncate-title">Implementation from Scratch</h2>
+                    <div class="container">
+                        <h4>The dropout_layer Function</h4>
+                        <pre><code class="language-python">def dropout_layer(X, dropout):
+    assert 0 <= dropout <= 1
+    if dropout == 1: 
+        return torch.zeros_like(X)
+    mask = (torch.rand(X.shape) > dropout).float()
+    return mask * X / (1.0 - dropout)</code></pre>
+                        
+                        <div class="fragment mt-lg" style="font-size:0.5em">
+                            <h4>How It Works</h4>
+                            <ul>
+                                <li class="fragment">Generate random mask from uniform distribution</li>
+                                <li class="fragment">Keep elements where random value > dropout probability</li>
+                                <li class="fragment">Scale remaining values by 1/(1-dropout)</li>
+                                <li class="fragment">Handle edge case: dropout=1 → all zeros</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Testing Dropout -->
+                <section>
+                    <h2 class="truncate-title">Testing the Dropout Function</h2>
+                    <div class="container">
+                        <h4>Example: Testing Different Dropout Probabilities</h4>
+                        <pre><code class="language-python">X = torch.arange(16, dtype=torch.float32).reshape((2, 8))
+print('dropout_p = 0:', dropout_layer(X, 0))
+print('dropout_p = 0.5:', dropout_layer(X, 0.5))
+print('dropout_p = 1:', dropout_layer(X, 1))</code></pre>
+                        
+                        <div class="fragment">
+                            <h4>Output:</h4>
+                            <pre><code class="language-text">dropout_p = 0: tensor([[ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.],
+                        [ 8.,  9., 10., 11., 12., 13., 14., 15.]])
+dropout_p = 0.5: tensor([[ 0.,  2.,  0.,  6.,  8.,  0.,  0.,  0.],
+                          [16., 18., 20., 22., 24., 26., 28., 30.]])
+dropout_p = 1: tensor([[0., 0., 0., 0., 0., 0., 0., 0.],
+                        [0., 0., 0., 0., 0., 0., 0., 0.]])</code></pre>
+                        </div>
+                        
+                        <div class="fragment mt-lg">
+                            <p><strong>Note:</strong> With p=0.5, surviving values are doubled!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MLP with Dropout -->
+                <section>
+                    <h2 class="truncate-title">Building an MLP with Dropout</h2>
+                    <div class="container">
+                        <h4>DropoutMLPScratch Class</h4>
+                        <pre><code class="language-python">class DropoutMLPScratch(d2l.Classifier):
+    def __init__(self, num_outputs, num_hiddens_1, num_hiddens_2,
+                 dropout_1, dropout_2, lr):
+        super().__init__()
+        self.save_hyperparameters()
+        self.lin1 = nn.LazyLinear(num_hiddens_1)
+        self.lin2 = nn.LazyLinear(num_hiddens_2)
+        self.lin3 = nn.LazyLinear(num_outputs)
+        self.relu = nn.ReLU()
+
+    def forward(self, X):
+        H1 = self.relu(self.lin1(X.reshape((X.shape[0], -1))))
+        if self.training:
+            H1 = dropout_layer(H1, self.dropout_1)
+        H2 = self.relu(self.lin2(H1))
+        if self.training:
+            H2 = dropout_layer(H2, self.dropout_2)
+        return self.lin3(H2)</code></pre>
+                        
+                        <div class="fragment mt-lg">
+                            <p><strong>Key Point:</strong> Dropout only during training!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Training with Dropout -->
+                <section>
+                    <h2 class="truncate-title">Training with Dropout</h2>
+                    <div class="container">
+                        <h4>Setting Hyperparameters</h4>
+                        <pre><code class="language-python">hparams = {
+    'num_outputs': 10, 
+    'num_hiddens_1': 256, 
+    'num_hiddens_2': 256,
+    'dropout_1': 0.5,      # 50% dropout after first layer
+    'dropout_2': 0.5,      # 50% dropout after second layer
+    'lr': 0.1
+}
+
+model = DropoutMLPScratch(**hparams)
+data = d2l.FashionMNIST(batch_size=256)
+trainer = d2l.Trainer(max_epochs=10)
+trainer.fit(model, data)</code></pre>
+                        
+                        <div class="fragment mt-lg" style="font-size:0.7em">
+                            <h4>Common Dropout Rates</h4>
+                            <ul>
+                                <li>Input layer: 0.2 (20%)</li>
+                                <li>Hidden layers: 0.5 (50%)</li>
+                                <li>Output layer: Usually no dropout</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Interactive Training Visualization -->
+                <section>
+                    <h2 class="truncate-title">Dropout Effect on Training</h2>
+                    <div class="container">
+                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+                            <button id="train-without" style="background: #FC8484; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Train Without Dropout</button>
+                            <button id="train-with" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Train With Dropout</button>
+                            <button id="compare-training" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Compare Both</button>
+                        </div>
+                        <div id="training-comparison" style="width: 100%; height: 400px;"></div>
+                    </div>
+                </section>
+
+                <!-- Test Understanding 2 -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "When implementing dropout, why do we check if self.training is True?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Dropout should only be applied during training, not during inference",
+                                "correct": true,
+                                "explanation": "Correct! During testing/inference, we want to use all neurons with their full learned representations. Dropout is a training-time regularization technique."
+                            },
+                            {
+                                "text": "It saves memory during training",
+                                "correct": false,
+                                "explanation": "The self.training check is not about memory optimization but about different behavior during training vs testing."
+                            },
+                            {
+                                "text": "Dropout works differently in training mode",
+                                "correct": false,
+                                "explanation": "Dropout does not work differently; it is simply turned off during testing."
+                            },
+                            {
+                                "text": "It prevents errors during backpropagation",
+                                "correct": false,
+                                "explanation": "Backpropagation works fine with dropout; the check is about using the full network at test time."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section: Concise Implementation -->
+            <section>
+                <!-- PyTorch Dropout -->
+                <section>
+                    <h2 class="truncate-title">Concise Implementation with PyTorch</h2>
+                    <div class="container">
+                        <h4>Using nn.Dropout</h4>
+                        <pre><code class="language-python">class DropoutMLP(d2l.Classifier):
+    def __init__(self, num_outputs, num_hiddens_1, num_hiddens_2,
+                 dropout_1, dropout_2, lr):
+        super().__init__()
+        self.save_hyperparameters()
+        self.net = nn.Sequential(
+            nn.Flatten(), 
+            nn.LazyLinear(num_hiddens_1), nn.ReLU(),
+            nn.Dropout(dropout_1),  # Dropout after first layer
+            nn.LazyLinear(num_hiddens_2), nn.ReLU(),
+            nn.Dropout(dropout_2),  # Dropout after second layer
+            nn.LazyLinear(num_outputs)
+        )</code></pre>
+                        
+                        <div class="fragment mt-lg" style="font-size:0.6em">
+                            <h4>Advantages of nn.Dropout</h4>
+                            <ul>
+                                <li>Automatically handles training/eval modes</li>
+                                <li>Optimized implementation</li>
+                                <li>Consistent random seed handling</li>
+                                <li>GPU acceleration when available</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Training the Concise Model -->
+                <section>
+                    <h2 class="truncate-title">Training with Built-in Dropout</h2>
+                    <div class="container">
+                        <h4>Same Interface, Better Performance</h4>
+                        <pre><code class="language-python">model = DropoutMLP(**hparams)
+trainer.fit(model, data)</code></pre>
+                        
+                        <div class="fragment mt-lg" style="font-size:0.6em">
+                            <h4>Behind the Scenes</h4>
+                            <ul>
+                                <li class="fragment"><code>model.train()</code> enables dropout layers</li>
+                                <li class="fragment"><code>model.eval()</code> disables dropout layers</li>
+                                <li class="fragment">No manual checking needed!</li>
+                                <li class="fragment">Consistent behavior across all dropout layers</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="fragment mt-lg emphasis-box" style="font-size:0.6em">
+                            <p><strong>Best Practice:</strong> Always use framework's built-in dropout when available</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Advanced Dropout Techniques -->
+                <section>
+                    <h2 class="truncate-title">Advanced Dropout Techniques</h2>
+                    <div class="container">
+                        <div class="two-column" style="font-size:0.5em">
+                            <div class="column">
+                                <h4>Variations</h4>
+                                <ul>
+                                    <li class="fragment"><strong>DropConnect:</strong> Drop connections, not neurons</li>
+                                    <li class="fragment"><strong>Spatial Dropout:</strong> For convolutional layers</li>
+                                    <li class="fragment"><strong>Variational Dropout:</strong> Same mask across time</li>
+                                    <li class="fragment"><strong>Concrete Dropout:</strong> Learn optimal dropout rate</li>
+                                </ul>
+                            </div>
+                            <div class="column">
+                                <h4>Best Practices</h4>
+                                <ul>
+                                    <li class="fragment">Start with p=0.5 for hidden layers</li>
+                                    <li class="fragment">Use lower p closer to input</li>
+                                    <li class="fragment">No dropout on output layer</li>
+                                    <li class="fragment">Combine with other regularization</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="fragment mt-lg emphasis-box">
+                            <p><strong>Uncertainty Estimation:</strong> Multiple forward passes with dropout at test time can estimate prediction uncertainty</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Test Understanding 3 -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Which statement about dropout best practices is correct?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Use the same dropout rate for all layers",
+                                "correct": false,
+                                "explanation": "Different layers often benefit from different dropout rates. Input layers typically use lower rates than hidden layers."
+                            },
+                            {
+                                "text": "Apply dropout to the output layer for better regularization",
+                                "correct": false,
+                                "explanation": "Dropout is typically not applied to the output layer as it can interfere with the final predictions."
+                            },
+                            {
+                                "text": "Use lower dropout rates closer to the input layer",
+                                "correct": true,
+                                "explanation": "Correct! Lower dropout rates (e.g., 0.2) are typically used for layers closer to the input, while hidden layers often use higher rates (e.g., 0.5)."
+                            },
+                            {
+                                "text": "Dropout should replace all other regularization techniques",
+                                "correct": false,
+                                "explanation": "Dropout works best when combined with other regularization techniques like weight decay and early stopping."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Summary Section -->
+            <section>
+                <h2 class="truncate-title">Dropout: Summary and Key Takeaways</h2>
+                <div class="container">
+                    <div class="emphasis-box" style="font-size:0.7em">
+                        <p><strong>Dropout is a powerful regularization technique that prevents overfitting</strong></p>
+                    </div>
+                    
+                    <div class="two-column mt-lg" style="font-size:0.5em">
+                        <div class="column">
+                            <h4>Key Concepts</h4>
+                            <ul style="font-size: 0.9em;">
+                                <li>Randomly zero out neurons during training</li>
+                                <li>Breaks co-adaptation between neurons</li>
+                                <li>Maintains unbiased expectations: E[h'] = h</li>
+                                <li>Disabled during inference/testing</li>
+                                <li>Layer-specific dropout rates</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>Practical Tips</h4>
+                            <ul style="font-size: 0.9em;">
+                                <li>Start with p=0.5 for hidden layers</li>
+                                <li>Use p=0.2 for input layers</li>
+                                <li>No dropout on output layer</li>
+                                <li>Combine with weight decay</li>
+                                <li>Use built-in implementations</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="fragment mt-lg emphasis-box" style="font-size:0.7em">
+                        <p><strong>Remember:</strong> Dropout is only one tool in your regularization toolkit. 
+                        Combine it with early stopping, weight decay, and data augmentation for best results!</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/math/math.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    
+    <!-- Shared scripts -->
+    <script src="../shared/js/multiple-choice.js"></script>
+    <script src="../shared/js/source-modal-v2.js"></script>
+    <script src="../shared/js/title-handler.js"></script>
+    <script src="../shared/js/tooltip-modal.js"></script>
+    
+    <!-- Custom activation visualization script -->
+    <script src="js/activation-viz.js"></script>
+    
+    <!-- MLP implementation visualization script -->
+    <script src="js/mlp-implementation-viz.js"></script>
+    
+    <!-- Backpropagation visualization script -->
+    <script src="js/backprop-viz.js"></script>
+    
+    <!-- Computational graph visualization script -->
+    <script src="js/computational-graph.js"></script>
+    
+    <!-- Numerical stability visualization script -->
+    <script src="js/numerical-stability-viz.js"></script>
+    
+    <!-- Initialization comparison script -->
+    <script src="js/initialization-comparison.js"></script>
+    
+    <!-- Generalization and regularization scripts -->
+    <script src="js/generalization-viz.js"></script>
+    <script src="js/early-stopping-viz.js"></script>
+    <script src="js/knn-demo.js"></script>
+    <script src="js/regularization-effects.js"></script>
+    
+    <!-- Dropout visualization script -->
+    <script src="js/dropout-viz.js"></script>
+    
+    <script>
+        // Initialize Reveal.js
+        Reveal.initialize({
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true,
+            transition: 'slide',
+            
+            // Math configuration
+            math: {
+                mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js',
+                config: 'TeX-AMS_SVG-full'
+            },
+            
+            plugins: [ RevealMath, RevealHighlight, RevealNotes ]
+        });
+    </script>
+</body>
+</html>

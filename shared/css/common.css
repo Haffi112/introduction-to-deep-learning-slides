@@ -284,6 +284,19 @@
   transition: width var(--transition-normal);
 }
 
+/* Three-column layout */
+.reveal .three-column {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5em;
+  align-items: flex-start;
+  margin: 1em 0;
+}
+
+.reveal .three-column .column {
+  padding: 0 0.5em;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .reveal {
@@ -297,6 +310,11 @@
   .control-label {
     display: block;
     margin-bottom: var(--spacing-xs);
+  }
+  
+  /* Three-column responsive */
+  .reveal .three-column {
+    grid-template-columns: 1fr;
   }
 }
 

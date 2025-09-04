@@ -101,10 +101,21 @@ Note: The logo positioning is handled automatically by CSS - no need for manual 
 
 When adding controls (sliders, buttons, inputs) to interactive demos, ensure they are visible and accessible:
 
+**⚠️ CRITICAL WARNING**: Never use the class name "controls" for your interactive elements!
+- Reveal.js reserves the `.controls` class for its navigation arrows
+- Using `class="controls"` will cause your elements to be hidden or repositioned by Reveal's CSS
+- **Always use alternative class names like `demo-controls`, `interactive-controls`, or `viz-controls`**
+
+**IMPORTANT**: Always ensure controls are in the foreground by using proper z-index hierarchy:
+- Visualization containers: z-index: 1
+- Control containers: z-index: 100+
+- Individual controls: z-index: 101-103
+- This prevents controls from being hidden behind SVG elements or other visualization content
+
 #### 1. Above visualization approach (recommended)
 Place controls above the visualization for better visibility:
 ```html
-<div class="controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+<div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100; position: relative;">
     <label style="display: flex; align-items: center; gap: 8px;">
         Parameter: 
         <input type="range" id="param-slider" style="width: 150px;">
@@ -126,11 +137,25 @@ Use absolute positioning when space is limited:
 ```
 
 #### Best Practices
+- **Avoid Reveal.js reserved class names** (controls, navigate, progress, backgrounds)
 - **Always use inline styles** for critical UI elements to avoid CSS conflicts
 - **Test visibility** at different zoom levels and screen sizes
 - **Use UI brand colors** (#10099F) for buttons and interactive elements
 - **Provide visual feedback** with hover states and clear labels
 - **Center controls** for better visual balance on slides
+- **Add scoped CSS overrides** if needed to ensure visibility:
+```css
+/* Ensure demo controls are always visible */
+.interactive-demo .demo-controls {
+    display: flex !important;
+    position: relative;
+    z-index: 100;
+    pointer-events: auto;
+}
+.interactive-demo .demo-controls button { 
+    pointer-events: auto; 
+}
+```
 
 ### Slides that transition vertically
 - Slides that transition vertically go deeper into the content. They should be closely linked to the previous slide.
@@ -227,6 +252,31 @@ math: {
 }
 ```
 **Important:** Use MathJax 2, not MathJax 3. The standard Reveal.js math plugin is designed for MathJax 2, and MathJax 3 requires different configuration that can cause errors.
+
+### Avoiding Reveal.js Naming Conflicts
+
+Reveal.js reserves certain class names for its own functionality. Using these names for your elements will cause unexpected behavior:
+
+#### Reserved Class Names to Avoid:
+- **`.controls`** - Used for navigation arrows (will hide your elements)
+- **`.navigate`** - Used for navigation controls
+- **`.progress`** - Used for the progress bar
+- **`.backgrounds`** - Used for slide backgrounds
+- **`.speaker-notes`** - Used for speaker notes
+
+#### Recommended Naming Conventions:
+Instead of reserved names, use prefixed alternatives:
+- `demo-controls` or `interactive-controls` instead of `controls`
+- `demo-navigation` instead of `navigate`
+- `demo-progress` or `viz-progress` instead of `progress`
+- `slide-bg` or `custom-background` instead of `backgrounds`
+
+#### Debugging Visibility Issues:
+If your elements disappear or behave unexpectedly:
+1. Check if you're using a reserved class name
+2. Inspect the element to see if Reveal's CSS is overriding your styles
+3. Add explicit inline styles with `!important` if necessary
+4. Use unique ID selectors for JavaScript targeting
 
 ### Source Citations
 - Never put sources directly at the bottom of slides - they take up too much vertical space
