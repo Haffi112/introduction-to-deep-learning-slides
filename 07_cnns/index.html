@@ -1,0 +1,3161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convolutional Neural Networks - Introduction to Deep Learning</title>
+    
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+    <link rel="stylesheet" href="../shared/css/reveal-theme.css">
+    <link rel="stylesheet" href="../shared/css/common.css">
+    <link rel="stylesheet" href="css/cnn-custom.css">
+    
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/monokai.css">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- Title Slide -->
+            <section class="title-slide">
+                <img src="../shared/images/uoi_logo_blue.png" alt="University of Iceland Logo" class="ui-logo">
+                <h1 class="truncate-title">Convolutional Neural Networks</h1>
+                <p>Chapter 7.1: From Fully Connected Layers to Convolutions</p>
+                <p>Based on "Dive into Deep Learning" by Zhang et al.</p>
+                <p class="mt-lg">
+                    <small>Instructor: Hafsteinn Einarsson</small><br>
+                    <small>University of Iceland</small>
+                </p>
+            </section>
+            
+            <!-- Section 1: Introduction to CNNs (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 7.1", "url": "https://d2l.ai/chapter_convolutional-neural-networks/why-conv.html"}, {"text": "LeCun et al. (1995) - Convolutional Networks for Images", "url": "http://yann.lecun.com/exdb/publis/pdf/lecun-95b.pdf"}]'>
+                    <h2 class="truncate-title">The Problem with Images as Vectors</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <h4>Traditional Approach</h4>
+                            <ul class="fragment">
+                                <li>Flatten 2D images to 1D vectors</li>
+                                <li>Feed through fully connected MLP</li>
+                                <li>Ignore spatial structure</li>
+                                <li>Treat pixels independently</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>The Issues</h4>
+                            <ul class="fragment">
+                                <li>Loss of spatial relationships</li>
+                                <li>Order of features doesn't matter</li>
+                                <li>Nearby pixels are related</li>
+                                <li>Massive parameter explosion</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p><strong>Key Insight:</strong> Images have rich spatial structure that we're throwing away!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Parameter Explosion Problem</h2>
+                    <div class="parameter-demo">
+                        <h4>One Megapixel Image Example</h4>
+                        <div class="calculation-steps">
+                            <div class="fragment">
+                                <p><strong>Input:</strong> 1000 × 1000 pixels = 1,000,000 dimensions</p>
+                            </div>
+                            <div class="fragment">
+                                <p><strong>Hidden Layer:</strong> 1000 units (aggressive reduction!)</p>
+                            </div>
+                            <div class="fragment">
+                                <p><strong>Parameters:</strong> 10<sup>6</sup> × 10<sup>3</sup> = <span class="highlight">10<sup>9</sup> parameters</span></p>
+                            </div>
+                            <div class="fragment emphasis-box mt-lg">
+                                <p>That's <strong>1 billion parameters</strong> for just ONE layer!</p>
+                                <p>And 1000 hidden units grossly underestimates what we need for good representations</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "Krizhevsky et al. (2012) - ImageNet Classification with Deep CNNs", "url": "https://papers.nips.cc/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf"}]'>
+                    <h2 class="truncate-title">The CNN Revolution</h2>
+                    <div class="timeline-container">
+                        <div class="timeline">
+                            <div class="timeline-item fragment">
+                                <div class="year">1995</div>
+                                <div class="event">LeNet</div>
+                                <div class="description">First successful CNN for digits</div>
+                            </div>
+                            <div class="timeline-item fragment">
+                                <div class="year">2012</div>
+                                <div class="event">AlexNet</div>
+                                <div class="description">ImageNet breakthrough</div>
+                            </div>
+                            <div class="timeline-item fragment">
+                                <div class="year">Today</div>
+                                <div class="event">Ubiquitous</div>
+                                <div class="description">Vision, audio, text, graphs</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fragment mt-lg">
+                        <p>CNNs leverage <span class="tooltip">spatial structure<span class="tooltiptext">The fact that nearby pixels are more related than distant ones</span></span> to achieve:</p>
+                        <ul>
+                            <li>Sample efficiency</li>
+                            <li>Computational efficiency</li>
+                            <li>Better generalization</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why is treating images as flattened vectors problematic for neural networks?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It makes the images too small",
+                                "correct": false,
+                                "explanation": "Flattening doesnt change the total number of pixels, just their arrangement."
+                            },
+                            {
+                                "text": "It destroys spatial relationships between pixels",
+                                "correct": true,
+                                "explanation": "Correct! Flattening loses the 2D structure where nearby pixels are related, treating all pixels as independent features."
+                            },
+                            {
+                                "text": "It makes training faster",
+                                "correct": false,
+                                "explanation": "Actually, flattening leads to more parameters and slower training."
+                            },
+                            {
+                                "text": "It only works for black and white images",
+                                "correct": false,
+                                "explanation": "Flattening works for any image type but is inefficient regardless of color channels."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 2: The Invariance Problem (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">The Invariance Challenge</h2>
+                    <div class="waldo-demo">
+                        <h4>Where's Waldo?</h4>
+                        <img src="images/waldo-football.jpg" alt="Where's Waldo scene" style="max-width: 60%; margin: 20px auto; display: block;">
+                        <div class="fragment">
+                            <p>The challenge: <strong>What Waldo looks like</strong> doesn't depend on <strong>where Waldo is located</strong></p>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>We need a system that can detect patterns regardless of their position in the image</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Translation Invariance</h2>
+                    <div id="translation-demo" class="visualization-container">
+                        <div class="demo-controls">
+                            <button id="move-object" class="ui-button">Move Object</button>
+                            <button id="reset-position" class="ui-button secondary">Reset</button>
+                        </div>
+                        <svg id="translation-svg" width="600" height="300"></svg>
+                    </div>
+                    <div class="fragment mt-md">
+                        <h4>Key Properties:</h4>
+                        <ul>
+                            <li>Same feature detector works everywhere</li>
+                            <li>Shared weights across positions</li>
+                            <li>Dramatically fewer parameters</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Design Principles for Vision</h2>
+                    <div class="principles-grid">
+                        <div class="principle fragment">
+                            <div class="icon">🔄</div>
+                            <h4>Translation Invariance</h4>
+                            <p>Network responds similarly to the same patch regardless of location</p>
+                        </div>
+                        <div class="principle fragment">
+                            <div class="icon">📍</div>
+                            <h4>Locality</h4>
+                            <p>Early layers focus on local regions without regard for distant content</p>
+                        </div>
+                        <div class="principle fragment">
+                            <div class="icon">🔭</div>
+                            <h4>Hierarchical Features</h4>
+                            <p>Deeper layers capture progressively longer-range features</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What does translation invariance mean in the context of CNNs?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "The network can translate text from one language to another",
+                                "correct": false,
+                                "explanation": "Translation here refers to spatial movement, not language translation."
+                            },
+                            {
+                                "text": "The network produces the same output for an object regardless of its position",
+                                "correct": true,
+                                "explanation": "Correct! Translation invariance means detecting the same pattern wherever it appears in the image."
+                            },
+                            {
+                                "text": "The network only works with images that have been moved",
+                                "correct": false,
+                                "explanation": "Translation invariance is about handling objects at any position, not requiring movement."
+                            },
+                            {
+                                "text": "The network changes its weights based on object position",
+                                "correct": false,
+                                "explanation": "Actually, CNNs use the same weights regardless of position - thats the key to translation invariance."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 3: From Fully Connected to Convolutions (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Constraining the MLP</h2>
+                    <p>Starting with a fully connected layer for 2D images:</p>
+                    <div class="math-progression">
+                        <div class="fragment">
+                            <h4>Full Connectivity</h4>
+                            <p>$$[\mathbf{H}]_{i,j} = [\mathbf{U}]_{i,j} + \sum_k \sum_l [\mathsf{W}]_{i,j,k,l} [\mathbf{X}]_{k,l}$$</p>
+                            <p class="annotation">Each output depends on EVERY input pixel</p>
+                        </div>
+                        <div class="fragment">
+                            <h4>Re-indexing</h4>
+                            <p>$$[\mathbf{H}]_{i,j} = [\mathbf{U}]_{i,j} + \sum_a \sum_b [\mathsf{V}]_{i,j,a,b} [\mathbf{X}]_{i+a,j+b}$$</p>
+                            <p class="annotation">Express as offsets from output position</p>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>Parameters needed: 1000² × 1000² = <strong>10<sup>12</sup></strong> (one trillion!)</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Applying Translation Invariance</h2>
+                    <div class="constraint-demo">
+                        <h4>The Key Constraint</h4>
+                        <div class="fragment">
+                            <p>If the detector shouldn't depend on position:</p>
+                            <p>$$[\mathsf{V}]_{i,j,a,b} = [\mathbf{V}]_{a,b}$$</p>
+                            <p>Weights only depend on the <strong>offset</strong>, not the <strong>position</strong>!</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Simplified Form</h4>
+                            <p>$$[\mathbf{H}]_{i,j} = u + \sum_a \sum_b [\mathbf{V}]_{a,b} [\mathbf{X}]_{i+a,j+b}$$</p>
+                            <p class="annotation">This is a <span class="highlight">convolution</span>!</p>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>Parameters reduced to: 2000 × 2000 = <strong>4 × 10<sup>6</sup></strong></p>
+                            <p>That's 250,000× fewer parameters!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Convolution Demo</h2>
+                    <div id="convolution-demo" class="conv-visualization">
+                        <div class="demo-controls">
+                            <label>Kernel Size: 
+                                <select id="kernel-size">
+                                    <option value="3">3×3</option>
+                                    <option value="5">5×5</option>
+                                </select>
+                            </label>
+                            <button id="step-conv" class="ui-button">Step</button>
+                            <button id="animate-conv" class="ui-button">Animate</button>
+                            <button id="reset-conv" class="ui-button secondary">Reset</button>
+                        </div>
+                        <div id="conv-container"></div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "How does applying translation invariance reduce the number of parameters?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It removes all parameters",
+                                "correct": false,
+                                "explanation": "We still need parameters for the convolution kernel, just far fewer than before."
+                            },
+                            {
+                                "text": "It makes weights independent of absolute position",
+                                "correct": true,
+                                "explanation": "Correct! By sharing the same weights across all positions, we only need to learn one set of weights for the entire image."
+                            },
+                            {
+                                "text": "It makes the network smaller",
+                                "correct": false,
+                                "explanation": "The network output size remains the same; we just use fewer parameters to compute it."
+                            },
+                            {
+                                "text": "It only processes part of the image",
+                                "correct": false,
+                                "explanation": "Translation invariance still processes the entire image, just with shared weights."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 4: Locality Principle (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">The Locality Principle</h2>
+                    <div class="locality-illustration">
+                        <h4>Why Look Far Away?</h4>
+                        <div class="fragment">
+                            <p>To understand what's happening at position (i, j), do we need to look at pixels 500 positions away?</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <div class="emphasis-box">
+                                <p><strong>Locality assumption:</strong> Set $[\mathbf{V}]_{a,b} = 0$ for $|a| > \Delta$ or $|b| > \Delta$</p>
+                            </div>
+                        </div>
+                        <div class="fragment mt-md">
+                            <p>Now our convolution becomes:</p>
+                            <p>$$[\mathbf{H}]_{i,j} = u + \sum_{a=-\Delta}^{\Delta} \sum_{b=-\Delta}^{\Delta} [\mathbf{V}]_{a,b} [\mathbf{X}]_{i+a,j+b}$$</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Receptive Field Visualization</h2>
+                    <div id="receptive-field-demo" class="visualization-container">
+                        <div class="demo-controls">
+                            <label>Kernel Size (2Δ+1): 
+                                <input type="range" id="delta-slider" min="1" max="7" value="3" step="2">
+                                <span id="delta-value">3×3</span>
+                            </label>
+                        </div>
+                        <svg id="receptive-field-svg" width="600" height="400"></svg>
+                    </div>
+                    <div class="fragment mt-md">
+                        <p>Parameters with locality: $(2\Delta + 1)^2$</p>
+                        <p>For Δ = 5: only <strong>121 parameters</strong> per kernel!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Parameter Reduction Summary</h2>
+                    <div class="parameter-comparison">
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>Approach</th>
+                                    <th>Parameters</th>
+                                    <th>Reduction</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="fragment">
+                                    <td>Fully Connected</td>
+                                    <td>10<sup>12</sup></td>
+                                    <td>—</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td>+ Translation Invariance</td>
+                                    <td>4 × 10<sup>6</sup></td>
+                                    <td>250,000×</td>
+                                </tr>
+                                <tr class="fragment">
+                                    <td>+ Locality (Δ=5)</td>
+                                    <td>121</td>
+                                    <td>8.3 billion×</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>From <strong>trillions</strong> to <strong>hundreds</strong> of parameters!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the main benefit of the locality principle in CNNs?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It makes the network faster to train by using only nearby pixels",
+                                "correct": true,
+                                "explanation": "Correct! By only connecting to nearby pixels, we drastically reduce parameters and computation."
+                            },
+                            {
+                                "text": "It allows the network to process larger images",
+                                "correct": false,
+                                "explanation": "Locality doesnt change the size of images we can process, just how efficiently we process them."
+                            },
+                            {
+                                "text": "It makes the network ignore important features",
+                                "correct": false,
+                                "explanation": "Locality captures local features, which can be combined in deeper layers for global understanding."
+                            },
+                            {
+                                "text": "It only works for small images",
+                                "correct": false,
+                                "explanation": "Locality works for any image size - its about local connections, not image dimensions."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 5: Convolution Mathematics (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">The Mathematics of Convolution</h2>
+                    <div class="math-definition">
+                        <h4>Continuous Convolution</h4>
+                        <div class="fragment">
+                            <p>For functions $f, g: \mathbb{R}^d \to \mathbb{R}$:</p>
+                            <p>$$(f * g)(\mathbf{x}) = \int f(\mathbf{z}) g(\mathbf{x} - \mathbf{z}) d\mathbf{z}$$</p>
+                            <p class="annotation">Measure overlap between f and "flipped" g shifted by x</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Discrete 2D Convolution</h4>
+                            <p>$$(f * g)(i, j) = \sum_a \sum_b f(a, b) g(i-a, j-b)$$</p>
+                            <p class="annotation">Sum over all valid positions</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Convolution vs Cross-Correlation</h2>
+                    <div class="comparison-viz">
+                        <div class="two-column">
+                            <div class="column">
+                                <h4>Convolution</h4>
+                                <p>$$\sum_a \sum_b f(a, b) g(i-a, j-b)$$</p>
+                                <p class="fragment">Kernel is "flipped"</p>
+                            </div>
+                            <div class="column">
+                                <h4>Cross-Correlation</h4>
+                                <p>$$\sum_a \sum_b f(a, b) g(i+a, j+b)$$</p>
+                                <p class="fragment">Kernel is not flipped</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>In deep learning, we often use cross-correlation but call it "convolution"</p>
+                            <p>Since we learn the kernels, the distinction doesn't matter!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Convolution Calculator</h2>
+                    <div id="conv-calculator" class="calculator-demo">
+                        <div class="input-grid">
+                            <h4>Input</h4>
+                            <div id="input-matrix"></div>
+                        </div>
+                        <div class="kernel-grid">
+                            <h4>Kernel</h4>
+                            <div id="kernel-matrix"></div>
+                        </div>
+                        <div class="output-grid">
+                            <h4>Output</h4>
+                            <div id="output-matrix"></div>
+                        </div>
+                        <div class="demo-controls mt-md">
+                            <button id="randomize-input" class="ui-button">Random Input</button>
+                            <select id="preset-kernel">
+                                <option value="identity">Identity</option>
+                                <option value="edge">Edge Detection</option>
+                                <option value="blur">Blur</option>
+                                <option value="sharpen">Sharpen</option>
+                            </select>
+                            <button id="compute-conv" class="ui-button">Compute</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why doesnt it matter that deep learning uses cross-correlation instead of true convolution?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "The operations are mathematically identical",
+                                "correct": false,
+                                "explanation": "Convolution and cross-correlation are different operations - one flips the kernel, the other doesnt."
+                            },
+                            {
+                                "text": "Because we learn the kernel weights from data",
+                                "correct": true,
+                                "explanation": "Correct! Since the network learns the optimal kernel values, it can learn a flipped version if needed."
+                            },
+                            {
+                                "text": "Cross-correlation is faster to compute",
+                                "correct": false,
+                                "explanation": "Both operations have similar computational complexity."
+                            },
+                            {
+                                "text": "Images are symmetric anyway",
+                                "correct": false,
+                                "explanation": "Images are generally not symmetric, and this isnt why the distinction doesnt matter."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 6: Channels and Feature Maps (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Understanding CNN Channels", "url": "https://d2l.ai/chapter_convolutional-neural-networks/channels.html"}]'>
+                    <h2 class="truncate-title">Beyond Grayscale: Channels</h2>
+                    <div class="channels-intro">
+                        <h4>Real Images Have Multiple Channels</h4>
+                        <div class="fragment">
+                            <div class="channel-grid">
+                                <div class="channel red">
+                                    <div class="channel-viz">R</div>
+                                    <p>Red Channel</p>
+                                </div>
+                                <div class="channel green">
+                                    <div class="channel-viz">G</div>
+                                    <p>Green Channel</p>
+                                </div>
+                                <div class="channel blue">
+                                    <div class="channel-viz">B</div>
+                                    <p>Blue Channel</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment mt-md">
+                            <p>Images are 3rd-order tensors: Height × Width × Channels</p>
+                            <p>Example: 1024 × 1024 × 3 for RGB image</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Multi-Channel Convolution</h2>
+                    <div class="multichannel-math">
+                        <h4>Extending to Multiple Channels</h4>
+                        <div class="fragment">
+                            <p>Input: $[\mathsf{X}]_{i,j,c}$ (position i,j, channel c)</p>
+                            <p>Kernel: $[\mathsf{V}]_{a,b,c,d}$ (offset a,b, input channel c, output channel d)</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <p>Multi-channel convolution:</p>
+                            <p>$$[\mathsf{H}]_{i,j,d} = \sum_{a=-\Delta}^{\Delta} \sum_{b=-\Delta}^{\Delta} \sum_c [\mathsf{V}]_{a,b,c,d} [\mathsf{X}]_{i+a,j+b,c}$$</p>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>Each output channel combines information from ALL input channels</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Feature Maps Visualization</h2>
+                    <div id="feature-maps-demo" class="feature-viz">
+                        <h4>Multiple Output Channels as Feature Detectors</h4>
+                        <div class="demo-controls">
+                            <label>Number of Filters: 
+                                <input type="range" id="num-filters" min="1" max="6" value="3">
+                                <span id="filter-count">3</span>
+                            </label>
+                            <button id="apply-filters" class="ui-button">Apply Filters</button>
+                        </div>
+                        <div id="feature-maps-container"></div>
+                    </div>
+                    <div class="fragment mt-md">
+                        <p>Each filter learns to detect different features:</p>
+                        <ul>
+                            <li>Edges at different orientations</li>
+                            <li>Textures and patterns</li>
+                            <li>Color combinations</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "In a CNN with 3 input channels and 64 output channels, how many separate 2D kernels are there?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "3 kernels",
+                                "correct": false,
+                                "explanation": "This would only allow one kernel per input channel, not creating multiple output channels."
+                            },
+                            {
+                                "text": "64 kernels",
+                                "correct": false,
+                                "explanation": "Each output channel needs to process ALL input channels, not just one kernel total."
+                            },
+                            {
+                                "text": "192 kernels (3 × 64)",
+                                "correct": true,
+                                "explanation": "Correct! Each of the 64 output channels needs 3 kernels (one per input channel), giving 192 total 2D kernels."
+                            },
+                            {
+                                "text": "67 kernels (3 + 64)",
+                                "correct": false,
+                                "explanation": "Channels are not additive - we need kernels for each input-output channel pair."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 7: Hierarchical Features (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Building Hierarchical Representations</h2>
+                    <div class="hierarchy-viz">
+                        <h4>From Pixels to Concepts</h4>
+                        <div class="layer-progression">
+                            <div class="layer fragment">
+                                <div class="layer-box layer1">
+                                    <h5>Layer 1</h5>
+                                    <p>Edges & Gradients</p>
+                                </div>
+                                <div class="arrow">→</div>
+                            </div>
+                            <div class="layer fragment">
+                                <div class="layer-box layer2">
+                                    <h5>Layer 2</h5>
+                                    <p>Textures & Patterns</p>
+                                </div>
+                                <div class="arrow">→</div>
+                            </div>
+                            <div class="layer fragment">
+                                <div class="layer-box layer3">
+                                    <h5>Layer 3</h5>
+                                    <p>Parts & Objects</p>
+                                </div>
+                                <div class="arrow">→</div>
+                            </div>
+                            <div class="layer fragment">
+                                <div class="layer-box layer4">
+                                    <h5>Layer 4+</h5>
+                                    <p>Complex Concepts</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>Each layer builds on the previous, creating increasingly abstract representations</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Receptive Field Growth</h2>
+                    <div id="receptive-growth-demo" class="growth-viz">
+                        <h4>How Deep Networks See More</h4>
+                        <div class="demo-controls">
+                            <label>Network Depth: 
+                                <input type="range" id="depth-slider" min="1" max="5" value="1">
+                                <span id="depth-value">1 layer</span>
+                            </label>
+                        </div>
+                        <svg id="receptive-growth-svg" width="600" height="400"></svg>
+                    </div>
+                    <div class="fragment mt-md">
+                        <p>With 3×3 kernels:</p>
+                        <ul>
+                            <li>Layer 1: sees 3×3 pixels</li>
+                            <li>Layer 2: sees 5×5 pixels</li>
+                            <li>Layer 3: sees 7×7 pixels</li>
+                            <li>Layer n: sees (2n+1)×(2n+1) pixels</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Power of Composition</h2>
+                    <div class="composition-demo">
+                        <h4>Combining Simple Operations</h4>
+                        <div class="fragment">
+                            <p>Linear operations + Nonlinearities = Complex Functions</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <div class="formula-progression">
+                                <p>Layer 1: $\mathbf{H}^{(1)} = \sigma(\mathbf{X} * \mathbf{W}^{(1)})$</p>
+                                <p>Layer 2: $\mathbf{H}^{(2)} = \sigma(\mathbf{H}^{(1)} * \mathbf{W}^{(2)})$</p>
+                                <p>Layer 3: $\mathbf{H}^{(3)} = \sigma(\mathbf{H}^{(2)} * \mathbf{W}^{(3)})$</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>Deep networks learn both features AND how to combine them</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why do deeper CNN layers typically capture more complex features?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "They have more parameters",
+                                "correct": false,
+                                "explanation": "Parameter count alone doesnt determine feature complexity - its about composition."
+                            },
+                            {
+                                "text": "They have larger receptive fields and build on earlier features",
+                                "correct": true,
+                                "explanation": "Correct! Deeper layers see larger image regions and combine simpler features from earlier layers into complex patterns."
+                            },
+                            {
+                                "text": "They use different activation functions",
+                                "correct": false,
+                                "explanation": "CNNs typically use the same activation function throughout the network."
+                            },
+                            {
+                                "text": "They process images at higher resolution",
+                                "correct": false,
+                                "explanation": "Actually, deeper layers often have lower spatial resolution due to pooling or striding."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 8: Summary and Key Concepts (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">CNN Architecture Summary</h2>
+                    <div class="architecture-summary">
+                        <h4>Key Components of CNNs</h4>
+                        <div class="component-grid">
+                            <div class="component fragment">
+                                <h5>🔲 Convolution Layers</h5>
+                                <p>Local connections with shared weights</p>
+                            </div>
+                            <div class="component fragment">
+                                <h5>🎯 Feature Maps</h5>
+                                <p>Multiple channels detecting different patterns</p>
+                            </div>
+                            <div class="component fragment">
+                                <h5>📏 Kernel/Filter</h5>
+                                <p>Small weight matrices (3×3, 5×5, etc.)</p>
+                            </div>
+                            <div class="component fragment">
+                                <h5>🔄 Weight Sharing</h5>
+                                <p>Same weights used across all positions</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Why CNNs Work: The Complete Picture</h2>
+                    <div class="why-cnns-work">
+                        <ol>
+                            <li class="fragment">
+                                <strong>Exploit Structure:</strong> Images have spatial structure we can leverage
+                            </li>
+                            <li class="fragment">
+                                <strong>Parameter Efficiency:</strong> From trillions to hundreds of parameters
+                            </li>
+                            <li class="fragment">
+                                <strong>Translation Invariance:</strong> Detect patterns anywhere in the image
+                            </li>
+                            <li class="fragment">
+                                <strong>Hierarchical Learning:</strong> Build complex features from simple ones
+                            </li>
+                            <li class="fragment">
+                                <strong>Computational Efficiency:</strong> Convolutions are highly parallelizable
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>CNNs are the <strong>right</strong> architecture for spatial data!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Beyond Images: CNN Applications</h2>
+                    <div class="applications-grid">
+                        <div class="application fragment">
+                            <div class="icon">🎵</div>
+                            <h5>Audio Processing</h5>
+                            <p>1D convolutions on waveforms</p>
+                        </div>
+                        <div class="application fragment">
+                            <div class="icon">📝</div>
+                            <h5>Text Analysis</h5>
+                            <p>1D convolutions on sequences</p>
+                        </div>
+                        <div class="application fragment">
+                            <div class="icon">📊</div>
+                            <h5>Time Series</h5>
+                            <p>Temporal pattern detection</p>
+                        </div>
+                        <div class="application fragment">
+                            <div class="icon">🔗</div>
+                            <h5>Graph Networks</h5>
+                            <p>Convolutions on graph structures</p>
+                        </div>
+                    </div>
+                    <div class="fragment mt-lg">
+                        <p>The principles of locality and weight sharing apply broadly!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Which combination of principles allows CNNs to be so effective for image processing?",
+                        "type": "multiple",
+                        "options": [
+                            {
+                                "text": "Translation invariance through weight sharing",
+                                "correct": true,
+                                "explanation": "Weight sharing ensures the same pattern detector works everywhere in the image."
+                            },
+                            {
+                                "text": "Locality through limited receptive fields",
+                                "correct": true,
+                                "explanation": "Local connections dramatically reduce parameters while capturing spatial relationships."
+                            },
+                            {
+                                "text": "Hierarchical feature learning through depth",
+                                "correct": true,
+                                "explanation": "Multiple layers build increasingly complex representations from simple features."
+                            },
+                            {
+                                "text": "Using only grayscale images",
+                                "correct": false,
+                                "explanation": "CNNs work with any number of input channels, not just grayscale."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 9: The Cross-Correlation Operation (Deep Dive) -->
+            <section>
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 7.2", "url": "https://d2l.ai/chapter_convolutional-neural-networks/conv-layer.html"}]'>
+                    <h2 class="truncate-title">The Cross-Correlation Operation: Mathematical Foundation</h2>
+                    <div class="math-definition">
+                        <h4>Formal Definition</h4>
+                        <div class="fragment">
+                            <p>For input tensor $\mathbf{X}$ and kernel tensor $\mathbf{K}$:</p>
+                            <p>$$[\mathbf{Y}]_{i,j} = \sum_{a=0}^{k_h-1} \sum_{b=0}^{k_w-1} [\mathbf{K}]_{a,b} \cdot [\mathbf{X}]_{i+a,j+b}$$</p>
+                            <p class="annotation">Element-wise multiplication and summation over kernel window</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Step-by-Step Example</h4>
+                            <p>Input: $\begin{bmatrix} 0 & 1 & 2 \\ 3 & 4 & 5 \\ 6 & 7 & 8 \end{bmatrix}$ 
+                               Kernel: $\begin{bmatrix} 0 & 1 \\ 2 & 3 \end{bmatrix}$</p>
+                            <p class="fragment">Position (0,0): $0 \times 0 + 1 \times 1 + 3 \times 2 + 4 \times 3 = 19$</p>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p><span class="tooltip">Cross-correlation<span class="tooltiptext">An operation that slides a kernel across an input, computing weighted sums at each position</span></span> is the fundamental operation in CNNs</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Cross-Correlation Calculator</h2>
+                    <div id="cross-correlation-demo" class="interactive-demo">
+                        <div class="demo-controls" style="margin-bottom: 20px;">
+                            <button id="step-correlation" class="ui-button">Step Forward</button>
+                            <button id="animate-correlation" class="ui-button">Animate</button>
+                            <button id="reset-correlation" class="ui-button secondary">Reset</button>
+                        </div>
+                        <div class="correlation-grids" style="display: flex; justify-content: space-around; align-items: center;">
+                            <div class="input-display">
+                                <h4>Input (3×3)</h4>
+                                <div id="correlation-input"></div>
+                            </div>
+                            <div class="kernel-display">
+                                <h4>Kernel (2×2)</h4>
+                                <div id="correlation-kernel"></div>
+                            </div>
+                            <div class="output-display">
+                                <h4>Output (2×2)</h4>
+                                <div id="correlation-output"></div>
+                            </div>
+                        </div>
+                        <div id="calculation-display" class="mt-md" style="text-align: center; font-family: monospace;"></div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Output Size Calculation</h2>
+                    <div class="output-size-demo">
+                        <h4>Computing Output Dimensions</h4>
+                        <div class="fragment">
+                            <div class="formula-box">
+                                <p>$$\text{Output Height} = n_h - k_h + 1$$</p>
+                                <p>$$\text{Output Width} = n_w - k_w + 1$$</p>
+                            </div>
+                            <p class="annotation">Where $n_h, n_w$ are input dimensions and $k_h, k_w$ are kernel dimensions</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Interactive Size Calculator</h4>
+                            <div class="demo-controls" style="display: flex; gap: 20px; justify-content: center; align-items: center;">
+                                <label>Input Size: 
+                                    <input type="range" id="input-size-slider" min="3" max="10" value="5">
+                                    <span id="input-size-value">5×5</span>
+                                </label>
+                                <label>Kernel Size: 
+                                    <input type="range" id="kernel-size-slider" min="2" max="5" value="3">
+                                    <span id="kernel-size-value">3×3</span>
+                                </label>
+                            </div>
+                            <div id="size-visualization" class="mt-md"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Given a 5×5 input and a 3×3 kernel, what is the output size without padding?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "5×5",
+                                "correct": false,
+                                "explanation": "The output is smaller than the input when using convolution without padding."
+                            },
+                            {
+                                "text": "3×3",
+                                "correct": true,
+                                "explanation": "Correct! Using the formula (5-3+1)×(5-3+1) = 3×3."
+                            },
+                            {
+                                "text": "2×2",
+                                "correct": false,
+                                "explanation": "This would be the result with a 4×4 kernel, not 3×3."
+                            },
+                            {
+                                "text": "7×7",
+                                "correct": false,
+                                "explanation": "The output cannot be larger than the input without padding."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 10: Implementation of Convolution Layers -->
+            <section>
+                <section data-sources='[{"text": "Dive into Deep Learning - Convolution Implementation", "url": "https://d2l.ai/chapter_convolutional-neural-networks/conv-layer.html#convolutional-layers"}]'>
+                    <h2 class="truncate-title">Implementing Cross-Correlation</h2>
+                    <div class="code-implementation">
+                        <h4>Core corr2d Function</h4>
+                        <pre><code class="language-python">def corr2d(X, K):
+    """Compute 2D cross-correlation."""
+    h, w = K.shape
+    Y = torch.zeros((X.shape[0] - h + 1, X.shape[1] - w + 1))
+    for i in range(Y.shape[0]):
+        for j in range(Y.shape[1]):
+            Y[i, j] = (X[i:i + h, j:j + w] * K).sum()
+    return Y</code></pre>
+                        <div class="fragment mt-md">
+                            <p><strong>Key Steps:</strong></p>
+                            <ul>
+                                <li>Calculate output dimensions based on input and kernel sizes</li>
+                                <li>Slide kernel across input with nested loops</li>
+                                <li>Compute element-wise multiplication and sum at each position</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Conv2D Layer Class</h2>
+                    <div class="conv2d-implementation">
+                        <h4>Building a Convolutional Layer</h4>
+                        <pre><code class="language-python">class Conv2D(nn.Module):
+    def __init__(self, kernel_size):
+        super().__init__()
+        self.weight = nn.Parameter(torch.rand(kernel_size))
+        self.bias = nn.Parameter(torch.zeros(1))
+
+    def forward(self, x):
+        return corr2d(x, self.weight) + self.bias</code></pre>
+                        <div class="fragment mt-md">
+                            <h4>Components:</h4>
+                            <ul>
+                                <li><span class="tooltip">weight<span class="tooltiptext">The learnable kernel parameters, randomly initialized</span></span>: Kernel parameters (randomly initialized)</li>
+                                <li><span class="tooltip">bias<span class="tooltiptext">A single scalar value added to all outputs</span></span>: Scalar bias term</li>
+                                <li>forward: Applies cross-correlation and adds bias</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Framework Implementations</h2>
+                    <div class="framework-comparison">
+                        <h4>Cross-Framework Consistency</h4>
+                        <div class="two-column">
+                            <div class="column">
+                                <h5>PyTorch</h5>
+                                <pre><code class="language-python">conv2d = nn.Conv2d(
+    in_channels=1,
+    out_channels=1,
+    kernel_size=3
+)</code></pre>
+                            </div>
+                            <div class="column">
+                                <h5>TensorFlow</h5>
+                                <pre><code class="language-python">conv2d = tf.keras.layers.Conv2D(
+    filters=1,
+    kernel_size=3
+)</code></pre>
+                            </div>
+                        </div>
+                        <div class="fragment mt-md emphasis-box">
+                            <p>All major frameworks provide optimized convolution implementations with similar APIs</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What are the two learnable parameters in a basic Conv2D layer?",
+                        "type": "multiple",
+                        "options": [
+                            {
+                                "text": "Kernel weights",
+                                "correct": true,
+                                "explanation": "The kernel (or filter) weights are the primary learnable parameters."
+                            },
+                            {
+                                "text": "Bias term",
+                                "correct": true,
+                                "explanation": "A scalar bias is added to each output position."
+                            },
+                            {
+                                "text": "Stride value",
+                                "correct": false,
+                                "explanation": "Stride is a hyperparameter, not a learnable parameter."
+                            },
+                            {
+                                "text": "Input dimensions",
+                                "correct": false,
+                                "explanation": "Input dimensions are determined by the data, not learned."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 11: Edge Detection Example -->
+            <section>
+                <section data-sources='[{"text": "Edge Detection with Convolutions", "url": "https://d2l.ai/chapter_convolutional-neural-networks/conv-layer.html#object-edge-detection-in-images"}]'>
+                    <h2 class="truncate-title">Edge Detection with Convolutions</h2>
+                    <div class="edge-detection-intro">
+                        <h4>Creating a Test Image</h4>
+                        <div class="fragment">
+                            <pre><code class="language-python">X = torch.ones((6, 8))
+X[:, 2:6] = 0  # Middle columns are black
+# Result:
+# [[1, 1, 0, 0, 0, 0, 1, 1],
+#  [1, 1, 0, 0, 0, 0, 1, 1],
+#  [1, 1, 0, 0, 0, 0, 1, 1],
+#  [1, 1, 0, 0, 0, 0, 1, 1],
+#  [1, 1, 0, 0, 0, 0, 1, 1],
+#  [1, 1, 0, 0, 0, 0, 1, 1]]</code></pre>
+                        </div>
+                        <div class="fragment emphasis-box mt-md">
+                            <p>A simple pattern with vertical edges between white (1) and black (0) regions</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">The Edge Detection Kernel</h2>
+                    <div class="edge-kernel-explanation">
+                        <h4>Finite Difference Operator</h4>
+                        <div class="fragment">
+                            <pre><code class="language-python">K = torch.tensor([[1.0, -1.0]])</code></pre>
+                            <p>This kernel computes: $x_{i,j} - x_{i,j+1}$</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Mathematical Interpretation</h4>
+                            <p>Discrete approximation of the horizontal derivative:</p>
+                            <p>$$-\partial_j f(i,j) = \lim_{\epsilon \to 0} \frac{f(i,j) - f(i,j+\epsilon)}{\epsilon}$$</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Output Interpretation</h4>
+                            <ul>
+                                <li><strong>+1</strong>: Edge from white to black</li>
+                                <li><strong>-1</strong>: Edge from black to white</li>
+                                <li><strong>0</strong>: No edge (uniform region)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Edge Detection Demo</h2>
+                    <div id="edge-detection-interactive" class="interactive-demo">
+                        <div class="demo-controls" style="margin-bottom: 20px;">
+                            <button id="apply-horizontal" class="ui-button">Horizontal Edges</button>
+                            <button id="apply-vertical" class="ui-button">Vertical Edges</button>
+                            <button id="apply-custom" class="ui-button">Custom Pattern</button>
+                            <button id="reset-edge" class="ui-button secondary">Reset</button>
+                        </div>
+                        <div class="edge-visualization" style="display: flex; justify-content: space-around;">
+                            <div>
+                                <h4>Input Image</h4>
+                                <canvas id="edge-input-canvas" width="200" height="150"></canvas>
+                            </div>
+                            <div>
+                                <h4>Kernel</h4>
+                                <div id="edge-kernel-display"></div>
+                            </div>
+                            <div>
+                                <h4>Output</h4>
+                                <canvas id="edge-output-canvas" width="200" height="150"></canvas>
+                            </div>
+                        </div>
+                        <div id="edge-explanation" class="mt-md" style="text-align: center;"></div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What does the kernel [[1, -1]] detect in an image?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Horizontal edges",
+                                "correct": false,
+                                "explanation": "This kernel detects changes along the horizontal direction, which are vertical edges."
+                            },
+                            {
+                                "text": "Vertical edges",
+                                "correct": true,
+                                "explanation": "Correct! The kernel computes horizontal differences, detecting vertical transitions."
+                            },
+                            {
+                                "text": "Diagonal edges",
+                                "correct": false,
+                                "explanation": "Diagonal edge detection requires kernels with diagonal structure."
+                            },
+                            {
+                                "text": "Corners",
+                                "correct": false,
+                                "explanation": "Corner detection requires more complex operations than a simple difference kernel."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 12: Learning Kernels from Data -->
+            <section>
+                <section data-sources='[{"text": "Learning Kernels", "url": "https://d2l.ai/chapter_convolutional-neural-networks/conv-layer.html#learning-a-kernel"}]'>
+                    <h2 class="truncate-title">Learning Kernels from Data</h2>
+                    <div class="learning-setup">
+                        <h4>The Learning Problem</h4>
+                        <div class="fragment">
+                            <p>Given input-output pairs, can we learn the kernel that produces the mapping?</p>
+                            <pre><code class="language-python"># Setup: We have input X and desired output Y
+# Goal: Learn kernel K such that X * K ≈ Y
+
+conv2d = nn.Conv2d(1, 1, kernel_size=(1, 2), bias=False)
+X = X.reshape((1, 1, 6, 8))  # Batch, Channel, Height, Width
+Y = Y.reshape((1, 1, 6, 7))
+lr = 3e-2  # Learning rate</code></pre>
+                        </div>
+                        <div class="fragment emphasis-box mt-md">
+                            <p>We'll use gradient descent to minimize the squared error loss</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Training Loop Implementation</h2>
+                    <div class="training-code">
+                        <h4>Gradient Descent for Kernel Learning</h4>
+                        <pre><code class="language-python">for i in range(10):
+    Y_hat = conv2d(X)
+    l = (Y_hat - Y) ** 2
+    conv2d.zero_grad()
+    l.sum().backward()
+    # Update the kernel
+    conv2d.weight.data[:] -= lr * conv2d.weight.grad
+    if (i + 1) % 2 == 0:
+        print(f'epoch {i + 1}, loss {l.sum():.3f}')
+
+# Output:
+# epoch 2, loss 16.481
+# epoch 4, loss 5.069
+# epoch 6, loss 1.794
+# epoch 8, loss 0.688
+# epoch 10, loss 0.274</code></pre>
+                        <div class="fragment mt-md">
+                            <p>Final learned kernel: <code>[[1.0398, -0.9328]]</code></p>
+                            <p>Target kernel was: <code>[[1.0, -1.0]]</code></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Kernel Learning Demo</h2>
+                    <div id="kernel-learning-demo" class="interactive-demo">
+                        <div class="demo-controls" style="margin-bottom: 20px;">
+                            <label>Learning Rate: 
+                                <input type="range" id="learning-rate" min="0.01" max="0.1" step="0.01" value="0.03">
+                                <span id="lr-value">0.03</span>
+                            </label>
+                            <button id="start-learning" class="ui-button">Start Training</button>
+                            <button id="reset-learning" class="ui-button secondary">Reset</button>
+                        </div>
+                        <div class="learning-visualization" style="display: flex; justify-content: space-around;">
+                            <div>
+                                <h4>Target Kernel</h4>
+                                <div id="target-kernel"></div>
+                            </div>
+                            <div>
+                                <h4>Current Kernel</h4>
+                                <div id="current-kernel"></div>
+                            </div>
+                            <div>
+                                <h4>Loss Curve</h4>
+                                <svg id="loss-curve" width="250" height="150"></svg>
+                            </div>
+                        </div>
+                        <div id="epoch-display" class="mt-md" style="text-align: center;"></div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why can CNNs learn effective kernels from data?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Kernels are predefined for specific tasks",
+                                "correct": false,
+                                "explanation": "CNNs learn kernels from data, not use predefined ones."
+                            },
+                            {
+                                "text": "Gradient descent can optimize kernel weights to minimize loss",
+                                "correct": true,
+                                "explanation": "Correct! Backpropagation computes gradients for kernel weights, allowing optimization."
+                            },
+                            {
+                                "text": "Random kernels always work well",
+                                "correct": false,
+                                "explanation": "Random initialization is just the starting point; learning is essential."
+                            },
+                            {
+                                "text": "Kernels dont need to be learned",
+                                "correct": false,
+                                "explanation": "Learning appropriate kernels is crucial for CNN performance."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 13: Convolution vs Cross-Correlation -->
+            <section>
+                <section data-sources='[{"text": "Cross-Correlation and Convolution", "url": "https://d2l.ai/chapter_convolutional-neural-networks/conv-layer.html#cross-correlation-and-convolution"}]'>
+                    <h2 class="truncate-title">Convolution vs Cross-Correlation</h2>
+                    <div class="convolution-comparison">
+                        <h4>Mathematical Definitions</h4>
+                        <div class="two-column">
+                            <div class="column fragment">
+                                <h5>True Convolution</h5>
+                                <p>$$(f * g)(i, j) = \sum_a \sum_b f(a, b) \cdot g(i-a, j-b)$$</p>
+                                <p class="annotation">Kernel is flipped both horizontally and vertically</p>
+                            </div>
+                            <div class="column fragment">
+                                <h5>Cross-Correlation</h5>
+                                <p>$$(f \star g)(i, j) = \sum_a \sum_b f(a, b) \cdot g(i+a, j+b)$$</p>
+                                <p class="annotation">Kernel is not flipped</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>Deep learning libraries typically implement cross-correlation but call it "convolution"</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Why the Distinction Doesn't Matter</h2>
+                    <div class="why-not-matter">
+                        <h4>Learning Adapts to the Operation</h4>
+                        <div class="fragment">
+                            <p>Consider two scenarios:</p>
+                            <ol>
+                                <li>Network uses <strong>cross-correlation</strong> and learns kernel $\mathbf{K}$</li>
+                                <li>Network uses <strong>true convolution</strong> and learns kernel $\mathbf{K}'$</li>
+                            </ol>
+                        </div>
+                        <div class="fragment mt-md">
+                            <div class="emphasis-box">
+                                <p>Result: $\mathbf{K}' = \text{flip}(\mathbf{K})$</p>
+                                <p>The network learns the appropriate kernel for the operation used!</p>
+                            </div>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Practical Implication</h4>
+                            <p>Since kernels are learned from data, the network automatically adapts to whichever operation is used, producing identical outputs.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Visual Comparison Demo</h2>
+                    <div id="conv-vs-corr-demo" class="interactive-demo">
+                        <div class="demo-controls" style="margin-bottom: 20px;">
+                            <button id="show-convolution" class="ui-button">Show Convolution</button>
+                            <button id="show-correlation" class="ui-button">Show Cross-Correlation</button>
+                            <button id="show-both" class="ui-button">Compare Both</button>
+                        </div>
+                        <div class="comparison-viz" style="display: flex; justify-content: space-around;">
+                            <div>
+                                <h4>Original Kernel</h4>
+                                <div id="original-kernel-viz"></div>
+                            </div>
+                            <div>
+                                <h4>Operation Applied</h4>
+                                <div id="operation-kernel-viz"></div>
+                            </div>
+                            <div>
+                                <h4>Result</h4>
+                                <div id="operation-result-viz"></div>
+                            </div>
+                        </div>
+                        <div id="operation-explanation" class="mt-md" style="text-align: center;"></div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "In deep learning, why do we use cross-correlation instead of true convolution?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Cross-correlation is mathematically superior",
+                                "correct": false,
+                                "explanation": "Neither operation is inherently superior; they differ only in kernel orientation."
+                            },
+                            {
+                                "text": "It doesnt matter since kernels are learned",
+                                "correct": true,
+                                "explanation": "Correct! The network learns appropriate kernels regardless of which operation is used."
+                            },
+                            {
+                                "text": "Cross-correlation is much faster",
+                                "correct": false,
+                                "explanation": "Both operations have similar computational complexity."
+                            },
+                            {
+                                "text": "True convolution doesnt work for images",
+                                "correct": false,
+                                "explanation": "Both operations work for images; the choice is a convention."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 14: Feature Maps and Receptive Fields -->
+            <section>
+                <section data-sources='[{"text": "Feature Maps and Receptive Fields", "url": "https://d2l.ai/chapter_convolutional-neural-networks/conv-layer.html#feature-map-and-receptive-field"}, {"text": "Field (1987) - Visual Cortex", "url": "https://www.osapublishing.org/josaa/abstract.cfm?uri=josaa-4-12-2379"}]'>
+                    <h2 class="truncate-title">Feature Maps: Learned Spatial Representations</h2>
+                    <div class="feature-maps-explanation">
+                        <h4>What is a Feature Map?</h4>
+                        <div class="fragment">
+                            <p>The output of a convolutional layer, representing learned features in spatial dimensions</p>
+                            <div class="feature-map-grid" style="display: flex; justify-content: space-around; margin-top: 20px;">
+                                <div class="feature-box">
+                                    <div class="icon">🔍</div>
+                                    <h5>Detection</h5>
+                                    <p>Each position indicates presence of learned pattern</p>
+                                </div>
+                                <div class="feature-box">
+                                    <div class="icon">📍</div>
+                                    <h5>Localization</h5>
+                                    <p>Spatial structure is preserved</p>
+                                </div>
+                                <div class="feature-box">
+                                    <div class="icon">📊</div>
+                                    <h5>Activation</h5>
+                                    <p>Intensity shows feature strength</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p><span class="tooltip">Feature maps<span class="tooltiptext">2D arrays where each element represents the activation of a learned feature detector at a specific spatial location</span></span> encode what patterns are present and where</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Receptive Field Growth</h2>
+                    <div class="receptive-field-explanation">
+                        <h4>How Deep Networks See More</h4>
+                        <div class="fragment">
+                            <p>The <span class="tooltip">receptive field<span class="tooltiptext">The region of the input that influences a particular output neuron</span></span> of a neuron is all input locations that affect its output</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Receptive Field Expansion</h4>
+                            <p>With 3×3 kernels stacked:</p>
+                            <ul>
+                                <li>Layer 1: 3×3 receptive field</li>
+                                <li>Layer 2: 5×5 receptive field</li>
+                                <li>Layer 3: 7×7 receptive field</li>
+                                <li>Layer n: (2n+1)×(2n+1) receptive field</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box mt-md">
+                            <p>Deeper layers integrate information from progressively larger regions</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Biological Connection: Visual Cortex</h2>
+                    <div class="biological-connection">
+                        <h4>CNNs Mirror Biology</h4>
+                        <div class="fragment">
+                            <img src="images/field-visual-cortex.jpg" 
+                                 alt="Field (1987) Visual Cortex Filters" 
+                                 style="max-width: 70%; margin: 20px auto; display: block;">
+                            <p class="caption">Field (1987): Natural image statistics and cortical cell responses</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <p>Biological neurons in visual cortex act like convolutional filters:</p>
+                            <ul>
+                                <li>Edge detectors at various orientations</li>
+                                <li>Local receptive fields</li>
+                                <li>Hierarchical processing</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Receptive Field Calculator</h2>
+                    <div id="receptive-field-demo" class="interactive-demo">
+                        <div class="demo-controls" style="margin-bottom: 20px;">
+                            <label>Number of Layers: 
+                                <input type="range" id="num-layers" min="1" max="6" value="3">
+                                <span id="layers-value">3</span>
+                            </label>
+                            <label>Kernel Size: 
+                                <select id="kernel-size-rf">
+                                    <option value="3">3×3</option>
+                                    <option value="5">5×5</option>
+                                    <option value="7">7×7</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="rf-visualization">
+                            <svg id="receptive-field-svg" width="600" height="400"></svg>
+                        </div>
+                        <div id="rf-calculation" class="mt-md" style="text-align: center; font-family: monospace;"></div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What determines the receptive field size in a deep CNN?",
+                        "type": "multiple",
+                        "options": [
+                            {
+                                "text": "Number of layers",
+                                "correct": true,
+                                "explanation": "More layers mean each neuron can see a larger input region."
+                            },
+                            {
+                                "text": "Kernel size at each layer",
+                                "correct": true,
+                                "explanation": "Larger kernels increase receptive field growth rate."
+                            },
+                            {
+                                "text": "Stride and pooling operations",
+                                "correct": true,
+                                "explanation": "Striding and pooling also expand the receptive field."
+                            },
+                            {
+                                "text": "Number of parameters",
+                                "correct": false,
+                                "explanation": "Parameter count doesnt directly determine receptive field size."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 15: Practical Exercises -->
+            <section>
+                <section data-sources='[{"text": "Exercises from Dive into Deep Learning", "url": "https://d2l.ai/chapter_convolutional-neural-networks/conv-layer.html#exercises"}]'>
+                    <h2 class="truncate-title">Hands-on Kernel Design</h2>
+                    <div id="kernel-design-lab" class="interactive-demo">
+                        <h4>Design and Test Custom Kernels</h4>
+                        <div class="demo-controls" style="margin-bottom: 20px;">
+                            <select id="preset-kernels">
+                                <option value="custom">Custom</option>
+                                <option value="blur">Box Blur</option>
+                                <option value="gaussian">Gaussian Blur</option>
+                                <option value="sharpen">Sharpen</option>
+                                <option value="edge-h">Horizontal Edge</option>
+                                <option value="edge-v">Vertical Edge</option>
+                                <option value="sobel-x">Sobel X</option>
+                                <option value="sobel-y">Sobel Y</option>
+                                <option value="laplacian">Laplacian</option>
+                            </select>
+                            <button id="apply-kernel" class="ui-button">Apply Kernel</button>
+                            <button id="reset-design" class="ui-button secondary">Reset</button>
+                        </div>
+                        <div class="kernel-workshop" style="display: flex; justify-content: space-around;">
+                            <div>
+                                <h5>Kernel Editor (3×3)</h5>
+                                <div id="kernel-editor"></div>
+                            </div>
+                            <div>
+                                <h5>Test Image</h5>
+                                <canvas id="test-image-canvas" width="150" height="150"></canvas>
+                            </div>
+                            <div>
+                                <h5>Result</h5>
+                                <canvas id="result-canvas" width="150" height="150"></canvas>
+                            </div>
+                        </div>
+                        <div id="kernel-explanation" class="mt-md"></div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Coding Exercises</h2>
+                    <div class="exercises-list">
+                        <h4>Practice Problems</h4>
+                        <ol>
+                            <li class="fragment">
+                                <strong>Diagonal Edge Detection:</strong>
+                                <p>Design a kernel that detects diagonal edges (45°)</p>
+                                <details class="mt-sm">
+                                    <summary>Hint</summary>
+                                    <code>[[0, -1, 0], [1, 0, -1], [0, 1, 0]]</code>
+                                </details>
+                            </li>
+                            <li class="fragment">
+                                <strong>Second Derivative:</strong>
+                                <p>Create a kernel for the discrete second derivative</p>
+                                <details class="mt-sm">
+                                    <summary>Hint</summary>
+                                    <code>[[0, 1, 0], [1, -4, 1], [0, 1, 0]]</code> (Laplacian)
+                                </details>
+                            </li>
+                            <li class="fragment">
+                                <strong>Matrix Multiplication:</strong>
+                                <p>Express a 3×3 convolution as matrix multiplication</p>
+                                <details class="mt-sm">
+                                    <summary>Hint</summary>
+                                    <p>Flatten input patches into columns (im2col transformation)</p>
+                                </details>
+                            </li>
+                            <li class="fragment">
+                                <strong>Minimum Kernel Size:</strong>
+                                <p>What's the minimum kernel size for a derivative of order d?</p>
+                                <details class="mt-sm">
+                                    <summary>Answer</summary>
+                                    <p>d + 1 (need d+1 points for d-th order finite difference)</p>
+                                </details>
+                            </li>
+                        </ol>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Advanced Challenge: Multi-Channel Convolution</h2>
+                    <div class="advanced-exercise">
+                        <h4>Implement RGB Image Convolution</h4>
+                        <pre><code class="language-python">def conv2d_multi_channel(X, K):
+    """
+    X: (in_channels, height, width)
+    K: (out_channels, in_channels, k_height, k_width)
+    Returns: (out_channels, out_height, out_width)
+    """
+    # Your implementation here
+    pass
+
+# Test with RGB input (3 channels) 
+# and 2 output channels</code></pre>
+                        <div class="fragment mt-md">
+                            <details>
+                                <summary>Solution Approach</summary>
+                                <ol>
+                                    <li>Loop over output channels</li>
+                                    <li>For each output channel, sum convolutions across input channels</li>
+                                    <li>Each output uses a different set of kernels</li>
+                                </ol>
+                            </details>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Final Challenge</h2>
+                    <div data-mcq='{
+                        "question": "Which statements about CNNs and convolutions are correct?",
+                        "type": "multiple",
+                        "options": [
+                            {
+                                "text": "Convolutions preserve spatial structure of input data",
+                                "correct": true,
+                                "explanation": "Unlike fully connected layers, convolutions maintain spatial relationships."
+                            },
+                            {
+                                "text": "Deeper layers have larger effective receptive fields",
+                                "correct": true,
+                                "explanation": "Each layer expands the receptive field, allowing deeper layers to see more."
+                            },
+                            {
+                                "text": "CNNs learn task-specific kernels through backpropagation",
+                                "correct": true,
+                                "explanation": "Gradient descent optimizes kernels for the specific task and data."
+                            },
+                            {
+                                "text": "Cross-correlation and convolution produce different results when kernels are learned",
+                                "correct": false,
+                                "explanation": "Since kernels are learned, the network adapts to either operation, producing equivalent results."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Updated Closing Slide -->
+            <section class="closing-slide">
+                <h2 class="truncate-title">Next: Advanced CNN Concepts</h2>
+                <div class="next-topics">
+                    <h4>You've Mastered:</h4>
+                    <ul>
+                        <li>✓ Cross-correlation operation</li>
+                        <li>✓ Convolution implementation</li>
+                        <li>✓ Edge detection and feature learning</li>
+                        <li>✓ Receptive fields and feature maps</li>
+                    </ul>
+                    <h4 class="mt-md">Coming Up:</h4>
+                    <ul>
+                        <li>Padding and Stride</li>
+                        <li>Pooling Layers</li>
+                        <li>LeNet Architecture</li>
+                        <li>Modern CNN Architectures</li>
+                    </ul>
+                </div>
+                <div class="emphasis-box mt-lg">
+                    <p>You now understand how convolutions work at a deep level!</p>
+                </div>
+            </section>
+
+            <!-- Section 16: Padding Fundamentals (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 7.3", "url": "https://d2l.ai/chapter_convolutional-neural-networks/padding-and-strides.html"}]'>
+                    <h2 class="truncate-title">The Vanishing Pixels Problem</h2>
+                    <div class="padding-intro">
+                        <h4>What Happens to Our Image Edges?</h4>
+                        <div class="fragment">
+                            <p>Starting with a 240×240 pixel image:</p>
+                            <ul>
+                                <li>After 10 layers of 5×5 convolutions → 200×200 pixels</li>
+                                <li>We lose <strong>30%</strong> of our image!</li>
+                                <li>Boundary information is completely lost</li>
+                            </ul>
+                        </div>
+                        <div class="fragment mt-md">
+                            <img src="images/conv-reuse.svg" alt="Pixel utilization" style="max-width: 70%; margin: 20px auto; display: block;">
+                            <p class="caption">Pixel utilization for different kernel sizes - corners are barely used!</p>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p><strong>Problem:</strong> Important information at image boundaries gets lost through successive convolutions</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Zero Padding: The Solution</h2>
+                    <div class="padding-explanation">
+                        <h4>Adding Extra Pixels Around the Border</h4>
+                        <div class="fragment">
+                            <img src="images/conv-pad.svg" alt="Padding visualization" style="max-width: 60%; margin: 20px auto; display: block;">
+                            <p class="caption">2D cross-correlation with padding - zeros added around the input</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <p><span class="tooltip">Zero padding<span class="tooltiptext">Adding rows and columns of zeros around the input tensor to preserve spatial dimensions</span></span> increases effective input size:</p>
+                            <ul>
+                                <li>Original: 3×3 input</li>
+                                <li>With padding=1: 5×5 effective input</li>
+                                <li>Output: 4×4 (larger than without padding!)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>Padding preserves spatial information and controls output dimensions</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Padding Mathematics</h2>
+                    <div class="padding-math">
+                        <h4>Output Size Calculation with Padding</h4>
+                        <div class="fragment">
+                            <div class="formula-box">
+                                <p>$$\text{Output Height} = n_h - k_h + p_h + 1$$</p>
+                                <p>$$\text{Output Width} = n_w - k_w + p_w + 1$$</p>
+                            </div>
+                            <p class="annotation">Where p_h and p_w are total padding (sum of both sides)</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Interactive Padding Calculator</h4>
+                            <div id="padding-calculator" class="interactive-demo">
+                                <div class="demo-controls" style="display: flex; gap: 20px; justify-content: center; align-items: center; margin-bottom: 20px;">
+                                    <label>Input Size: 
+                                        <input type="range" id="input-size-pad" min="3" max="10" value="5">
+                                        <span id="input-size-pad-value">5×5</span>
+                                    </label>
+                                    <label>Kernel Size: 
+                                        <input type="range" id="kernel-size-pad" min="1" max="5" value="3" step="2">
+                                        <span id="kernel-size-pad-value">3×3</span>
+                                    </label>
+                                    <label>Padding: 
+                                        <input type="range" id="padding-amount" min="0" max="3" value="1">
+                                        <span id="padding-value">1</span>
+                                    </label>
+                                </div>
+                                <div id="padding-viz-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Same vs Valid Padding</h2>
+                    <div class="padding-types">
+                        <h4>Two Common Padding Strategies</h4>
+                        <div class="two-column">
+                            <div class="column fragment">
+                                <h5><span class="tooltip">Valid Padding<span class="tooltiptext">No padding added; output is smaller than input</span></span></h5>
+                                <ul>
+                                    <li>No padding (p = 0)</li>
+                                    <li>Output smaller than input</li>
+                                    <li>No "artificial" pixels</li>
+                                    <li>Used when size reduction is desired</li>
+                                </ul>
+                            </div>
+                            <div class="column fragment">
+                                <h5><span class="tooltip">Same Padding<span class="tooltiptext">Padding chosen to keep output size equal to input size</span></span></h5>
+                                <ul>
+                                    <li>p = k - 1 (for odd kernels)</li>
+                                    <li>Output same size as input</li>
+                                    <li>Preserves spatial dimensions</li>
+                                    <li>Most common in practice</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Why Odd Kernel Sizes?</h4>
+                            <p>With odd kernels (3×3, 5×5, 7×7):</p>
+                            <ul>
+                                <li>Symmetric padding on all sides</li>
+                                <li>Natural center pixel</li>
+                                <li>Output Y[i,j] computed from window centered at X[i,j]</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the main purpose of padding in CNNs?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To make computations faster",
+                                "correct": false,
+                                "explanation": "Padding actually adds more computations, not reduces them."
+                            },
+                            {
+                                "text": "To preserve spatial dimensions and edge information",
+                                "correct": true,
+                                "explanation": "Correct! Padding prevents the output from shrinking and preserves information at image boundaries."
+                            },
+                            {
+                                "text": "To add noise to the input",
+                                "correct": false,
+                                "explanation": "Padding adds zeros (or other values), not noise. Its purpose is dimensional control."
+                            },
+                            {
+                                "text": "To reduce the number of parameters",
+                                "correct": false,
+                                "explanation": "Padding doesnt affect the number of parameters in the kernel."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 17: Stride Mechanics (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Stride in Convolutions", "url": "https://d2l.ai/chapter_convolutional-neural-networks/padding-and-strides.html#stride"}]'>
+                    <h2 class="truncate-title">Understanding Stride</h2>
+                    <div class="stride-intro">
+                        <h4>Moving the Kernel Window</h4>
+                        <div class="fragment">
+                            <p><span class="tooltip">Stride<span class="tooltiptext">The number of pixels the convolution kernel moves in each step</span></span> controls how far we slide the kernel at each step</p>
+                            <ul>
+                                <li><strong>Stride = 1:</strong> Move one pixel at a time (default)</li>
+                                <li><strong>Stride = 2:</strong> Skip every other position</li>
+                                <li><strong>Stride > 2:</strong> Skip multiple positions</li>
+                            </ul>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Why Use Stride > 1?</h4>
+                            <ul>
+                                <li>🚀 Computational efficiency</li>
+                                <li>📉 Downsampling feature maps</li>
+                                <li>🔍 Capturing larger-scale features</li>
+                                <li>💾 Reducing memory requirements</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>Stride is a powerful tool for controlling computational cost and feature map resolution</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Stride in Action</h2>
+                    <div class="stride-visualization">
+                        <h4>Visualizing Kernel Movement with Different Strides</h4>
+                        <div class="fragment">
+                            <img src="images/conv-stride.svg" alt="Stride visualization" style="max-width: 70%; margin: 20px auto; display: block;">
+                            <p class="caption">Cross-correlation with stride (3,2) - vertical stride of 3, horizontal stride of 2</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <div id="stride-demo" class="interactive-demo">
+                                <div class="demo-controls" style="margin-bottom: 20px;">
+                                    <label>Horizontal Stride: 
+                                        <input type="range" id="h-stride" min="1" max="3" value="1">
+                                        <span id="h-stride-value">1</span>
+                                    </label>
+                                    <label>Vertical Stride: 
+                                        <input type="range" id="v-stride" min="1" max="3" value="1">
+                                        <span id="v-stride-value">1</span>
+                                    </label>
+                                    <button id="animate-stride" class="ui-button">Animate</button>
+                                    <button id="reset-stride" class="ui-button secondary">Reset</button>
+                                </div>
+                                <div id="stride-viz-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Output Size with Stride</h2>
+                    <div class="stride-math">
+                        <h4>The Stride Formula</h4>
+                        <div class="fragment">
+                            <div class="formula-box">
+                                <p>$$\text{Output Height} = \left\lfloor \frac{n_h - k_h + p_h + s_h}{s_h} \right\rfloor$$</p>
+                                <p>$$\text{Output Width} = \left\lfloor \frac{n_w - k_w + p_w + s_w}{s_w} \right\rfloor$$</p>
+                            </div>
+                            <p class="annotation">Floor function ⌊·⌋ rounds down to nearest integer</p>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Special Case: Halving Dimensions</h4>
+                            <p>With padding = k-1 and stride = 2:</p>
+                            <ul>
+                                <li>Input: n × n</li>
+                                <li>Output: ≈ n/2 × n/2</li>
+                                <li>Common for downsampling in CNNs</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Computational Benefits of Stride</h2>
+                    <div class="stride-benefits">
+                        <h4>Efficiency Gains from Striding</h4>
+                        <div class="fragment">
+                            <div class="comparison-table" style="margin: 20px auto;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Stride</th>
+                                            <th>Output Size</th>
+                                            <th>Computations</th>
+                                            <th>Reduction</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1×1</td>
+                                            <td>n×n</td>
+                                            <td>n²</td>
+                                            <td>1×</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2×2</td>
+                                            <td>(n/2)×(n/2)</td>
+                                            <td>n²/4</td>
+                                            <td>4×</td>
+                                        </tr>
+                                        <tr>
+                                            <td>3×3</td>
+                                            <td>(n/3)×(n/3)</td>
+                                            <td>n²/9</td>
+                                            <td>9×</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Statistical Benefits</h4>
+                            <ul>
+                                <li>Reduced <span class="tooltip">overfitting<span class="tooltiptext">When a model memorizes training data instead of learning general patterns</span></span> through downsampling</li>
+                                <li>Forces network to learn robust features</li>
+                                <li>Natural hierarchical representation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "If you have a 10×10 input, 3×3 kernel, no padding, and stride=2, what is the output size?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "8×8",
+                                "correct": false,
+                                "explanation": "This would be the result with stride=1, not stride=2."
+                            },
+                            {
+                                "text": "5×5",
+                                "correct": false,
+                                "explanation": "Close, but check the calculation: ⌊(10-3+0+2)/2⌋ = ⌊9/2⌋ = 4."
+                            },
+                            {
+                                "text": "4×4",
+                                "correct": true,
+                                "explanation": "Correct! Using the formula: ⌊(10-3+2)/2⌋ = ⌊9/2⌋ = 4 for each dimension."
+                            },
+                            {
+                                "text": "3×3",
+                                "correct": false,
+                                "explanation": "This would require a larger stride or larger kernel."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 18: Padding and Stride Combined (Vertical) -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Combining Padding and Stride</h2>
+                    <div class="combined-intro">
+                        <h4>Working Together for Flexible Control</h4>
+                        <div class="fragment">
+                            <p>Padding and stride give us complete control over output dimensions:</p>
+                            <ul>
+                                <li><strong>Padding:</strong> Controls size preservation</li>
+                                <li><strong>Stride:</strong> Controls downsampling rate</li>
+                                <li><strong>Together:</strong> Any desired output size</li>
+                            </ul>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>The Complete Formula</h4>
+                            <div class="formula-box">
+                                <p>$$\text{Output} = \left\lfloor \frac{\text{Input} - \text{Kernel} + \text{Padding} + \text{Stride}}{\text{Stride}} \right\rfloor$$</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>Most networks use specific combinations for predictable behavior</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Common Configurations</h2>
+                    <div class="common-configs">
+                        <h4>Frequently Used Padding-Stride Combinations</h4>
+                        <div class="config-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 800px; margin: 20px auto;">
+                            <div class="config-box fragment" style="padding: 15px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #10099F;">
+                                <h5>Preserve Size</h5>
+                                <code>kernel=3, padding=1, stride=1</code>
+                                <p>Output = Input size</p>
+                                <p class="small">Used in ResNet, VGG</p>
+                            </div>
+                            <div class="config-box fragment" style="padding: 15px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #2DD2C0;">
+                                <h5>Halve Size</h5>
+                                <code>kernel=3, padding=1, stride=2</code>
+                                <p>Output ≈ Input/2</p>
+                                <p class="small">Common downsampling</p>
+                            </div>
+                            <div class="config-box fragment" style="padding: 15px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #FFA05F;">
+                                <h5>Aggressive Reduction</h5>
+                                <code>kernel=7, padding=3, stride=2</code>
+                                <p>Large receptive field + downsampling</p>
+                                <p class="small">Used in stem layers</p>
+                            </div>
+                            <div class="config-box fragment" style="padding: 15px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #FC8484;">
+                                <h5>No Padding</h5>
+                                <code>kernel=5, padding=0, stride=1</code>
+                                <p>Output = Input - 4</p>
+                                <p class="small">Valid convolution</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Combined Calculator</h2>
+                    <div id="combined-calculator" class="interactive-demo">
+                        <h4>Explore Padding and Stride Effects Together</h4>
+                        <div class="demo-controls" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 600px; margin: 20px auto;">
+                            <label>Input Size: 
+                                <input type="range" id="combined-input" min="8" max="32" value="16" step="2">
+                                <span id="combined-input-value">16×16</span>
+                            </label>
+                            <label>Kernel Size: 
+                                <select id="combined-kernel">
+                                    <option value="3">3×3</option>
+                                    <option value="5">5×5</option>
+                                    <option value="7">7×7</option>
+                                </select>
+                            </label>
+                            <label>Padding: 
+                                <select id="combined-padding">
+                                    <option value="0">Valid (0)</option>
+                                    <option value="same">Same</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                </select>
+                            </label>
+                            <label>Stride: 
+                                <select id="combined-stride">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div id="combined-viz" style="margin-top: 20px;"></div>
+                        <div id="combined-output" style="text-align: center; margin-top: 20px; font-family: monospace;"></div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Asymmetric Padding and Stride</h2>
+                    <div class="asymmetric-config">
+                        <h4>Different Values for Height and Width</h4>
+                        <div class="fragment">
+                            <p>Sometimes we need different padding/stride for each dimension:</p>
+                            <pre><code class="language-python"># PyTorch example
+conv2d = nn.Conv2d(
+    in_channels=1, 
+    out_channels=1,
+    kernel_size=(5, 3),  # 5×3 kernel
+    padding=(2, 1),       # 2 vertical, 1 horizontal
+    stride=(3, 4)         # 3 vertical, 4 horizontal
+)</code></pre>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Use Cases</h4>
+                            <ul>
+                                <li><strong>Audio:</strong> Different time vs frequency resolution</li>
+                                <li><strong>Video:</strong> Different spatial vs temporal stride</li>
+                                <li><strong>Text:</strong> Different word vs character dimensions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Which configuration would maintain the spatial dimensions of a 224×224 input?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "kernel=5, padding=0, stride=1",
+                                "correct": false,
+                                "explanation": "This would reduce the output to 220×220 (224-5+1)."
+                            },
+                            {
+                                "text": "kernel=3, padding=1, stride=1",
+                                "correct": true,
+                                "explanation": "Correct! With same padding (p=k-1) and stride=1, output equals input size."
+                            },
+                            {
+                                "text": "kernel=3, padding=1, stride=2",
+                                "correct": false,
+                                "explanation": "This would halve the dimensions to approximately 112×112."
+                            },
+                            {
+                                "text": "kernel=7, padding=0, stride=1",
+                                "correct": false,
+                                "explanation": "This would reduce the output to 218×218 (224-7+1)."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 19: Implementation Details (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "PyTorch Conv2d Documentation", "url": "https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html"}]'>
+                    <h2 class="truncate-title">PyTorch Implementation</h2>
+                    <div class="pytorch-implementation">
+                        <h4>Using Conv2d with Padding and Stride</h4>
+                        <div class="fragment">
+                            <pre><code class="language-python">import torch
+import torch.nn as nn
+
+# Basic convolution with padding and stride
+conv = nn.Conv2d(
+    in_channels=3,      # RGB input
+    out_channels=64,    # 64 feature maps
+    kernel_size=3,      # 3×3 kernel
+    padding=1,          # Same padding
+    stride=1            # No downsampling
+)
+
+# Using LazyConv2d (infers in_channels)
+lazy_conv = nn.LazyConv2d(
+    out_channels=32,
+    kernel_size=5,
+    padding=2,          # (5-1)/2 = 2 for same padding
+    stride=2            # Downsample by 2
+)</code></pre>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Padding Modes</h4>
+                            <pre><code class="language-python"># Different padding modes
+conv_zeros = nn.Conv2d(3, 64, 3, padding=1, padding_mode='zeros')     # Default
+conv_reflect = nn.Conv2d(3, 64, 3, padding=1, padding_mode='reflect') # Mirror
+conv_replicate = nn.Conv2d(3, 64, 3, padding=1, padding_mode='replicate') # Edge</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Framework Comparison</h2>
+                    <div class="framework-comparison">
+                        <h4>Conv2D Across Different Frameworks</h4>
+                        <div class="two-column">
+                            <div class="column">
+                                <h5>PyTorch</h5>
+                                <pre><code class="language-python">conv = nn.Conv2d(
+    in_channels=3,
+    out_channels=64,
+    kernel_size=3,
+    padding=1,
+    stride=2
+)</code></pre>
+                            </div>
+                            <div class="column">
+                                <h5>TensorFlow/Keras</h5>
+                                <pre><code class="language-python">conv = tf.keras.layers.Conv2D(
+    filters=64,
+    kernel_size=3,
+    padding='same',
+    strides=2
+)</code></pre>
+                            </div>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Key Differences</h4>
+                            <ul>
+                                <li><strong>PyTorch:</strong> Explicit padding values (integers)</li>
+                                <li><strong>TensorFlow:</strong> String shortcuts ('same', 'valid')</li>
+                                <li><strong>JAX/Flax:</strong> Functional style with explicit control</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Handling Even Kernels</h2>
+                    <div class="even-kernels">
+                        <h4>The Asymmetry Problem</h4>
+                        <div class="fragment">
+                            <p>With even kernel sizes (2×2, 4×4), padding becomes asymmetric:</p>
+                            <div class="formula-box">
+                                <p>For kernel size = 4, same padding needs p = 3</p>
+                                <p>But 3 can't be split evenly!</p>
+                            </div>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Solutions</h4>
+                            <pre><code class="language-python"># PyTorch handles this automatically
+conv_even = nn.Conv2d(3, 64, kernel_size=4, padding=2)
+# Top: 2 pixels, Bottom: 1 pixel (or vice versa)
+
+# Explicit asymmetric padding
+conv_explicit = nn.Conv2d(3, 64, 4, padding=(2, 1))  # (top/bottom, left/right)</code></pre>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>This is why odd kernels (3×3, 5×5, 7×7) are strongly preferred!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Computing Output Dimensions in Code</h2>
+                    <div class="output-computation">
+                        <h4>Helper Functions for Size Calculation</h4>
+                        <pre><code class="language-python">def conv_output_size(input_size, kernel_size, padding=0, stride=1):
+    """Calculate output size for a convolution layer."""
+    return (input_size - kernel_size + 2 * padding) // stride + 1
+
+def same_padding(kernel_size):
+    """Calculate padding needed for 'same' convolution."""
+    return (kernel_size - 1) // 2
+
+# Example usage
+input_h, input_w = 224, 224
+kernel_size = 5
+padding = same_padding(kernel_size)  # padding = 2
+stride = 2
+
+output_h = conv_output_size(input_h, kernel_size, padding, stride)
+output_w = conv_output_size(input_w, kernel_size, padding, stride)
+print(f"Output size: {output_h}×{output_w}")  # Output: 112×112</code></pre>
+                        <div class="fragment mt-md">
+                            <p>Use these helpers to plan network architectures!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why are odd kernel sizes preferred in CNNs?",
+                        "type": "multiple",
+                        "options": [
+                            {
+                                "text": "They allow symmetric padding on all sides",
+                                "correct": true,
+                                "explanation": "Odd kernels can be padded equally on both sides."
+                            },
+                            {
+                                "text": "They have a natural center pixel",
+                                "correct": true,
+                                "explanation": "Odd kernels have a single center point for alignment."
+                            },
+                            {
+                                "text": "They are computationally more efficient",
+                                "correct": false,
+                                "explanation": "Computational efficiency is similar for odd and even kernels."
+                            },
+                            {
+                                "text": "Output location directly corresponds to input center",
+                                "correct": true,
+                                "explanation": "With odd kernels, Y[i,j] is computed from window centered at X[i,j]."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 20: Advanced Topics (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Alsallakh et al. (2020) - Mind the PAD", "url": "https://arxiv.org/abs/2010.02178"}]'>
+                    <h2 class="truncate-title">Alternative Padding Types</h2>
+                    <div class="padding-types">
+                        <h4>Beyond Zero Padding</h4>
+                        <div id="padding-types-demo" class="interactive-demo">
+                            <div class="demo-controls" style="margin-bottom: 20px;">
+                                <select id="padding-type">
+                                    <option value="zero">Zero Padding</option>
+                                    <option value="reflect">Reflect Padding</option>
+                                    <option value="replicate">Replicate Padding</option>
+                                    <option value="circular">Circular Padding</option>
+                                </select>
+                                <button id="apply-padding-type" class="ui-button">Apply</button>
+                            </div>
+                            <div id="padding-type-viz" style="display: flex; justify-content: space-around; margin-top: 20px;">
+                                <div>
+                                    <h5>Original</h5>
+                                    <canvas id="original-canvas" width="150" height="150"></canvas>
+                                </div>
+                                <div>
+                                    <h5>With Padding</h5>
+                                    <canvas id="padded-canvas" width="200" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment mt-md">
+                            <ul>
+                                <li><strong>Zero:</strong> Default, adds black borders</li>
+                                <li><strong>Reflect:</strong> Mirrors edge pixels (reduces artifacts)</li>
+                                <li><strong>Replicate:</strong> Extends edge values</li>
+                                <li><strong>Circular:</strong> Wraps around (for periodic signals)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Fractional Strides: Transposed Convolutions</h2>
+                    <div class="transposed-conv">
+                        <h4>Going in Reverse: Upsampling</h4>
+                        <div class="fragment">
+                            <p>What if we want stride < 1? Enter <span class="tooltip">transposed convolutions<span class="tooltiptext">Also called deconvolution, these operations increase spatial dimensions</span></span>:</p>
+                            <pre><code class="language-python"># Transposed convolution (upsampling)
+deconv = nn.ConvTranspose2d(
+    in_channels=64,
+    out_channels=32,
+    kernel_size=3,
+    stride=2,           # Upsamples by factor of 2
+    padding=1,
+    output_padding=1    # Adjusts output size
+)
+
+# Input: 16×16 → Output: 32×32</code></pre>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Applications</h4>
+                            <ul>
+                                <li>Decoder networks (autoencoders)</li>
+                                <li>Generative models (GANs)</li>
+                                <li>Semantic segmentation</li>
+                                <li>Super-resolution</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Dilated Convolutions</h2>
+                    <div class="dilated-conv">
+                        <h4>Expanding Receptive Field Without Pooling</h4>
+                        <div class="fragment">
+                            <p><span class="tooltip">Dilated convolutions<span class="tooltiptext">Convolutions with gaps between kernel elements, also called atrous convolutions</span></span> insert spaces between kernel elements:</p>
+                            <div id="dilated-demo" style="text-align: center; margin: 20px 0;">
+                                <svg id="dilated-svg" width="400" height="300"></svg>
+                            </div>
+                        </div>
+                        <div class="fragment mt-md">
+                            <pre><code class="language-python"># Dilated convolution
+dilated_conv = nn.Conv2d(
+    in_channels=3,
+    out_channels=64,
+    kernel_size=3,
+    dilation=2    # Spacing between kernel elements
+)
+# Effective receptive field: 5×5 with only 9 parameters!</code></pre>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>Dilated convolutions capture multi-scale context without losing resolution</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Design Principles Summary</h2>
+                    <div class="design-principles">
+                        <h4>Best Practices for Padding and Stride</h4>
+                        <div class="principles-list">
+                            <ol>
+                                <li class="fragment">
+                                    <strong>Use odd kernels:</strong> 3×3, 5×5, 7×7 for symmetric padding
+                                </li>
+                                <li class="fragment">
+                                    <strong>Standard downsampling:</strong> stride=2 with appropriate padding
+                                </li>
+                                <li class="fragment">
+                                    <strong>Preserve dimensions:</strong> padding = (kernel_size - 1) / 2
+                                </li>
+                                <li class="fragment">
+                                    <strong>First layer:</strong> Often larger kernel (7×7) with stride=2
+                                </li>
+                                <li class="fragment">
+                                    <strong>Avoid excessive padding:</strong> Can lead to border artifacts
+                                </li>
+                                <li class="fragment">
+                                    <strong>Consider alternatives:</strong> Dilated/transposed for specific needs
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "When would you use dilated convolutions instead of regular convolutions with stride?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "When you want to downsample the feature map",
+                                "correct": false,
+                                "explanation": "Dilated convolutions maintain spatial resolution, they dont downsample."
+                            },
+                            {
+                                "text": "When you need a larger receptive field without losing resolution",
+                                "correct": true,
+                                "explanation": "Correct! Dilated convolutions expand receptive field while maintaining output size."
+                            },
+                            {
+                                "text": "When you want to upsample the feature map",
+                                "correct": false,
+                                "explanation": "Use transposed convolutions for upsampling, not dilated convolutions."
+                            },
+                            {
+                                "text": "When you need fewer parameters",
+                                "correct": false,
+                                "explanation": "Dilated convolutions use the same number of parameters as regular convolutions."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 21: Practical Exercises (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Exercises from D2L", "url": "https://d2l.ai/chapter_convolutional-neural-networks/padding-and-strides.html#exercises"}]'>
+                    <h2 class="truncate-title">Hands-on Padding and Stride Lab</h2>
+                    <div id="padding-stride-lab" class="interactive-demo">
+                        <h4>Design Your Own Convolution Configuration</h4>
+                        <div class="lab-controls" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                            <div>
+                                <label>Input Size:</label>
+                                <input type="number" id="lab-input-h" value="28" min="10" max="100"> ×
+                                <input type="number" id="lab-input-w" value="28" min="10" max="100">
+                            </div>
+                            <div>
+                                <label>Kernel Size:</label>
+                                <input type="number" id="lab-kernel-h" value="3" min="1" max="11"> ×
+                                <input type="number" id="lab-kernel-w" value="3" min="1" max="11">
+                            </div>
+                            <div>
+                                <label>Padding:</label>
+                                <input type="number" id="lab-pad-h" value="1" min="0" max="10"> ×
+                                <input type="number" id="lab-pad-w" value="1" min="0" max="10">
+                            </div>
+                            <div>
+                                <label>Stride:</label>
+                                <input type="number" id="lab-stride-h" value="1" min="1" max="5"> ×
+                                <input type="number" id="lab-stride-w" value="1" min="1" max="5">
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <button id="calculate-output" class="ui-button">Calculate Output</button>
+                                <button id="visualize-config" class="ui-button">Visualize</button>
+                            </div>
+                        </div>
+                        <div id="lab-output" style="background: #f9f9f9; padding: 15px; border-radius: 8px;">
+                            <h5>Results:</h5>
+                            <div id="lab-results"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Exercise: Audio Signal Processing</h2>
+                    <div class="audio-exercise">
+                        <h4>1D Convolution with Stride</h4>
+                        <div class="fragment">
+                            <p>For audio sampled at 16kHz, what does stride=2 mean?</p>
+                            <details class="mt-md">
+                                <summary>Answer</summary>
+                                <p>Stride=2 effectively downsamples to 8kHz, halving the temporal resolution. This is similar to reducing the sample rate by a factor of 2.</p>
+                            </details>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Implement 1D Convolution</h4>
+                            <pre><code class="language-python"># 1D convolution for audio
+audio_conv = nn.Conv1d(
+    in_channels=1,      # Mono audio
+    out_channels=32,    # 32 filters
+    kernel_size=5,      # 5 samples window
+    stride=2,           # Downsample by 2
+    padding=2           # Same padding
+)
+
+# Input: [batch, 1, 16000] (1 second at 16kHz)
+# Output: [batch, 32, 8000] (32 channels at 8kHz)</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Exercise: Mirror Padding Implementation</h2>
+                    <div class="mirror-padding-exercise">
+                        <h4>Implement Reflect Padding from Scratch</h4>
+                        <pre><code class="language-python">def mirror_pad(x, padding):
+    """
+    Implement mirror/reflect padding for a 2D tensor.
+    x: Input tensor of shape (H, W)
+    padding: Number of pixels to pad
+    """
+    # Your implementation here
+    h, w = x.shape
+    padded = torch.zeros(h + 2*padding, w + 2*padding)
+    
+    # Fill in the implementation
+    # Hint: Use flipping and slicing
+    
+    return padded
+
+# Test your implementation
+test_input = torch.tensor([[1, 2], [3, 4]])
+result = mirror_pad(test_input, 1)
+print(result)</code></pre>
+                        <details class="mt-md">
+                            <summary>Solution</summary>
+                            <pre><code class="language-python">def mirror_pad(x, padding):
+    h, w = x.shape
+    padded = torch.zeros(h + 2*padding, w + 2*padding)
+    
+    # Copy original
+    padded[padding:h+padding, padding:w+padding] = x
+    
+    # Mirror edges
+    padded[:padding, padding:w+padding] = x[:padding].flip(0)  # Top
+    padded[h+padding:, padding:w+padding] = x[-padding:].flip(0)  # Bottom
+    padded[padding:h+padding, :padding] = x[:, :padding].flip(1)  # Left
+    padded[padding:h+padding, w+padding:] = x[:, -padding:].flip(1)  # Right
+    
+    # Mirror corners
+    padded[:padding, :padding] = x[:padding, :padding].flip([0,1])
+    # ... etc for other corners
+    
+    return padded</code></pre>
+                        </details>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Challenge: Network Size Calculator</h2>
+                    <div class="size-calculator-challenge">
+                        <h4>Calculate Feature Map Sizes Through a Network</h4>
+                        <div class="fragment">
+                            <p>Given this architecture, calculate the size at each layer:</p>
+                            <pre><code class="language-python">network = [
+    {'input': (3, 224, 224)},
+    {'conv': {'kernel': 7, 'padding': 3, 'stride': 2, 'out_channels': 64}},
+    {'conv': {'kernel': 3, 'padding': 1, 'stride': 1, 'out_channels': 64}},
+    {'conv': {'kernel': 3, 'padding': 1, 'stride': 2, 'out_channels': 128}},
+    {'conv': {'kernel': 3, 'padding': 1, 'stride': 1, 'out_channels': 128}},
+    {'conv': {'kernel': 3, 'padding': 1, 'stride': 2, 'out_channels': 256}}
+]
+
+# Write a function to calculate sizes at each layer</code></pre>
+                        </div>
+                        <details class="fragment mt-md">
+                            <summary>Expected Output</summary>
+                            <pre>Layer 0: (3, 224, 224)
+Layer 1: (64, 112, 112)
+Layer 2: (64, 112, 112)
+Layer 3: (128, 56, 56)
+Layer 4: (128, 56, 56)
+Layer 5: (256, 28, 28)</pre>
+                        </details>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Final Challenge</h2>
+                    <div data-mcq='{
+                        "question": "Which statements about padding and stride are correct?",
+                        "type": "multiple",
+                        "options": [
+                            {
+                                "text": "Padding helps preserve spatial information at image boundaries",
+                                "correct": true,
+                                "explanation": "Padding prevents edge pixels from being underutilized in convolutions."
+                            },
+                            {
+                                "text": "Stride > 1 reduces computational cost quadratically",
+                                "correct": true,
+                                "explanation": "Stride of 2 reduces computations by 4×, stride of 3 by 9×."
+                            },
+                            {
+                                "text": "Same padding with odd kernels preserves input dimensions",
+                                "correct": true,
+                                "explanation": "With padding = (kernel_size - 1)/2 and stride = 1, output equals input size."
+                            },
+                            {
+                                "text": "Zero padding is always the best choice",
+                                "correct": false,
+                                "explanation": "Other padding types (reflect, replicate) can reduce artifacts in some cases."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section: Multiple Input Channels (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 7.4", "url": "https://d2l.ai/chapter_convolutional-neural-networks/channels.html"}]'>
+                    <h2 class="truncate-title">Beyond Single Channels: The Real World of Images</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <h4>Grayscale Images</h4>
+                            <ul>
+                                <li>Single channel (1D per pixel)</li>
+                                <li>Values represent intensity</li>
+                                <li>Shape: height × width</li>
+                                <li>Common in MNIST, X-rays</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>Color Images (RGB)</h4>
+                            <ul>
+                                <li>Three channels (R, G, B)</li>
+                                <li>Each channel: 0-255 intensity</li>
+                                <li>Shape: 3 × height × width</li>
+                                <li>Standard in modern vision</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p><strong>Key Challenge:</strong> How do we handle convolutions when inputs have multiple channels?</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Mathematical Formulation: Multi-Channel Convolution</h2>
+                    <div class="math-content">
+                        <p>For input with <span class="tooltip">c<sub>i</sub> channels<span class="tooltiptext">The channel dimension, e.g., 3 for RGB images</span></span>:</p>
+                        <div class="fragment">
+                            <h4>Kernel Shape</h4>
+                            <p>$$\text{Kernel: } \color{#10099F}{c_i} \times \color{#2DD2C0}{k_h} \times \color{#FFA05F}{k_w}$$</p>
+                            <ul>
+                                <li><span style="color: #10099F">c<sub>i</sub></span>: number of input channels</li>
+                                <li><span style="color: #2DD2C0">k<sub>h</sub></span>: kernel height</li>
+                                <li><span style="color: #FFA05F">k<sub>w</sub></span>: kernel width</li>
+                            </ul>
+                        </div>
+                        <div class="fragment mt-md">
+                            <h4>Cross-Correlation with Multiple Channels</h4>
+                            <p>$$Y = \sum_{c=1}^{c_i} X^{(c)} \star K^{(c)}$$</p>
+                            <p class="small">where ⋆ denotes 2D cross-correlation</p>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p>Each channel is convolved separately, then results are summed</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Visual Example: Two-Channel Convolution</h2>
+                    <div class="visualization-container">
+                        <img src="images/conv-multi-in.svg" alt="Multi-channel convolution diagram" style="max-width: 80%; margin: 20px auto; display: block;">
+                        <div class="fragment mt-md">
+                            <h4>Computation Example</h4>
+                            <p>Output[0,0] = <span style="color: #10099F">(1×1 + 2×2 + 4×3 + 5×4)</span> + <span style="color: #2DD2C0">(0×0 + 1×1 + 3×2 + 4×3)</span> = <strong>56</strong></p>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p>Notice: Two 2D kernels (one per input channel) produce a single 2D output</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Implementation: Multi-Channel Cross-Correlation</h2>
+                    <pre class="fragment"><code class="language-python">def corr2d_multi_in(X, K):
+    """
+    Multi-channel cross-correlation
+    X shape: (c_i, h, w) 
+    K shape: (c_i, k_h, k_w)
+    Returns: (h_out, w_out)
+    """
+    # Sum over all input channels
+    return sum(corr2d(x, k) for x, k in zip(X, K))</code></pre>
+                    
+                    <div class="fragment mt-md">
+                        <h4>Numerical Example</h4>
+                        <pre><code class="language-python"># Two input channels, each 3x3
+X = torch.tensor([[[0, 1, 2], [3, 4, 5], [6, 7, 8]],    # Channel 1
+                  [[1, 2, 3], [4, 5, 6], [7, 8, 9]]])   # Channel 2
+
+# Two 2x2 kernels (one per channel)
+K = torch.tensor([[[0, 1], [2, 3]],    # Kernel for channel 1
+                  [[1, 2], [3, 4]]])    # Kernel for channel 2
+
+output = corr2d_multi_in(X, K)
+# Result: [[56, 72], [104, 120]]</code></pre>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Demo: Multi-Channel Convolution</h2>
+                    <div id="multi-channel-conv-demo" class="visualization-container">
+                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100; position: relative;">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Channels: 
+                                <input type="range" id="num-channels-slider" min="1" max="3" value="2" style="width: 100px;">
+                                <span id="num-channels-value" style="font-family: monospace;">2</span>
+                            </label>
+                            <button id="animate-conv" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Animate</button>
+                            <button id="reset-conv" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Reset</button>
+                        </div>
+                        <svg id="multi-channel-svg" width="800" height="400"></svg>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "In multi-channel convolution, how are the results from each channel combined?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "They are concatenated to form multiple output channels",
+                                "correct": false,
+                                "explanation": "Concatenation would create multiple outputs. Multi-channel input convolution sums the results."
+                            },
+                            {
+                                "text": "They are summed element-wise to produce a single output channel",
+                                "correct": true,
+                                "explanation": "Correct! Each input channel is convolved with its corresponding kernel, then all results are summed."
+                            },
+                            {
+                                "text": "They are averaged to reduce noise",
+                                "correct": false,
+                                "explanation": "Averaging would lose information. The standard operation is summation, not averaging."
+                            },
+                            {
+                                "text": "Only the maximum value across channels is kept",
+                                "correct": false,
+                                "explanation": "Max pooling is a different operation. Channel results are summed in convolution."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section: Multiple Output Channels (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 7.4.2", "url": "https://d2l.ai/chapter_convolutional-neural-networks/channels.html#multiple-output-channels"}]'>
+                    <h2 class="truncate-title">Multiple Output Channels: Detecting Diverse Features</h2>
+                    <div class="concept-grid">
+                        <div class="concept-item fragment">
+                            <h4>Why Multiple Outputs?</h4>
+                            <ul>
+                                <li>Different kernels detect different features</li>
+                                <li>Edge detectors, color detectors, texture detectors</li>
+                                <li>Each output channel = one feature map</li>
+                            </ul>
+                        </div>
+                        <div class="concept-item fragment">
+                            <h4>Trade-offs</h4>
+                            <ul>
+                                <li>Spatial resolution ↓ as we go deeper</li>
+                                <li><span class="tooltip">Channel depth<span class="tooltiptext">The number of feature maps/channels at a layer</span></span> ↑ for richer representations</li>
+                                <li>Computational cost increases</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p><strong>Key Insight:</strong> Channels work together to create joint representations, not independently</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Mathematical Framework for Multiple Outputs</h2>
+                    <div class="math-content">
+                        <h4>Complete Kernel Tensor Shape</h4>
+                        <p>$$\text{Kernel: } \color{#FC8484}{c_o} \times \color{#10099F}{c_i} \times \color{#2DD2C0}{k_h} \times \color{#FFA05F}{k_w}$$</p>
+                        <ul class="fragment">
+                            <li><span style="color: #FC8484">c<sub>o</sub></span>: number of output channels</li>
+                            <li><span style="color: #10099F">c<sub>i</sub></span>: number of input channels</li>
+                            <li><span style="color: #2DD2C0">k<sub>h</sub></span> × <span style="color: #FFA05F">k<sub>w</sub></span>: spatial kernel dimensions</li>
+                        </ul>
+                        
+                        <div class="fragment mt-md">
+                            <h4>Computational Complexity</h4>
+                            <p>$$\mathcal{O}(h \cdot w \cdot k^2 \cdot c_i \cdot c_o)$$</p>
+                            <p class="small">For a 256×256 image, 5×5 kernel, 128 input and output channels:</p>
+                            <p class="small"><strong>≈ 53 billion operations!</strong></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Visualizing Multiple Output Generation</h2>
+                    <div class="multi-output-diagram">
+                        <h4>Each Output Channel Has Its Own Set of Kernels</h4>
+                        <div style="display: flex; justify-content: space-around; align-items: center; margin: 30px 0;">
+                            <div style="text-align: center;">
+                                <div style="background: #E3F2FD; padding: 20px; border-radius: 8px;">
+                                    <strong>Input</strong><br>
+                                    c<sub>i</sub> × H × W
+                                </div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="background: #FFF3E0; padding: 15px; border-radius: 8px;">
+                                    <strong>Kernels</strong><br>
+                                    c<sub>o</sub> × c<sub>i</sub> × k × k
+                                </div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="background: #FCE4EC; padding: 20px; border-radius: 8px;">
+                                    <strong>Output</strong><br>
+                                    c<sub>o</sub> × H' × W'
+                                </div>
+                            </div>
+                        </div>
+                        <p class="fragment">Each of the c<sub>o</sub> output channels is computed independently using its own set of c<sub>i</sub> kernels</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Implementation: Multi-Input Multi-Output</h2>
+                    <pre><code class="language-python">def corr2d_multi_in_out(X, K):
+    """
+    Multi-input multi-output cross-correlation
+    X shape: (c_i, h, w)
+    K shape: (c_o, c_i, k_h, k_w)
+    Returns: (c_o, h_out, w_out)
+    """
+    # Stack results for each output channel
+    return torch.stack([corr2d_multi_in(X, k) for k in K], 0)</code></pre>
+                    
+                    <div class="fragment mt-md">
+                        <h4>Example: Creating 3 Output Channels</h4>
+                        <pre><code class="language-python"># Input: 2 channels, 3x3 each
+X = torch.randn(2, 3, 3)
+
+# Create 3 different kernels for 3 outputs
+K = torch.stack((K, K + 1, K + 2), 0)  # Shape: (3, 2, 2, 2)
+
+output = corr2d_multi_in_out(X, K)
+# Result shape: (3, 2, 2) - three feature maps!</code></pre>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Visualization: Feature Map Generation</h2>
+                    <div id="output-channels-demo" class="visualization-container">
+                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100; position: relative;">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Output Channels: 
+                                <input type="range" id="output-channels-slider" min="1" max="4" value="2" style="width: 100px;">
+                                <span id="output-channels-value" style="font-family: monospace;">2</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Kernel Type:
+                                <select id="kernel-type" style="padding: 4px;">
+                                    <option value="edge">Edge Detection</option>
+                                    <option value="blur">Blur</option>
+                                    <option value="sharpen">Sharpen</option>
+                                    <option value="random">Random</option>
+                                </select>
+                            </label>
+                            <button id="generate-outputs" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Generate</button>
+                        </div>
+                        <svg id="output-channels-svg" width="800" height="450"></svg>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the shape of the kernel tensor for a convolution with 3 input channels, 64 output channels, and 5×5 spatial dimensions?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "3 × 64 × 5 × 5",
+                                "correct": false,
+                                "explanation": "The output channels come first in the kernel tensor, not the input channels."
+                            },
+                            {
+                                "text": "64 × 3 × 5 × 5",
+                                "correct": true,
+                                "explanation": "Correct! The kernel shape is (c_o, c_i, k_h, k_w) = (64, 3, 5, 5)."
+                            },
+                            {
+                                "text": "5 × 5 × 3 × 64",
+                                "correct": false,
+                                "explanation": "The spatial dimensions are last, and channel dimensions come first."
+                            },
+                            {
+                                "text": "3 × 5 × 5 × 64",
+                                "correct": false,
+                                "explanation": "This incorrectly mixes spatial and channel dimensions."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section: 1×1 Convolutions (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "Lin et al. (2013) - Network in Network", "url": "https://arxiv.org/abs/1312.4400"}, {"text": "Dive into Deep Learning - Chapter 7.4.3", "url": "https://d2l.ai/chapter_convolutional-neural-networks/channels.html#times-1-convolutional-layer"}]'>
+                    <h2 class="truncate-title">The Surprising 1×1 Convolution</h2>
+                    <div class="paradox-explanation">
+                        <h4>The Apparent Contradiction</h4>
+                        <div class="two-column">
+                            <div class="column fragment">
+                                <h5>What We Expect from Convolutions</h5>
+                                <ul>
+                                    <li>Spatial correlation</li>
+                                    <li>Local receptive fields</li>
+                                    <li>Pattern detection across space</li>
+                                </ul>
+                            </div>
+                            <div class="column fragment">
+                                <h5>What 1×1 Convolutions Do</h5>
+                                <ul>
+                                    <li>No spatial correlation (k=1)</li>
+                                    <li>Single pixel receptive field</li>
+                                    <li>Only operates on channels!</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p><strong>Key Insight:</strong> 1×1 convolutions are <span class="tooltip">pointwise convolutions<span class="tooltiptext">Operations that transform channels at each spatial location independently</span></span> - they mix channels, not spatial information</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Visual Explanation: Channel Transformation</h2>
+                    <div class="visualization-container">
+                        <img src="images/conv-1x1.svg" alt="1×1 convolution diagram" style="max-width: 70%; margin: 20px auto; display: block;">
+                        <div class="fragment mt-md">
+                            <h4>What's Happening?</h4>
+                            <ul>
+                                <li>Each pixel location gets a new value</li>
+                                <li>New value = linear combination of all input channels at that location</li>
+                                <li>Same transformation applied at every spatial position</li>
+                                <li>Equivalent to a fully connected layer applied per-pixel</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Interactive Demo: 1×1 as Channel Mixer</h2>
+                    <div id="channel-mixer-demo" class="visualization-container">
+                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100; position: relative;">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Input Channels: 
+                                <input type="range" id="mixer-input-channels" min="1" max="4" value="3" style="width: 80px;">
+                                <span id="mixer-input-value" style="font-family: monospace;">3</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                Output Channels: 
+                                <input type="range" id="mixer-output-channels" min="1" max="4" value="2" style="width: 80px;">
+                                <span id="mixer-output-value" style="font-family: monospace;">2</span>
+                            </label>
+                            <button id="animate-mixing" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Animate Mixing</button>
+                            <button id="show-weights" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Show Weights</button>
+                        </div>
+                        <svg id="channel-mixer-svg" width="800" height="400"></svg>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Mathematical Equivalence to Fully Connected</h2>
+                    <div class="math-comparison">
+                        <h4>1×1 Convolution as Matrix Multiplication</h4>
+                        <pre><code class="language-python">def corr2d_multi_in_out_1x1(X, K):
+    """
+    1×1 convolution via matrix multiplication
+    X shape: (c_i, h, w)
+    K shape: (c_o, c_i, 1, 1) - reshaped to (c_o, c_i)
+    """
+    c_i, h, w = X.shape
+    c_o = K.shape[0]
+    
+    # Reshape for matrix multiplication
+    X = X.reshape((c_i, h * w))        # Flatten spatial dims
+    K = K.reshape((c_o, c_i))          # Remove 1×1 spatial dims
+    
+    # Matrix multiplication (fully connected)
+    Y = torch.matmul(K, X)              # (c_o, c_i) × (c_i, h*w) = (c_o, h*w)
+    
+    return Y.reshape((c_o, h, w))       # Restore spatial dims</code></pre>
+                        
+                        <div class="fragment emphasis-box mt-md">
+                            <p>Each spatial position undergoes the same c<sub>i</sub> → c<sub>o</sub> transformation</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Applications and Benefits of 1×1 Convolutions</h2>
+                    <div class="applications-grid">
+                        <div class="application-card fragment">
+                            <h4>1. Dimensionality Reduction</h4>
+                            <p>Reduce channels before expensive operations</p>
+                            <p class="small">Example: 256→64 channels before 5×5 conv</p>
+                            <p class="small">Saves: 75% of computations!</p>
+                        </div>
+                        <div class="application-card fragment">
+                            <h4>2. Increase Non-linearity</h4>
+                            <p>Add depth without changing resolution</p>
+                            <p class="small">1×1 conv → ReLU → 1×1 conv</p>
+                            <p class="small">More expressive power</p>
+                        </div>
+                        <div class="application-card fragment">
+                            <h4>3. Cross-Channel Interactions</h4>
+                            <p>Let channels "talk" to each other</p>
+                            <p class="small">Combine features from different detectors</p>
+                        </div>
+                        <div class="application-card fragment">
+                            <h4>4. <span class="tooltip">Bottleneck Architectures<span class="tooltiptext">Design pattern that reduces dimensions, processes, then expands back</span></span></h4>
+                            <p>Used in ResNet, Inception</p>
+                            <p class="small">1×1 down → 3×3 conv → 1×1 up</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Practical Example: Network in Network</h2>
+                    <div class="nin-example">
+                        <h4>MLP-Conv Layer Structure</h4>
+                        <pre><code class="language-python"># Traditional convolution block
+conv_block = nn.Sequential(
+    nn.Conv2d(128, 256, kernel_size=3, padding=1),
+    nn.ReLU()
+)
+
+# Network-in-Network block (with 1×1 convs)
+nin_block = nn.Sequential(
+    nn.Conv2d(128, 256, kernel_size=3, padding=1),
+    nn.ReLU(),
+    nn.Conv2d(256, 256, kernel_size=1),  # 1×1 conv
+    nn.ReLU(),
+    nn.Conv2d(256, 256, kernel_size=1),  # 1×1 conv
+    nn.ReLU()
+)</code></pre>
+                        <div class="fragment">
+                            <p><strong>Benefits:</strong> More non-linearity, better feature combination, similar computational cost</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Which statements about 1×1 convolutions are correct?",
+                        "type": "multiple",
+                        "options": [
+                            {
+                                "text": "They can change the number of channels",
+                                "correct": true,
+                                "explanation": "Yes! 1×1 convolutions can transform from c_i to c_o channels."
+                            },
+                            {
+                                "text": "They preserve spatial dimensions when stride=1",
+                                "correct": true,
+                                "explanation": "Correct! With stride=1, spatial dimensions remain unchanged."
+                            },
+                            {
+                                "text": "They are equivalent to a fully connected layer at each pixel",
+                                "correct": true,
+                                "explanation": "Yes! Each pixel gets the same linear transformation of its channels."
+                            },
+                            {
+                                "text": "They capture spatial patterns in the image",
+                                "correct": false,
+                                "explanation": "No, 1×1 convolutions only mix channels at each location, not across locations."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/math/math.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    
+    <!-- Shared resources -->
+    <script src="../shared/js/multiple-choice.js"></script>
+    <script src="../shared/js/source-modal-v2.js"></script>
+    <script src="../shared/js/title-handler.js"></script>
+    <script src="../shared/js/tooltip-modal.js"></script>
+    <script src="../shared/js/d3-utils.js"></script>
+    <script src="../shared/js/animation-lib.js"></script>
+    
+    <!-- CNN specific scripts -->
+    <script src="js/convolution-demo.js"></script>
+    <script src="js/invariance-viz.js"></script>
+    <script src="js/locality-viz.js"></script>
+    <script src="js/channels-viz.js"></script>
+    <script src="js/parameter-comparison.js"></script>
+    <script src="js/cross-correlation-calculator.js"></script>
+    <script src="js/kernel-learning-demo.js"></script>
+    <script src="js/edge-detection-demo.js"></script>
+    <script src="js/receptive-field-calculator.js"></script>
+    
+    <!-- Padding and Stride scripts -->
+    <script src="js/padding-stride-demo.js"></script>
+    <script src="js/stride-animator.js"></script>
+    <script src="js/padding-types-demo.js"></script>
+    <script src="js/dilated-conv-demo.js"></script>
+    
+    <!-- Channel-related scripts -->
+    <script src="js/multi-channel-conv-demo.js"></script>
+    <script src="js/output-channels-viz.js"></script>
+    <script src="js/channel-mixer-demo.js"></script>
+    
+    <script>
+        // Initialize Reveal.js
+        Reveal.initialize({
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true,
+            transition: 'slide',
+            math: {
+                mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js',
+                config: 'TeX-AMS_HTML-full'
+            },
+            plugins: [ RevealMath, RevealHighlight, RevealNotes ]
+        });
+    </script>
+</body>
+</html>

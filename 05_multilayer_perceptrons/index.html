@@ -821,7 +821,7 @@ print(f"Tanh derivative: {x.grad}")
                 <section>
                     <h2 class="truncate-title">Initializing Model Parameters</h2>
                     <p>Setting up weights and biases with proper initialization</p>
-                    <div class="fragment">
+                    <div class="fragment" style="font-size: 0.75em;">
                         <pre><code class="python">import torch
 from torch import nn
 from d2l import torch as d2l
@@ -864,7 +864,7 @@ def forward(self, X):
     H = relu(torch.matmul(X, self.W1) + self.b1)  # Hidden layer
     return torch.matmul(H, self.W2) + self.b2  # Output layer</code></pre>
                     </div>
-                    <div class="fragment">
+                    <div class="fragment" style="font-size: 0.75em;">
                         <h4>Mathematical Flow</h4>
                         $$\begin{aligned}
                         \mathbf{X}_{\text{flat}} &= \text{reshape}(\mathbf{X}, [-1, 784])\\
@@ -987,7 +987,7 @@ trainer.fit(model, data)</code></pre>
                     </div>
                     <div class="fragment">
                         <h4>Key Components</h4>
-                        <ul style="font-size: 0.9em;">
+                        <ul style="font-size: 0.75em;">
                             <li><strong>nn.Flatten():</strong> Automatically reshapes inputs</li>
                             <li><strong>nn.LazyLinear:</strong> Infers input dimensions on first use</li>
                             <li><strong>nn.ReLU():</strong> Built-in activation function</li>
@@ -1230,13 +1230,13 @@ trainer.fit(model, data)</code></pre>
                     <h2 class="truncate-title">Loss and Regularization</h2>
                     <p>Computing the objective function</p>
                     <div class="two-column">
-                        <div class="fragment column" style="font-size: 0.75em;">
+                        <div class="fragment column" style="font-size: 0.65em;">
                             <h4>Loss Computation</h4>
                             <p>For a single example with label $y$:</p>
                             <p>$$L = l(\mathbf{o}, y)$$</p>
                             <p style="font-size: 0.9em;">where $l$ is the loss function (e.g., cross-entropy)</p>
                         </div>
-                        <div class="fragment column" style="font-size: 0.75em;">
+                        <div class="fragment column" style="font-size: 0.65em;">
                             <h4>L2 Regularization Term</h4>
                             <p>Given hyperparameter $\lambda$:</p>
                             <p>$$s = \frac{\lambda}{2} \left(\|\mathbf{W}^{(1)}\|_\textrm{F}^2 + \|\mathbf{W}^{(2)}\|_\textrm{F}^2\right)$$</p>
@@ -1245,7 +1245,7 @@ trainer.fit(model, data)</code></pre>
                     </div>
                     <div class="fragment mt-md">
                         <h4>Final Objective Function</h4>
-                        <div class="emphasis-box">
+                        <div class="emphasis-box" style="font-size: 0.75em;">
                             <p>$$J = L + s$$</p>
                             <p>Combines data fit (L) with model complexity penalty (s)</p>
                         </div>
@@ -1767,7 +1767,7 @@ loss.backward()
             <section>
                 <section data-sources='[{"text": "Dive into Deep Learning - Numerical Stability", "url": "https://d2l.ai/chapter_multilayer-perceptrons/numerical-stability-and-init.html"}, {"text": "Understanding the difficulty of training deep feedforward neural networks - Glorot & Bengio", "url": "http://proceedings.mlr.press/v9/glorot10a.html"}]'>
                     <h2 class="truncate-title">Numerical Stability and Initialization</h2>
-                    <div class="two-column">
+                    <div class="two-column" style="font-size: 0.75em;">
                         <div class="column">
                             <h4>The Challenge</h4>
                             <ul>
@@ -1806,7 +1806,7 @@ loss.backward()
                         \underbrace{\color{#2DD2C0}{\partial_{\mathbf{h}^{(l)}} \mathbf{h}^{(l+1)}}}_{\text{M}^{(l+1)}} 
                         \underbrace{\color{#FC8484}{\partial_{\mathbf{W}^{(l)}} \mathbf{h}^{(l)}}}_{\text{v}^{(l)}}$$
                     </div>
-                    <div class="fragment emphasis-box mt-md">
+                    <div class="fragment emphasis-box mt-md" style="font-size:0.7em">
                         <p>Product of L-l matrices! Each can shrink or amplify gradients</p>
                     </div>
                 </section>
@@ -1818,7 +1818,8 @@ loss.backward()
                         <pre><code class="python"># Sigmoid and its gradient
 x = torch.arange(-8.0, 8.0, 0.1, requires_grad=True)
 y = torch.sigmoid(x)
-y.backward(torch.ones_like(x))</code></pre>
+y.backward(torch.ones_like(x)) # gradient of y with respect to x
+# Maximum gradient is only 0.25! Multiple layers compound the problem</code></pre>
                     </div>
                     <div class="fragment mt-md">
                         <div id="sigmoid-gradient-viz" style="width: 100%; height: 300px;"></div>
@@ -1831,9 +1832,6 @@ y.backward(torch.ones_like(x))</code></pre>
                             <span style="font-family: monospace;">σ(x) = <span id="sigmoid-output">0.500</span></span>
                             <span style="font-family: monospace;">σ'(x) = <span id="sigmoid-gradient">0.250</span></span>
                         </div>
-                    </div>
-                    <div class="fragment emphasis-box mt-md" style="font-size:0.7em">
-                        <p>Maximum gradient is only 0.25! Multiple layers compound the problem</p>
                     </div>
                 </section>
 
@@ -1870,7 +1868,7 @@ print('After 100 multiplications:', M)
                 <section>
                     <h2 class="truncate-title">Breaking the Symmetry</h2>
                     <p>Why identical initialization fails</p>
-                    <div class="two-column" style="font-size:0.5em">
+                    <div class="two-column" style="font-size:0.75em">
                         <div class="column">
                             <h4>The Problem</h4>
                             <div class="fragment">
@@ -1894,14 +1892,6 @@ print('After 100 multiplications:', M)
                                     <li>But variance matters!</li>
                                 </ul>
                             </div>
-                        </div>
-                    </div>
-                    <div class="fragment mt-md">
-                        <div id="symmetry-breaking-viz" style="width: 100%; height: 250px;"></div>
-                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
-                            <button id="sym-identical" style="background: #FC8484; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Identical Init</button>
-                            <button id="sym-random" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Random Init</button>
-                            <button id="sym-train-step" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Train Step</button>
                         </div>
                     </div>
                 </section>
@@ -1939,7 +1929,7 @@ print('After 100 multiplications:', M)
                 <section>
                     <h2 class="truncate-title">Xavier Initialization: Distributions</h2>
                     <p>Two common implementations</p>
-                    <div class="two-column mt-md" style="font-size:0.5em">
+                    <div class="two-column mt-md" style="font-size:0.75em">
                         <div class="column">
                             <h4>Gaussian Distribution</h4>
                             <div class="fragment">
@@ -2690,11 +2680,11 @@ nn.init.uniform_(layer.bias, -bound, bound)
                 <section data-sources='[{"text": "Dropout: A Simple Way to Prevent Neural Networks from Overfitting - Srivastava et al. 2014", "url": "https://jmlr.org/papers/v15/srivastava14a.html"}, {"text": "Improving neural networks by preventing co-adaptation of feature detectors - Hinton et al. 2012", "url": "https://arxiv.org/abs/1207.0580"}]'>
                     <h2 class="truncate-title">Dropout: A Powerful Regularization Technique</h2>
                     <div class="container">
-                        <div class="emphasis-box">
+                        <div class="emphasis-box" style="font-size: 0.65em;">
                             <p><strong>Key Insight:</strong> Randomly "dropping out" neurons during training prevents overfitting</p>
                         </div>
                         
-                        <div class="two-column mt-lg" style="font-size:0.5em">
+                        <div class="two-column mt-lg" style="font-size:0.65em">
                             <div class="column">
                                 <h4>Motivation</h4>
                                 <ul>
@@ -2722,12 +2712,12 @@ nn.init.uniform_(layer.bias, -bound, bound)
                     <h2 class="truncate-title">Theoretical Foundation: From Input Noise to Dropout</h2>
                     <div class="container">
                         <h4>Bishop's Insight (1995)</h4>
-                        <div class="emphasis-box">
+                        <div class="emphasis-box" style="font-size: 0.65em;">
                             <p>Training with input noise ≈ <span class="tooltip">Tikhonov regularization<span class="tooltiptext">Also known as ridge regression (L2 regularization). A mathematical technique that prevents overfitting by adding a penalty term to the loss function. It encourages the model to have smaller weights, making it smoother and less likely to memorize noise in the training data.</span></span></p>
                             <p>Smoothness requirement ↔ Perturbation resilience</p>
                         </div>
                         
-                        <div class="two-column mt-lg" style="font-size:0.5em">
+                        <div class="two-column mt-lg" style="font-size:0.65em">
                             <div class="column">
                                 <h4>Gaussian Noise on Inputs</h4>
                                 <p>Add noise: $\epsilon \sim \mathcal{N}(0, \sigma^2)$</p>
