@@ -5,31 +5,32 @@
     const cellSize = 30;
     
     function initReceptiveFieldDemo() {
-        const container = document.getElementById('receptive-field-svg');
+        const container = document.getElementById('locality-field-svg');
         if (!container || !window.d3) return;
-        
+
         svg = d3.select(container);
         svg.selectAll("*").remove();
-        
+
         const width = 600;
         const height = 400;
-        
+
         // Create main groups
         const inputGroup = svg.append('g')
             .attr('transform', 'translate(100, 50)');
-        
+
+        // Move output neuron more to the right to avoid overlap
         const outputGroup = svg.append('g')
-            .attr('transform', 'translate(400, 150)');
-        
+            .attr('transform', 'translate(480, 150)');
+
         // Draw input grid
         drawGrid(inputGroup, gridSize, gridSize, 'Input Image');
-        
+
         // Draw output neuron
         drawOutputNeuron(outputGroup);
-        
+
         // Update connections based on kernel size
         updateConnections();
-        
+
         setupLocalityControls();
     }
     
@@ -151,7 +152,7 @@
                 if (row >= 0 && row < gridSize && col >= 0 && col < gridSize) {
                     const startX = col * cellSize + cellSize/2;
                     const startY = row * cellSize + cellSize/2;
-                    const endX = 300;
+                    const endX = 380;  // Adjusted to point to new output position
                     const endY = 100;
                     
                     // Draw connection line
@@ -181,22 +182,23 @@
     function updateParameterCount(count) {
         // Remove existing parameter display
         svg.selectAll('.param-display').remove();
-        
+
         // Add parameter count
         const paramGroup = svg.append('g')
             .attr('class', 'param-display')
             .attr('transform', 'translate(300, 350)');
-        
+
+        // Make box wider to accommodate text
         paramGroup.append('rect')
-            .attr('x', -80)
+            .attr('x', -110)
             .attr('y', -20)
-            .attr('width', 160)
+            .attr('width', 220)
             .attr('height', 40)
             .attr('fill', '#f9f9f9')
             .attr('stroke', '#10099F')
             .attr('stroke-width', 2)
             .attr('rx', 5);
-        
+
         paramGroup.append('text')
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'middle')
@@ -218,11 +220,11 @@
     function initReceptiveGrowthDemo() {
         const container = document.getElementById('receptive-growth-svg');
         if (!container || !window.d3) return;
-        
+
         const svg = d3.select(container);
         svg.selectAll("*").remove();
-        
-        const width = 600;
+
+        const width = 750;
         const height = 400;
         
         // Create layer visualization
@@ -331,19 +333,29 @@
     
     // Initialize when slide is shown
     Reveal.on('slidechanged', event => {
-        if (event.currentSlide.querySelector('#receptive-field-demo')) {
-            setTimeout(initReceptiveFieldDemo, 100);
+        if (event.currentSlide.querySelector('#receptive-field-locality-demo')) {
+            setTimeout(initReceptiveFieldDemo, 150);
         }
         if (event.currentSlide.querySelector('#receptive-growth-demo')) {
-            setTimeout(initReceptiveGrowthDemo, 100);
+            setTimeout(initReceptiveGrowthDemo, 150);
         }
     });
-    
+
+    // Initialize on Reveal ready event
+    Reveal.on('ready', () => {
+        if (document.querySelector('.present #receptive-field-locality-demo')) {
+            setTimeout(initReceptiveFieldDemo, 150);
+        }
+        if (document.querySelector('.present #receptive-growth-demo')) {
+            setTimeout(initReceptiveGrowthDemo, 150);
+        }
+    });
+
     // Also initialize if already on the slide
-    if (document.querySelector('.present #receptive-field-demo')) {
-        setTimeout(initReceptiveFieldDemo, 100);
+    if (document.querySelector('.present #receptive-field-locality-demo')) {
+        setTimeout(initReceptiveFieldDemo, 150);
     }
     if (document.querySelector('.present #receptive-growth-demo')) {
-        setTimeout(initReceptiveGrowthDemo, 100);
+        setTimeout(initReceptiveGrowthDemo, 150);
     }
 })();

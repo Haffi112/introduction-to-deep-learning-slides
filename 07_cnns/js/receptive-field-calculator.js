@@ -31,7 +31,7 @@
 
         // Draw receptive field visualization
         function drawVisualization() {
-            const svg = d3.select('#receptive-field-svg');
+            const svg = d3.select('#calculator-field-svg');
             if (!svg.node()) return;
             
             svg.selectAll('*').remove();

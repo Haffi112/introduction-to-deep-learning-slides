@@ -5005,6 +5005,7 @@ print(f'True b: {true_b}, Learned b: {b}')
         });
 
         function initializeCurrentSlideVisualizations() {
+            if (!Reveal.getCurrentSlide || !Reveal.getIndices) return;
             const currentSlide = Reveal.getCurrentSlide();
             const indices = Reveal.getIndices();
             const slideId = indices.h + '-' + indices.v;

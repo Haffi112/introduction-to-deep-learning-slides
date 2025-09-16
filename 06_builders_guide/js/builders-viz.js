@@ -105,12 +105,14 @@
         const container = d3.select('#module-hierarchy');
         container.selectAll('*').remove();
 
-        const width = container.node().getBoundingClientRect().width;
+        const svgWidth = 550; // Fixed SVG width to prevent overflow
         const height = 400;
 
         const svg = container.append('svg')
-            .attr('width', width)
-            .attr('height', height);
+            .attr('width', svgWidth)
+            .attr('height', height)
+            .style('margin', '0 auto')
+            .style('display', 'block'); // Center the SVG
 
         // Hierarchy data
         const data = {
@@ -134,11 +136,12 @@
         };
 
         const root = d3.hierarchy(data);
-        const treeLayout = d3.tree().size([width - 100, height - 100]);
+        const treeWidth = 450; // Fixed width for more compact tree
+        const treeLayout = d3.tree().size([treeWidth, height - 100]);
         treeLayout(root);
 
         const g = svg.append('g')
-            .attr('transform', 'translate(50, 50)');
+            .attr('transform', `translate(${(svgWidth - treeWidth) / 2}, 50)`);
 
         // Draw links
         g.selectAll('.link')
@@ -4245,12 +4248,14 @@ Difference:      tensor([[0.0222, 0.0246, ...]])</pre>
         });
 
         // Also initialize on current slide
-        const currentSlide = Reveal.getCurrentSlide();
-        if (currentSlide) {
-            if (currentSlide.querySelector('#gpu-timeline-viz')) createGPUTimeline();
-            if (currentSlide.querySelector('#device-transfer-viz')) createDeviceTransferViz();
-            if (currentSlide.querySelector('#transfer-demo')) createTransferDemo();
-            if (currentSlide.querySelector('#model-gpu-demo')) createModelGPUDemo();
+        if (Reveal.getCurrentSlide) {
+            const currentSlide = Reveal.getCurrentSlide();
+            if (currentSlide) {
+                if (currentSlide.querySelector('#gpu-timeline-viz')) createGPUTimeline();
+                if (currentSlide.querySelector('#device-transfer-viz')) createDeviceTransferViz();
+                if (currentSlide.querySelector('#transfer-demo')) createTransferDemo();
+                if (currentSlide.querySelector('#model-gpu-demo')) createModelGPUDemo();
+            }
         }
     }
 

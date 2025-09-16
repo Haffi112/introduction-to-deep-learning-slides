@@ -10,14 +10,14 @@
 
         const svg = d3.select('#output-channels-svg');
         const width = 800;
-        const height = 450;
+        const height = 350;
         
         // Configuration
         let numOutputChannels = 2;
         let kernelType = 'edge';
         const inputChannels = 3; // RGB
         const imageSize = 5;
-        const cellSize = 25;
+        const cellSize = 16;
         
         // Clear previous content
         svg.selectAll('*').remove();
@@ -199,8 +199,8 @@
             const channelNames = ['Red', 'Green', 'Blue'];
             
             for (let c = 0; c < inputChannels; c++) {
-                drawFeatureMap(inputGroup, inputData[c], channelNames[c], 
-                              50, 50 + c * (imageSize * cellSize + 40));
+                drawFeatureMap(inputGroup, inputData[c], channelNames[c],
+                              50, 40 + c * (imageSize * cellSize + 25));
             }
             
             // Draw arrow
@@ -268,7 +268,7 @@
             const outputSize = imageSize - 2; // 3x3 kernel reduces size by 2
             
             for (let o = 0; o < numOutputChannels; o++) {
-                const yPos = 50 + o * (outputSize * cellSize + 40);
+                const yPos = 40 + o * (outputSize * cellSize + 25);
                 drawFeatureMap(outputGroup, outputData[o], `Output ${o + 1}`, 420, yPos);
             }
             

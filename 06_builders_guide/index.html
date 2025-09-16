@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
     <link rel="stylesheet" href="../shared/css/reveal-theme.css">
     <link rel="stylesheet" href="../shared/css/common.css">
+    <link rel="stylesheet" href="../shared/css/quiz.css">
     <link rel="stylesheet" href="css/builders-custom.css">
     
     <!-- Code syntax highlighting -->
@@ -65,7 +66,7 @@
 
                 <section>
                     <h2 class="truncate-title">The Abstraction Journey</h2>
-                    <div class="abstraction-levels">
+                    <div class="abstraction-levels" style="font-size: 0.75em;">
                         <div class="level fragment">
                             <div class="icon">🔧</div>
                             <h4>Hardware Era</h4>
@@ -91,8 +92,8 @@
                 </section>
 
                 <section>
-                    <h2 class="truncate-title">What You'll Master in This Chapter</h2>
-                    <div class="grid-2x3">
+                    <h2 class="truncate-title">What You'll Master in This Lecture</h2>
+                    <div class="grid-2x3" style="font-size: 0.75em;">
                         <div class="card fragment">
                             <h4>🏗️ Model Construction</h4>
                             <p>Build complex architectures from modular components</p>
@@ -218,7 +219,7 @@
 
                 <section>
                     <h2 class="truncate-title">Five Key Module Responsibilities</h2>
-                    <div class="responsibilities-grid">
+                    <div class="responsibilities-grid" style="font-size: 0.75em;">
                         <div class="responsibility fragment" data-fragment-index="1">
                             <div class="number">1</div>
                             <h4>Ingest Input</h4>
@@ -394,31 +395,6 @@ Hidden layer shape: torch.Size([256, 20])</pre>
                 </section>
 
                 <section>
-                    <h2 class="truncate-title">Forward Propagation Flow</h2>
-                    <div id="forward-flow-viz" style="width: 100%; height: 400px;"></div>
-                    <div class="demo-controls mt-md" style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-                        <button id="animate-forward" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Animate Forward Pass</button>
-                        <button id="reset-forward" style="background: #666; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Reset</button>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Interactive: Build Your Own MLP</h2>
-                    <div id="mlp-builder" style="width: 100%; height: 350px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-                        <div class="builder-controls" style="margin-bottom: 20px;">
-                            <label>Hidden Size: 
-                                <input type="number" id="hidden-size" value="256" min="1" max="1024" style="width: 80px;">
-                            </label>
-                            <label style="margin-left: 20px;">Output Size: 
-                                <input type="number" id="output-size" value="10" min="1" max="100" style="width: 80px;">
-                            </label>
-                            <button id="build-mlp" style="margin-left: 20px; background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Build Module</button>
-                        </div>
-                        <div id="mlp-code" style="background: #f5f5f5; padding: 15px; border-radius: 5px; font-family: monospace; white-space: pre;"></div>
-                    </div>
-                </section>
-
-                <section>
                     <h2 class="truncate-title">Test Your Understanding</h2>
                     <div data-mcq='{
                         "question": "What happens when you first call forward() on a module with LazyLinear layers?",
@@ -546,18 +522,8 @@ for name, param in net.named_parameters():
                             </tbody>
                         </table>
                     </div>
-                    <div class="fragment emphasis-box mt-md">
+                    <div class="fragment emphasis-box mt-md" style="font-size: 0.65em;">
                         <p>Use Sequential for simple chains, custom modules for complex architectures</p>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Interactive: Sequential Flow Visualization</h2>
-                    <div id="sequential-flow" style="width: 100%; height: 400px;"></div>
-                    <div class="demo-controls mt-md" style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-                        <button id="add-layer" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Add Layer</button>
-                        <button id="animate-sequential" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Animate Flow</button>
-                        <button id="clear-sequential" style="background: #666; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Clear</button>
                     </div>
                 </section>
 
@@ -621,7 +587,7 @@ class FixedHiddenMLP(nn.Module):
 
                 <section>
                     <h2 class="truncate-title">Mixing Learnable and Fixed Parameters</h2>
-                    <div class="parameter-types">
+                    <div class="parameter-types" style="font-size: 0.7em;">
                         <div class="param-card fragment">
                             <h4>🎲 Fixed Parameters</h4>
                             <pre><code class="python">self.rand_weight = torch.rand((20, 20))</code></pre>
@@ -689,26 +655,8 @@ class SharedWeightNet(nn.Module):
 # The shared layer's weights are used 3 times
 # but only stored once in memory
                     </code></pre>
-                    <div class="fragment">
+                    <div class="fragment" style="font-size: 0.75em;">
                         <p>Benefits: Memory efficiency, parameter tying, weight sharing patterns</p>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Interactive: Control Flow Simulator</h2>
-                    <div id="control-flow-sim" style="width: 100%; height: 350px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-                        <div class="sim-controls" style="margin-bottom: 20px;">
-                            <label>Input Mean: 
-                                <input type="range" id="input-mean" min="0" max="10" value="5" step="0.5">
-                                <span id="mean-value">5.0</span>
-                            </label>
-                            <label style="margin-left: 20px;">Batch Size: 
-                                <input type="range" id="batch-size" min="1" max="20" value="10">
-                                <span id="batch-value">10</span>
-                            </label>
-                        </div>
-                        <div id="flow-diagram" style="height: 250px;"></div>
-                        <div id="flow-output" style="margin-top: 15px; font-family: monospace; background: #f5f5f5; padding: 10px; border-radius: 5px;"></div>
                     </div>
                 </section>
 
@@ -768,15 +716,6 @@ chimera = nn.Sequential(
                     </code></pre>
                     <div class="fragment">
                         <p>This creates a deep hierarchy of modules!</p>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Visualizing Module Hierarchies</h2>
-                    <div id="module-tree" style="width: 100%; height: 400px;"></div>
-                    <div class="mt-md">
-                        <button id="expand-tree" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Expand All</button>
-                        <button id="collapse-tree" style="background: #666; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Collapse All</button>
                     </div>
                 </section>
 
@@ -846,24 +785,6 @@ params = list(chimera.parameters())
 print(f"Total parameter tensors: {len(params)}")
 print(f"Unique parameter tensors: {len(set(id(p) for p in params))}")
                         </code></pre>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Interactive: Module Composer</h2>
-                    <div id="module-composer" style="width: 100%; height: 400px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-                        <div class="composer-controls" style="margin-bottom: 20px;">
-                            <select id="module-type" style="padding: 5px;">
-                                <option value="linear">Linear Layer</option>
-                                <option value="relu">ReLU</option>
-                                <option value="sequential">Sequential Block</option>
-                                <option value="custom">Custom Module</option>
-                            </select>
-                            <button id="add-module" style="margin-left: 10px; background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Add Module</button>
-                            <button id="nest-module" style="margin-left: 10px; background: #FFA05F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Nest Inside</button>
-                            <button id="clear-composer" style="margin-left: 10px; background: #666; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Clear</button>
-                        </div>
-                        <div id="composition-view" style="height: 300px;"></div>
                     </div>
                 </section>
 
@@ -959,7 +880,7 @@ model = nn.Sequential(*[ResidualBlock(64) for _ in range(4)])
 
                 <section>
                     <h2 class="truncate-title">Framework Comparison</h2>
-                    <div class="framework-comparison">
+                    <div class="framework-comparison" style="font-size: 0.75em;">
                         <table>
                             <thead>
                                 <tr>
@@ -1000,39 +921,78 @@ model = nn.Sequential(*[ResidualBlock(64) for _ in range(4)])
                 </section>
 
                 <section>
-                    <h2 class="truncate-title">Exercises to Master Modules</h2>
-                    <div class="exercises">
-                        <div class="exercise fragment">
-                            <h4>Exercise 1: Module Storage</h4>
-                            <p>Investigate how modules are stored internally</p>
-                            <pre><code class="python">module._modules  # OrderedDict of child modules
+                    <h2 class="truncate-title">Exercise 1: Module Storage</h2>
+                    <div class="exercise">
+                        <h4>Investigate how modules are stored internally</h4>
+                        <p>PyTorch modules use special dictionaries to organize their components:</p>
+                        <pre><code class="python" data-line-numbers="1-3|1|2|3">module._modules  # OrderedDict of child modules
 module._parameters  # OrderedDict of parameters
 module._buffers  # OrderedDict of buffers</code></pre>
+                        <div class="fragment">
+                            <h5>Try this exploration:</h5>
+                            <pre><code class="python">net = nn.Sequential(nn.Linear(10, 5), nn.ReLU())
+print("Modules:", list(net._modules.keys()))
+print("Parameters:", list(net._parameters.keys()))
+for name, param in net.named_parameters():
+    print(f"{name}: {param.shape}")</code></pre>
                         </div>
-                        <div class="exercise fragment">
-                            <h4>Exercise 2: Parallel Blocks</h4>
-                            <p>Create a module that processes input through parallel paths</p>
-                            <pre><code class="python">class ParallelBlock(nn.Module):
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Exercise 2: Parallel Blocks</h2>
+                    <div class="exercise">
+                        <h4>Create a module that processes input through parallel paths</h4>
+                        <p>Build architectures that split and merge data flows:</p>
+                        <pre><code class="python" data-line-numbers="1-6|2-3|4-5|6|7-10">class ParallelBlock(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv_path = nn.Conv2d(3, 16, 3)
+        self.pool_path = nn.AdaptiveAvgPool2d((1, 1))
+    
     def forward(self, X):
         path1 = self.conv_path(X)
         path2 = self.pool_path(X)
         return torch.cat([path1, path2], dim=1)</code></pre>
+                        <div class="fragment">
+                            <h5>Challenge Extension:</h5>
+                            <p style="font-size: 0.75em;">Add residual connections and different activation functions per path</p>
                         </div>
-                        <div class="exercise fragment">
-                            <h4>Exercise 3: Module Factory</h4>
-                            <p>Build a function that creates modules based on config</p>
-                            <pre><code class="python">def create_module(config):
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Exercise 3: Module Factory</h2>
+                    <div class="exercise" style="font-size: 0.75em;">
+                        <h4>Build a function that creates modules based on config</h4>
+                        <p>Dynamic module creation from configuration:</p>
+                        <pre><code class="python" data-line-numbers="1-6|1-2|3-6">layer_map = {
+    'linear': nn.Linear,
+    'relu': nn.ReLU,
+    'dropout': nn.Dropout
+}
+
+def create_module(config):
     return nn.Sequential(*[
         layer_map[layer_type](**params)
         for layer_type, params in config
     ])</code></pre>
+                        <div class="fragment">
+                            <h5>Usage Example:</h5>
+                            <pre><code class="python">config = [
+    ('linear', {'in_features': 784, 'out_features': 128}),
+    ('relu', {}),
+    ('dropout', {'p': 0.2}),
+    ('linear', {'in_features': 128, 'out_features': 10})
+]
+model = create_module(config)</code></pre>
                         </div>
                     </div>
                 </section>
 
                 <section>
                     <h2 class="truncate-title">Key Takeaways</h2>
-                    <div class="takeaways">
+                    <div class="takeaways" style="font-size: 0.75em;">
                         <div class="takeaway fragment">
                             <div class="icon">🎯</div>
                             <p>Modules are the <strong>fundamental abstraction</strong> in deep learning</p>
@@ -1097,7 +1057,7 @@ module._buffers  # OrderedDict of buffers</code></pre>
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 6.2", "url": "https://d2l.ai/chapter_builders-guide/parameters.html"}]'>
                     <h2 class="truncate-title">Parameter Management: The Heart of Deep Learning</h2>
                     <p>Once we've built our architecture, we need to manage its parameters</p>
-                    <div class="parameter-overview">
+                    <div class="parameter-overview" style="font-size: 0.5em;">
                         <div class="param-aspect fragment">
                             <div class="icon">🎯</div>
                             <h4>Training</h4>
@@ -1126,7 +1086,7 @@ module._buffers  # OrderedDict of buffers</code></pre>
 
                 <section>
                     <h2 class="truncate-title">Why Parameter Management Matters</h2>
-                    <div class="importance-grid">
+                    <div class="importance-grid" style="font-size: 0.5em;">
                         <div class="importance-card fragment">
                             <h4>🧪 Scientific Understanding</h4>
                             <p>Examine learned representations to gain insights into what the model has learned</p>
@@ -1156,8 +1116,7 @@ module._buffers  # OrderedDict of buffers</code></pre>
 
                 <section>
                     <h2 class="truncate-title">Parameter Lifecycle</h2>
-                    <div id="param-lifecycle" style="width: 100%; height: 400px;"></div>
-                    <div class="lifecycle-stages mt-md">
+                    <div class="lifecycle-stages mt-md" style="font-size: 0.5em;">
                         <span class="stage fragment">Creation</span>
                         <span class="arrow fragment">→</span>
                         <span class="stage fragment">Initialization</span>
@@ -1174,7 +1133,7 @@ module._buffers  # OrderedDict of buffers</code></pre>
 
                 <section>
                     <h2 class="truncate-title">What's Inside a Parameter?</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-8|10-12|14-16|18-20">
+                    <pre><code class="python" data-trim data-line-numbers="1-7|10-13|15-17|19-21">
 # Parameters are not just tensors!
 import torch
 from torch import nn
@@ -1185,16 +1144,17 @@ layer = nn.Linear(10, 5)
 # A parameter contains:
 param = layer.weight
 
-# 1. The data (actual values)
+# 1. The data shape and actual values
 print(f"Data shape: {param.data.shape}")  # torch.Size([5, 10])
+print(f"Data values: {param.data}")  # tensor([[...], [...], [...], [...], [...]])
 
 # 2. Gradients (after backward pass)
 print(f"Gradient: {param.grad}")  # None (not computed yet)
 
 # 3. Additional metadata
-print(f"Requires grad: {param.requires_grad}")  # True
-print(f"Is leaf: {param.is_leaf}")  # True
-print(f"Device: {param.device}")  # cpu
+print(f"Requires grad: {param.requires_grad}")  # True, requires_grad means it is a learnable parameter
+print(f"Is leaf: {param.is_leaf}")  # True, is_leaf means it is a leaf node in the computation graph
+print(f"Device: {param.device}")  # cpu, device means the device on which the parameter is stored
                     </code></pre>
                     <div class="fragment emphasis-box mt-md">
                         <p>Parameters are <span class="tooltip">Parameter<span class="tooltiptext">A special tensor subclass that signals to autograd that they should be treated as learnable parameters</span></span> objects, not plain tensors!</p>
@@ -1263,7 +1223,7 @@ print(net[2].state_dict())
 
                 <section>
                     <h2 class="truncate-title">Targeted Parameter Access</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-5|7-11|13-17|19-22">
+                    <pre><code class="python" data-trim data-line-numbers="1-6|7-11|13-17|19-22">
 # Access specific parameters directly
 layer = net[2]  # Get the output layer
 
@@ -1286,35 +1246,15 @@ print(f"Bias value: {bias_data.item()}")
 print(f"Weight gradient: {layer.weight.grad}")
 # None
 print(f"Gradient exists: {layer.weight.grad is not None}")
-# False
-                    </code></pre>
-                    <div class="fragment emphasis-box mt-md">
-                        <p>Use <code>.data</code> to access raw tensor values, but be careful - modifications bypass autograd!</p>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Interactive: Parameter Inspector</h2>
-                    <div id="param-inspector" style="width: 100%; height: 400px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-                        <div class="inspector-controls" style="margin-bottom: 20px;">
-                            <select id="layer-select" style="padding: 5px;">
-                                <option value="0">Layer 0: Linear(4, 8)</option>
-                                <option value="2">Layer 2: Linear(8, 1)</option>
-                            </select>
-                            <select id="param-select" style="padding: 5px; margin-left: 10px;">
-                                <option value="weight">Weight</option>
-                                <option value="bias">Bias</option>
-                            </select>
-                            <button id="inspect-param" style="margin-left: 10px; background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Inspect</button>
-                        </div>
-                        <div id="param-visualization" style="height: 300px;"></div>
-                        <div id="param-info" style="margin-top: 15px; font-family: monospace; background: #f5f5f5; padding: 10px; border-radius: 5px;"></div>
+# False</code></pre>
+                    <div class="fragment emphasis-box mt-md" style="font-size: 0.5em;">
+                        <p>Use <code>.data</code> to access raw tensor values, but be careful - direct modifications to <code>.data</code> bypass autograd tracking, which means gradients won't be computed correctly during backpropagation!</p>
                     </div>
                 </section>
 
                 <section>
                     <h2 class="truncate-title">Understanding Parameter Properties</h2>
-                    <div class="properties-table">
+                    <div class="properties-table" style="font-size: 0.5em;">
                         <table>
                             <thead>
                                 <tr>
@@ -1395,7 +1335,7 @@ print(f"Gradient exists: {layer.weight.grad is not None}")
                 <section data-sources='[{"text": "All Parameters at Once", "url": "https://d2l.ai/chapter_builders-guide/parameters.html#all-parameters-at-once"}]'>
                     <h2 class="truncate-title">Accessing All Parameters Simultaneously</h2>
                     <p>Working with complex models requires efficient parameter access</p>
-                    <pre><code class="python" data-trim data-line-numbers="1-11|13-17|19-23">
+                    <pre><code class="python" data-trim data-line-numbers="1-11|13-18|19-23">
 # Create a more complex network
 class ComplexNet(nn.Module):
     def __init__(self):
@@ -1461,7 +1401,7 @@ for name, module in model.named_children():
 
                 <section>
                     <h2 class="truncate-title">Parameter Collection Methods</h2>
-                    <div class="methods-comparison">
+                    <div class="methods-comparison" style="font-size: 0.5em;">
                         <div class="method-card fragment">
                             <h4><code>parameters()</code></h4>
                             <pre><code class="python">for p in model.parameters():
@@ -1491,26 +1431,8 @@ for key in state:
                 </section>
 
                 <section>
-                    <h2 class="truncate-title">Interactive: Parameter Tree Explorer</h2>
-                    <div id="param-tree-explorer" style="width: 100%; height: 450px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-                        <div class="tree-controls" style="margin-bottom: 20px;">
-                            <button id="expand-all-params" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Expand All</button>
-                            <button id="collapse-all-params" style="background: #666; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Collapse All</button>
-                            <label style="margin-left: 20px;">
-                                <input type="checkbox" id="show-shapes" checked> Show Shapes
-                            </label>
-                            <label style="margin-left: 10px;">
-                                <input type="checkbox" id="show-gradients"> Show Gradients
-                            </label>
-                        </div>
-                        <div id="param-tree" style="height: 350px; overflow-y: auto; font-family: monospace;"></div>
-                        <div id="param-summary" style="margin-top: 15px; background: #f5f5f5; padding: 10px; border-radius: 5px;"></div>
-                    </div>
-                </section>
-
-                <section>
                     <h2 class="truncate-title">Filtering and Selecting Parameters</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-5|7-12|14-19|21-26">
+                    <pre><code class="python" data-trim data-line-numbers="1-5|7-12|13-18|19-27">
 # Filter parameters by name pattern
 conv_params = [p for name, p in model.named_parameters() 
                if 'conv' in name]
@@ -1576,7 +1498,7 @@ print(f"Trainable: {len(trainable)}, Frozen: {len(frozen)}")
             <section>
                 <section data-sources='[{"text": "Parameter Initialization - Dive into Deep Learning", "url": "https://d2l.ai/chapter_builders-guide/init-param.html"}]'>
                     <h2 class="truncate-title">Parameter Initialization: The Foundation of Learning</h2>
-                    <p>Now that we know how to access parameters, let's look at how to initialize them properly</p>
+                    <p style="font-size: 0.5em;">Now that we know how to access parameters, let's look at how to initialize them properly</p>
                     <div class="init-importance">
                         <div class="init-problem fragment">
                             <h4>❌ Poor Initialization</h4>
@@ -1597,7 +1519,7 @@ print(f"Trainable: {len(trainable)}, Frozen: {len(frozen)}")
                             </ul>
                         </div>
                     </div>
-                    <div class="fragment emphasis-box mt-lg">
+                    <div class="fragment emphasis-box mt-lg" style="font-size: 0.5em;">
                         <p>We discussed the need for proper initialization in <strong>Section 5.4</strong> - now let's master it!</p>
                     </div>
                 </section>
@@ -1605,7 +1527,7 @@ print(f"Trainable: {len(trainable)}, Frozen: {len(frozen)}")
                 <section data-sources='[{"text": "Default Initialization", "url": "https://d2l.ai/chapter_builders-guide/init-param.html"}]'>
                     <h2 class="truncate-title">Default Initialization Across Frameworks</h2>
                     <p>Each framework has its own default initialization strategy</p>
-                    <table class="framework-defaults">
+                    <table class="framework-defaults" style="font-size: 0.5em;">
                         <thead>
                             <tr>
                                 <th>Framework</th>
@@ -1636,7 +1558,7 @@ print(f"Trainable: {len(trainable)}, Frozen: {len(frozen)}")
                             </tr>
                         </tbody>
                     </table>
-                    <pre class="fragment"><code class="python" data-trim data-line-numbers="1-5|7-9">
+                    <pre class="fragment"><code class="python" data-trim data-line-numbers="1-5|6-8">
 # PyTorch example - automatic initialization
 net = nn.Sequential(nn.LazyLinear(8), nn.ReLU(), nn.LazyLinear(1))
 X = torch.rand(size=(2, 4))
@@ -1650,7 +1572,7 @@ net(X)  # Lazy layers initialize here
                 <section>
                     <h2 class="truncate-title">Built-in Initialization: Normal Distribution</h2>
                     <p>Initialize all weights as Gaussian random variables</p>
-                    <pre><code class="python" data-trim data-line-numbers="1-6|8-13|15-20">
+                    <pre><code class="python" data-trim data-line-numbers="1-6|7-13|15-20|22-25">
 # PyTorch implementation
 def init_normal(module):
     if type(module) == nn.Linear:
@@ -1677,7 +1599,7 @@ tf.keras.layers.Dense(4,
     kernel_initializer=tf.random_normal_initializer(mean=0, stddev=0.01),
     bias_initializer=tf.zeros_initializer())
                     </code></pre>
-                    <div class="fragment emphasis-box mt-md">
+                    <div class="fragment emphasis-box mt-md" style="font-size: 0.5em;">
                         <p>💡 Small standard deviation (0.01) keeps initial values near zero</p>
                     </div>
                 </section>
@@ -1685,7 +1607,7 @@ tf.keras.layers.Dense(4,
                 <section>
                     <h2 class="truncate-title">Built-in Initialization: Constant Values</h2>
                     <p>Initialize all parameters to a given constant value</p>
-                    <pre><code class="python" data-trim data-line-numbers="1-6|8-11|13-17">
+                    <pre><code class="python" data-trim data-line-numbers="1-6|8-11|12-19">
 # PyTorch - Initialize to constant value (e.g., 1)
 def init_constant(module):
     if type(module) == nn.Linear:
@@ -1706,7 +1628,7 @@ net = nn.Sequential([nn.Dense(8, kernel_init=weight_init, bias_init=bias_init),
                      nn.relu,
                      nn.Dense(1, kernel_init=weight_init, bias_init=bias_init)])
                     </code></pre>
-                    <div class="fragment" style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                    <div class="fragment" style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 0.5em;">
                         <p>⚠️ <strong>Warning:</strong> Constant initialization can cause symmetry problems!</p>
                         <p style="font-size: 0.9em;">All neurons compute the same function initially</p>
                     </div>
@@ -1715,17 +1637,17 @@ net = nn.Sequential([nn.Dense(8, kernel_init=weight_init, bias_init=bias_init),
                 <section>
                     <h2 class="truncate-title">Xavier/Glorot Initialization</h2>
                     <p>Maintain variance across layers for <span class="tooltip">linear activations<span class="tooltiptext">Works best with tanh, sigmoid, or no activation</span></span></p>
-                    <div class="math-section">
+                    <div class="math-section" style="font-size: 0.5em;">
                         <div class="fragment">
                             <h4>Xavier Uniform:</h4>
-                            $$W \sim \mathcal{U}\left(-\sqrt{\frac{6}{\text{fan\_in} + \text{fan\_out}}}, \sqrt{\frac{6}{\text{fan\_in} + \text{fan\_out}}}\right)$$
+                            $$W \sim \mathcal{U}\left(-\sqrt{\frac{6}{n_{\text{in}} + n_{\text{out}}}}, \sqrt{\frac{6}{n_{\text{in}} + n_{\text{out}}}}\right)$$
                         </div>
                         <div class="fragment">
                             <h4>Xavier Normal:</h4>
-                            $$W \sim \mathcal{N}\left(0, \frac{2}{\text{fan\_in} + \text{fan\_out}}\right)$$
+                            $$W \sim \mathcal{N}\left(0, \frac{2}{n_{\text{in}} + n_{\text{out}}}\right)$$
                         </div>
                     </div>
-                    <pre class="fragment"><code class="python" data-trim data-line-numbers="1-5|7-10">
+                    <pre class="fragment" style="font-size: 0.5em;"><code class="python" data-trim data-line-numbers="1-5|6-10">
 # PyTorch Xavier initialization
 def init_xavier(module):
     if type(module) == nn.Linear:
@@ -1761,15 +1683,15 @@ print(net[2].weight.data)
 # tensor([-0.0974, 0.1707, 0.5840, -0.5032])
 # tensor([[42., 42., 42., 42., 42., 42., 42., 42.]])
                     </code></pre>
-                    <div class="fragment emphasis-box mt-md">
+                    <div class="fragment emphasis-box mt-md" style="font-size: 0.65em;">
                         <p>💡 Different layers may benefit from different initialization strategies</p>
                     </div>
                 </section>
 
                 <section data-sources='[{"text": "Custom Initialization", "url": "https://d2l.ai/chapter_builders-guide/init-param.html#custom-initialization"}]'>
                     <h2 class="truncate-title">Custom Initialization: The Strange Distribution</h2>
-                    <p>Sometimes we need initialization methods not provided by frameworks</p>
-                    <div class="custom-dist-formula fragment">
+                    <p style="font-size: 0.5em;">Sometimes we need initialization methods not provided by frameworks</p>
+                    <div class="custom-dist-formula fragment" style="font-size: 0.5em;">
                         <h4>Custom Distribution:</h4>
                         $$w \sim \begin{cases}
                         U(5, 10) & \text{with probability } \frac{1}{4} \\
@@ -1777,7 +1699,7 @@ print(net[2].weight.data)
                         U(-10, -5) & \text{with probability } \frac{1}{4}
                         \end{cases}$$
                     </div>
-                    <pre class="fragment"><code class="python" data-trim data-line-numbers="1-8|10-13">
+                    <pre class="fragment" style="font-size: 0.5em;"><code class="python" data-trim data-line-numbers="1-8|9-13">
 # PyTorch implementation
 def my_init(module):
     if type(module) == nn.Linear:
@@ -1792,7 +1714,7 @@ net[0].weight[:2]
 # Output: tensor([[0.0000, -7.6364, -0.0000, -6.1206],
 #                 [9.3516, -0.0000, 5.1208, -8.4003]])
                     </code></pre>
-                    <div class="fragment">
+                    <div class="fragment" style="font-size: 0.5em;">
                         <p>This creates a distribution with:</p>
                         <ul>
                             <li>Half the values are zero (between -5 and 5)</li>
@@ -1800,41 +1722,6 @@ net[0].weight[:2]
                             <li>Quarter are negative (-10 to -5)</li>
                         </ul>
                     </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Custom Initialization in Other Frameworks</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-10|12-20|22-28">
-# MXNet: Subclass Initializer
-class MyInit(init.Initializer):
-    def _init_weight(self, name, data):
-        print('Init', name, data.shape)
-        data[:] = np.random.uniform(-10, 10, data.shape)
-        data *= np.abs(data) >= 5
-
-net.initialize(MyInit(), force_reinit=True)
-net[0].weight.data()[:2]
-# array([[-6.0683527, 8.991421, -0., 0.], ...])
-
-# JAX/Flax: Custom function
-def my_init(key, shape, dtype=jnp.float_):
-    data = jax.random.uniform(key, shape, minval=-10, maxval=10)
-    return data * (jnp.abs(data) >= 5)
-
-net = nn.Sequential([nn.Dense(8, kernel_init=my_init), 
-                     nn.relu, 
-                     nn.Dense(1)])
-params = net.init(d2l.get_key(), X)
-
-# TensorFlow/Keras: Subclass Initializer
-class MyInit(tf.keras.initializers.Initializer):
-    def __call__(self, shape, dtype=None):
-        data = tf.random.uniform(shape, -10, 10, dtype=dtype)
-        factor = tf.cast(tf.abs(data) >= 5, tf.float32)
-        return data * factor
-
-net = tf.keras.layers.Dense(4, kernel_initializer=MyInit())
-                    </code></pre>
                 </section>
 
                 <section>
@@ -1859,34 +1746,16 @@ net.layers[1].weights[0][0, 0].assign(42)
 net.layers[1].weights[0]
 # <tf.Variable shape=(4, 4) ... [[42., 1., 1., 1.], ...]>
                     </code></pre>
-                    <div class="fragment" style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                    <div class="fragment" style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 0.5em;">
                         <p>⚠️ <strong>Caution:</strong> Direct manipulation bypasses gradient tracking!</p>
                         <p style="font-size: 0.9em;">Use <code>.data</code> carefully - it can break autograd</p>
                     </div>
                 </section>
 
                 <section>
-                    <h2 class="truncate-title">Interactive: Custom Distribution Visualizer</h2>
-                    <div id="custom-dist-viz" style="width: 100%; height: 500px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-                        <div class="custom-dist-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
-                            <label>Sample Size: 
-                                <input type="number" id="sample-size" value="1000" min="100" max="10000" step="100" style="width: 80px;">
-                            </label>
-                            <button id="generate-custom" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Generate Distribution</button>
-                            <button id="apply-to-network" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Apply to Network</button>
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 400px;">
-                            <div id="dist-histogram" style="border: 1px solid #ddd; border-radius: 5px;"></div>
-                            <div id="network-weights" style="border: 1px solid #ddd; border-radius: 5px;"></div>
-                        </div>
-                        <div id="dist-stats" style="margin-top: 15px; background: #f5f5f5; padding: 10px; border-radius: 5px; font-family: monospace;"></div>
-                    </div>
-                </section>
-
-                <section>
                     <h2 class="truncate-title">Initialization Best Practices</h2>
                     <div class="best-practices">
-                        <table>
+                        <table style="font-size: 0.4em;">
                             <thead>
                                 <tr>
                                     <th>Activation</th>
@@ -1898,32 +1767,32 @@ net.layers[1].weights[0]
                                 <tr class="fragment">
                                     <td><strong>ReLU</strong></td>
                                     <td>He/Kaiming</td>
-                                    <td>$$\text{Var} = \frac{2}{\text{fan\_in}}$$</td>
+                                    <td>$$\text{Var} = \frac{2}{n_{\text{in}}}$$</td>
                                 </tr>
                                 <tr class="fragment">
                                     <td><strong>Tanh</strong></td>
                                     <td>Xavier/Glorot</td>
-                                    <td>$$\text{Var} = \frac{1}{\text{fan\_in}}$$</td>
+                                    <td>$$\text{Var} = \frac{1}{n_{\text{in}}}$$</td>
                                 </tr>
                                 <tr class="fragment">
                                     <td><strong>Sigmoid</strong></td>
                                     <td>Xavier/Glorot</td>
-                                    <td>$$\text{Var} = \frac{2}{\text{fan\_in} + \text{fan\_out}}$$</td>
+                                    <td>$$\text{Var} = \frac{2}{n_{\text{in}} + n_{\text{out}}}$$</td>
                                 </tr>
                                 <tr class="fragment">
                                     <td><strong>SELU</strong></td>
                                     <td>LeCun</td>
-                                    <td>$$\text{Var} = \frac{1}{\text{fan\_in}}$$</td>
+                                    <td>$$\text{Var} = \frac{1}{n_{\text{in}}}$$</td>
                                 </tr>
                                 <tr class="fragment">
                                     <td><strong>Leaky ReLU</strong></td>
                                     <td>He (adjusted)</td>
-                                    <td>$$\text{Var} = \frac{2}{(1 + \alpha^2) \cdot \text{fan\_in}}$$</td>
+                                    <td>$$\text{Var} = \frac{2}{(1 + \alpha^2) \cdot n_{\text{in}}}$$</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="fragment emphasis-box mt-lg">
+                    <div class="fragment emphasis-box mt-lg" style="font-size: 0.5em;">
                         <p>Match your initialization to your activation function for optimal results!</p>
                     </div>
                 </section>
@@ -1969,7 +1838,7 @@ net.layers[1].weights[0]
                 <section data-sources='[{"text": "Tied Parameters", "url": "https://d2l.ai/chapter_builders-guide/parameters.html#tied-parameters"}]'>
                     <h2 class="truncate-title">Parameter Sharing: Elegant Efficiency</h2>
                     <p>Sometimes we want multiple layers to share the same parameters</p>
-                    <div class="sharing-benefits">
+                    <div class="sharing-benefits" style="font-size: 0.5em;">
                         <div class="benefit fragment">
                             <div class="icon">💾</div>
                             <h4>Memory Efficiency</h4>
@@ -1995,7 +1864,7 @@ net.layers[1].weights[0]
 
                 <section>
                     <h2 class="truncate-title">Implementing Shared Parameters</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-12|14-19|21-25|27-31">
+                    <pre><code class="python" data-trim data-line-numbers="1-13|14-21|23-27|29-31">
 # Create a shared layer
 shared = nn.LazyLinear(8)
 
@@ -2033,7 +1902,7 @@ print(net[2].weight is net[4].weight)
                 <section>
                     <h2 class="truncate-title">How Gradients Work with Shared Parameters</h2>
                     <div class="gradient-sharing">
-                        <p>When parameters are shared, gradients are <strong>accumulated</strong>:</p>
+                        <p style="font-size: 0.5em;">When parameters are shared, gradients are <strong>accumulated</strong>:</p>
                         <div class="gradient-flow fragment">
                             <pre><code class="python" data-trim>
 # During backpropagation:
@@ -2049,7 +1918,7 @@ print(shared.weight.grad.shape)
 # Shows accumulated gradients
                             </code></pre>
                         </div>
-                        <div class="fragment emphasis-box mt-md">
+                        <div class="fragment emphasis-box mt-md" style="font-size: 0.75em;">
                             <p>$$\frac{\partial L}{\partial W_{\text{shared}}} = \sum_{i \in \text{uses}} \frac{\partial L}{\partial W_i}$$</p>
                         </div>
                     </div>
@@ -2057,7 +1926,7 @@ print(shared.weight.grad.shape)
 
                 <section>
                     <h2 class="truncate-title">Real-World Applications of Parameter Sharing</h2>
-                    <div class="applications-grid">
+                    <div class="applications-grid" style="font-size: 0.5em;">
                         <div class="app-card fragment">
                             <h4>🔤 Autoencoders</h4>
                             <p>Tie encoder and decoder weights</p>
@@ -2084,22 +1953,8 @@ out2 = shared_net(input2)</code></pre>
                 </section>
 
                 <section>
-                    <h2 class="truncate-title">Interactive: Shared Parameter Visualization</h2>
-                    <div id="shared-param-viz" style="width: 100%; height: 450px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-                        <div class="shared-controls" style="margin-bottom: 20px;">
-                            <button id="forward-shared" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Forward Pass</button>
-                            <button id="backward-shared" style="background: #FC8484; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Backward Pass</button>
-                            <button id="update-shared" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Update Weights</button>
-                            <button id="reset-shared" style="background: #666; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Reset</button>
-                        </div>
-                        <div id="shared-network" style="height: 350px;"></div>
-                        <div id="shared-info" style="margin-top: 15px; background: #f5f5f5; padding: 10px; border-radius: 5px;"></div>
-                    </div>
-                </section>
-
-                <section>
                     <h2 class="truncate-title">Advanced: Custom Parameter Sharing Patterns</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-13|15-26">
+                    <pre><code class="python" data-trim data-line-numbers="1-14|15-27">
 class SymmetricAutoencoder(nn.Module):
     """Autoencoder with tied weights"""
     def __init__(self, input_dim, hidden_dim):
@@ -2166,7 +2021,7 @@ class RecurrentCell(nn.Module):
                 <section data-sources='[{"text": "Saving and Loading Models", "url": "https://d2l.ai/chapter_builders-guide/parameters.html"}]'>
                     <h2 class="truncate-title">Saving and Loading: Model Persistence</h2>
                     <p>Preserving trained models for deployment and reuse</p>
-                    <div class="persistence-scenarios">
+                    <div class="persistence-scenarios" style="font-size: 0.5em;">
                         <div class="scenario fragment">
                             <h4>🔄 Checkpointing</h4>
                             <p>Save progress during long training runs</p>
@@ -2188,7 +2043,7 @@ class RecurrentCell(nn.Module):
 
                 <section>
                     <h2 class="truncate-title">Basic Save and Load Operations</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-8|10-13|15-19|21-26">
+                    <pre><code class="python" data-trim data-line-numbers="1-8|9-12|13-16|18-26">
 # Create and train a model
 model = nn.Sequential(
     nn.Linear(784, 256),
@@ -2214,14 +2069,20 @@ torch.save(model, 'complete_model.pth')
 model = torch.load('complete_model.pth')
 model.eval()
                     </code></pre>
-                    <div class="fragment emphasis-box mt-md">
+                    <div class="fragment emphasis-box mt-md" style="font-size: 0.5em;">
                         <p>Always prefer saving <code>state_dict()</code> over the entire model!</p>
+                        <ul style="font-size: 0.9em; margin-top: 10px;">
+                            <li><strong>Portability:</strong> Works across different PyTorch versions</li>
+                            <li><strong>Flexibility:</strong> Can load into modified architectures</li>
+                            <li><strong>Size:</strong> Smaller files (only parameters, not code)</li>
+                            <li><strong>Security:</strong> Avoids potential pickle vulnerabilities</li>
+                        </ul>
                     </div>
                 </section>
 
                 <section>
                     <h2 class="truncate-title">Understanding State Dictionaries</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-4|6-11|13-18|20-25">
+                    <pre><code class="python" data-trim data-line-numbers="1-4|6-12|14-19|21-29">
 # Examine state dictionary structure
 state_dict = model.state_dict()
 print(type(state_dict))
@@ -2255,7 +2116,7 @@ model.load_state_dict(model_dict)
 
                 <section>
                     <h2 class="truncate-title">Complete Training Checkpoint</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-13|15-26|28-39">
+                    <pre><code class="python" data-trim data-line-numbers="1-13|15-27|28-42">
 # Save complete training state
 def save_checkpoint(model, optimizer, epoch, loss, path):
     checkpoint = {
@@ -2303,7 +2164,7 @@ for epoch in range(start_epoch, num_epochs):
 
                 <section>
                     <h2 class="truncate-title">Cross-Device and Cross-Framework Saving</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-7|9-15|17-24">
+                    <pre><code class="python" data-trim data-line-numbers="1-7|9-15|17-25">
 # Save for CPU/GPU compatibility
 # Save from GPU
 torch.save(model.state_dict(), 'model.pth')
@@ -2333,42 +2194,26 @@ torch.onnx.export(model,
                 </section>
 
                 <section>
-                    <h2 class="truncate-title">Interactive: Save/Load Simulator</h2>
-                    <div id="save-load-sim" style="width: 100%; height: 450px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-                        <div class="sl-controls" style="margin-bottom: 20px;">
-                            <button id="train-model" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Train Model</button>
-                            <button id="save-model" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Save Checkpoint</button>
-                            <button id="corrupt-model" style="background: #FC8484; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Reset Model</button>
-                            <button id="load-model" style="background: #FFA05F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Load Checkpoint</button>
-                        </div>
-                        <div id="model-state-viz" style="height: 300px;"></div>
-                        <div id="checkpoint-info" style="margin-top: 15px; background: #f5f5f5; padding: 10px; border-radius: 5px;">
-                            <div id="checkpoint-list"></div>
-                        </div>
-                    </div>
-                </section>
-
-                <section>
                     <h2 class="truncate-title">Best Practices for Model Persistence</h2>
-                    <div class="best-practices">
+                    <div class="best-practices" style="font-size: 0.5em;">
                         <div class="practice fragment">
                             <h4>✅ Do:</h4>
                             <ul>
-                                <li>Save <code>state_dict()</code> not entire model</li>
-                                <li>Include optimizer state for resuming</li>
-                                <li>Version your model saves</li>
-                                <li>Test loading immediately after saving</li>
-                                <li>Use descriptive filenames with metadata</li>
+                                <li>Save <code>state_dict()</code> not entire model - preserves portability across PyTorch versions and avoids serializing class definitions</li>
+                                <li>Include optimizer state for resuming - maintains learning rate schedules, momentum, and adaptive parameter histories</li>
+                                <li>Version your model saves - enables rollback to stable checkpoints and tracks experimental changes</li>
+                                <li>Test loading immediately after saving - catches serialization issues early before they corrupt training runs</li>
+                                <li>Use descriptive filenames with metadata - includes epoch, loss, timestamp for easy identification and comparison</li>
                             </ul>
                         </div>
                         <div class="practice fragment">
                             <h4>❌ Don't:</h4>
                             <ul>
-                                <li>Save models during active training step</li>
-                                <li>Forget <code>model.eval()</code> after loading</li>
-                                <li>Mix model versions carelessly</li>
-                                <li>Ignore device compatibility</li>
-                                <li>Rely on pickle for production</li>
+                                <li>Save models during active training step - can corrupt state or save incomplete gradients</li>
+                                <li>Forget <code>model.eval()</code> after loading - keeps dropout/batch norm in training mode</li>
+                                <li>Mix model versions carelessly - architecture mismatches cause loading failures</li>
+                                <li>Ignore device compatibility - leads to CUDA/CPU tensor location errors</li>
+                                <li>Rely on pickle for production - creates security risks and version dependencies</li>
                             </ul>
                         </div>
                     </div>
@@ -2410,7 +2255,7 @@ torch.onnx.export(model,
                 <section data-sources='[{"text": "Advanced Parameter Management", "url": "https://d2l.ai/chapter_builders-guide/parameters.html"}]'>
                     <h2 class="truncate-title">Advanced Parameter Operations</h2>
                     <p>Master-level techniques for parameter manipulation</p>
-                    <div class="advanced-techniques">
+                    <div class="advanced-techniques" style="font-size: 0.5em;">
                         <div class="technique fragment">
                             <h4>🔒 Freezing</h4>
                             <p>Selective parameter updates</p>
@@ -2432,7 +2277,7 @@ torch.onnx.export(model,
 
                 <section>
                     <h2 class="truncate-title">Freezing and Unfreezing Parameters</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-7|9-15|17-24|26-32">
+                    <pre><code class="python" data-trim data-line-numbers="1-8|10-17|18-25|26-32">
 # Freeze all parameters
 for param in model.parameters():
     param.requires_grad = False
@@ -2470,7 +2315,7 @@ print(f"Frozen: {total_params - trainable_params:,}")
 
                 <section>
                     <h2 class="truncate-title">Parameter Groups with Different Learning Rates</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-11|13-22|24-32">
+                    <pre><code class="python" data-trim data-line-numbers="1-11|13-22|23-34">
 # Create parameter groups for different learning rates
 param_groups = [
     {'params': model.encoder.parameters(), 'lr': 1e-4},
@@ -2509,7 +2354,7 @@ for i, param_group in enumerate(optimizer.param_groups):
 
                 <section>
                     <h2 class="truncate-title">Parameter Pruning: Making Networks Sparse</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-5|7-14|16-23|25-31">
+                    <pre><code class="python" data-trim data-line-numbers="1-5|7-14|16-27|29-32">
 import torch.nn.utils.prune as prune
 
 # Prune 30% of connections with smallest magnitude
@@ -2545,121 +2390,9 @@ for module, param_name in parameters_to_prune:
                     </code></pre>
                 </section>
 
-                <section>
-                    <h2 class="truncate-title">Custom Parameter Classes</h2>
-                    <pre><code class="python" data-trim data-line-numbers="1-12|14-26|28-37">
-class BinaryParameter(nn.Parameter):
-    """Custom parameter that binarizes during forward pass"""
-    def __new__(cls, data=None, requires_grad=True):
-        return super().__new__(cls, data, requires_grad)
-    
-    @property
-    def binary(self):
-        return torch.sign(self.data)
-    
-    def binarize_(self):
-        """In-place binarization"""
-        self.data = torch.sign(self.data)
-        return self
+                
 
-class QuantizedLinear(nn.Module):
-    """Linear layer with quantized weights"""
-    def __init__(self, in_features, out_features, bits=8):
-        super().__init__()
-        self.weight = nn.Parameter(torch.randn(out_features, in_features))
-        self.bias = nn.Parameter(torch.zeros(out_features))
-        self.bits = bits
-        self.scale = nn.Parameter(torch.tensor(1.0))
-        
-    def forward(self, x):
-        # Quantize weights during forward pass
-        q_weight = torch.fake_quantize_per_tensor_affine(
-            self.weight, self.scale.item(), 0, 
-            -(2**(self.bits-1)), 2**(self.bits-1)-1
-        )
-        return F.linear(x, q_weight, self.bias)
-
-# Register custom parameter buffers
-class ModelWithBuffers(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.register_buffer('running_mean', torch.zeros(1))
-        self.register_buffer('running_var', torch.ones(1))
-        # Buffers are saved but not trained
-        self.register_parameter('scale', nn.Parameter(torch.ones(1)))
-                    </code></pre>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Interactive: Parameter Surgery Playground</h2>
-                    <div id="param-surgery" style="width: 100%; height: 450px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-                        <div class="surgery-controls" style="margin-bottom: 20px;">
-                            <select id="operation-type" style="padding: 5px;">
-                                <option value="freeze">Freeze Layers</option>
-                                <option value="prune">Prune Weights</option>
-                                <option value="quantize">Quantize</option>
-                                <option value="groups">Parameter Groups</option>
-                            </select>
-                            <input type="range" id="operation-amount" min="0" max="100" value="30" style="margin-left: 10px;">
-                            <span id="amount-display">30%</span>
-                            <button id="apply-operation" style="margin-left: 20px; background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Apply</button>
-                            <button id="reset-surgery" style="margin-left: 10px; background: #666; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Reset</button>
-                        </div>
-                        <div id="surgery-viz" style="height: 300px;"></div>
-                        <div id="surgery-stats" style="margin-top: 15px; background: #f5f5f5; padding: 10px; border-radius: 5px;"></div>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Performance Impact of Advanced Operations</h2>
-                    <div class="performance-comparison">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Technique</th>
-                                    <th>Memory</th>
-                                    <th>Speed</th>
-                                    <th>Accuracy</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="fragment">
-                                    <td>Baseline</td>
-                                    <td>100%</td>
-                                    <td>100%</td>
-                                    <td>100%</td>
-                                </tr>
-                                <tr class="fragment">
-                                    <td>Freezing (50%)</td>
-                                    <td>~50%</td>
-                                    <td>150%</td>
-                                    <td>95-100%</td>
-                                </tr>
-                                <tr class="fragment">
-                                    <td>Pruning (90%)</td>
-                                    <td>10-20%</td>
-                                    <td>200-500%</td>
-                                    <td>95-98%</td>
-                                </tr>
-                                <tr class="fragment">
-                                    <td>Quantization (INT8)</td>
-                                    <td>25%</td>
-                                    <td>200-400%</td>
-                                    <td>98-99%</td>
-                                </tr>
-                                <tr class="fragment">
-                                    <td>Combined</td>
-                                    <td>5-10%</td>
-                                    <td>300-1000%</td>
-                                    <td>93-97%</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="fragment emphasis-box mt-md">
-                        <p>Advanced techniques can dramatically improve efficiency with minimal accuracy loss</p>
-                    </div>
-                </section>
+                
 
                 <section>
                     <h2 class="truncate-title">Final Test: Comprehensive Parameter Mastery</h2>
@@ -2703,7 +2436,7 @@ class ModelWithBuffers(nn.Module):
                     <h2 class="truncate-title">Lazy Initialization: Deferred Parameter Setup</h2>
                     <div class="paradox-container">
                         <h3>The Initialization Paradox 🤔</h3>
-                        <div class="paradox-list fragment">
+                        <div class="paradox-list fragment" style="font-size: 0.75em;">
                             <div class="paradox-item">
                                 <span class="icon">❓</span>
                                 <p>We define networks <strong>without</strong> specifying input dimensions</p>
@@ -2725,7 +2458,7 @@ class ModelWithBuffers(nn.Module):
 
                 <section>
                     <h2 class="truncate-title">What is Lazy Initialization?</h2>
-                    <div class="concept-explanation">
+                    <div class="concept-explanation" style="font-size: 0.5em;">
                         <div class="definition-box">
                             <h4>Definition</h4>
                             <p><span class="tooltip">Lazy initialization<span class="tooltiptext">Also called deferred initialization - parameters are not allocated until first data pass</span></span> is a technique where deep learning frameworks <strong>defer parameter initialization</strong> until the first time data passes through the model.</p>
@@ -2759,7 +2492,7 @@ class ModelWithBuffers(nn.Module):
 
                 <section>
                     <h2 class="truncate-title">Benefits of Lazy Initialization</h2>
-                    <div class="benefits-grid">
+                    <div class="benefits-grid" style="font-size: 0.5em;">
                         <div class="benefit-card fragment">
                             <div class="icon">🎯</div>
                             <h4>Simplified Architecture</h4>
@@ -2781,7 +2514,7 @@ class ModelWithBuffers(nn.Module):
                             <p>Input resolution affects all subsequent layers automatically</p>
                         </div>
                     </div>
-                    <div class="fragment emphasis-box mt-lg">
+                    <div class="fragment emphasis-box mt-lg" style="font-size: 0.5em;">
                         <p>Lazy initialization is particularly powerful for <span class="tooltip">convolutional networks<span class="tooltiptext">Networks where spatial dimensions change through pooling and convolution operations</span></span> where dimension calculations can be complex</p>
                     </div>
                 </section>
@@ -2795,7 +2528,7 @@ class ModelWithBuffers(nn.Module):
                             {
                                 "text": "It makes training faster",
                                 "correct": false,
-                                "explanation": "Lazy initialization doesn't affect training speed; it only changes when parameters are allocated."
+                                "explanation": "Lazy initialization does not affect training speed; it only changes when parameters are allocated."
                             },
                             {
                                 "text": "It automatically infers parameter shapes from data",
@@ -2820,20 +2553,8 @@ class ModelWithBuffers(nn.Module):
             <!-- Section 16: How Lazy Initialization Works (Vertical) -->
             <section>
                 <section>
-                    <h2 class="truncate-title">The Mechanics of Lazy Initialization</h2>
-                    <div id="lazy-init-flow" class="visualization-container"></div>
-                    <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 20px; z-index: 100; position: relative;">
-                        <button id="lazy-init-btn" class="demo-btn">Start Initialization</button>
-                        <button id="lazy-reset-btn" class="demo-btn secondary">Reset</button>
-                    </div>
-                    <div class="explanation-box mt-lg">
-                        <p>Watch how dimensions propagate through the network during the first forward pass</p>
-                    </div>
-                </section>
-
-                <section>
                     <h2 class="truncate-title">Step-by-Step Initialization Process</h2>
-                    <div class="initialization-steps">
+                    <div class="initialization-steps" style="font-size: 0.5em;">
                         <div class="step-detail fragment">
                             <h4>Step 1: Network Definition</h4>
                             <pre><code class="python">net = nn.Sequential(
@@ -2861,7 +2582,7 @@ output = net(X)</code></pre>
 
                 <section>
                     <h2 class="truncate-title">Under the Hood: Deferred Initialization</h2>
-                    <div class="technical-details">
+                    <div class="technical-details" style="font-size: 0.5em;">
                         <h4>What Actually Happens?</h4>
                         <div class="timeline-vertical">
                             <div class="timeline-event fragment">
@@ -2922,7 +2643,7 @@ output = net(X)</code></pre>
                             {
                                 "text": "When .initialize() is called",
                                 "correct": false,
-                                "explanation": "Calling initialize() may register initialization preferences but doesn't allocate memory until data passes through."
+                                "explanation": "Calling initialize() may register initialization preferences but does not allocate memory until data passes through."
                             },
                             {
                                 "text": "During the first backward pass",
@@ -2967,105 +2688,9 @@ print(net[0].weight.shape)  # torch.Size([256, 20])</code></pre>
                 </section>
 
                 <section>
-                    <h2 class="truncate-title">MXNet: Using -1 for Unknown Dimensions</h2>
-                    <div class="framework-implementation">
-                        <h4>MXNet/Gluon Approach</h4>
-                        <pre><code class="python"># MXNet uses -1 to indicate unknown dimensions
-from mxnet import np, npx
-from mxnet.gluon import nn
-npx.set_np()
-
-# Define network
-net = nn.Sequential()
-net.add(nn.Dense(256, activation='relu'))
-net.add(nn.Dense(10))
-
-# Check parameters - dimensions show as -1
-print(net.collect_params())
-# Output: Parameter dense0_weight (shape=(256, -1), dtype=float32)
-
-# Initialize (registers intent but doesn't allocate)
-net.initialize()
-
-# First forward pass sets dimensions
-X = np.random.uniform(size=(2, 20))
-output = net(X)
-
-# Now dimensions are known
-print(net.collect_params())
-# Output: Parameter dense0_weight (shape=(256, 20), dtype=float32)</code></pre>
-                        <div class="note-box fragment">
-                            <p><strong>Key:</strong> MXNet uses <code>-1</code> as a special value to indicate "dimension to be determined"</p>
-                        </div>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">JAX/Flax: Manual Parameter Management</h2>
-                    <div class="framework-implementation">
-                        <h4>JAX/Flax Approach</h4>
-                        <pre><code class="python"># JAX/Flax requires manual parameter initialization
-import jax
-from flax import linen as nn
-from jax import numpy as jnp
-from d2l import jax as d2l
-
-# Define network
-net = nn.Sequential([
-    nn.Dense(256), 
-    nn.relu, 
-    nn.Dense(10)
-])
-
-# Manual initialization with dummy input
-key = jax.random.PRNGKey(0)
-dummy_input = jnp.zeros((2, 20))  # Must know input shape
-
-# Initialize parameters explicitly
-params = net.init(key, dummy_input)
-
-# Check parameter shapes
-jax.tree_util.tree_map(lambda x: x.shape, params)
-# Shows: {'layers_0': {'kernel': (20, 256), 'bias': (256,)}, ...}</code></pre>
-                        <div class="note-box fragment">
-                            <p><strong>Philosophy:</strong> JAX/Flax favors explicit over implicit - you manage initialization manually</p>
-                        </div>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">TensorFlow: Dynamic Shape Inference</h2>
-                    <div class="framework-implementation">
-                        <h4>TensorFlow/Keras Approach</h4>
-                        <pre><code class="python"># TensorFlow automatically handles shape inference
-import tensorflow as tf
-
-# Define network without input_shape
-net = tf.keras.models.Sequential([
-    tf.keras.layers.Dense(256, activation=tf.nn.relu),
-    tf.keras.layers.Dense(10),
-])
-
-# Weights not created yet
-print(net.get_weights())  # Returns []
-
-# First call triggers weight creation
-X = tf.random.uniform((2, 20))
-output = net(X)
-
-# Now weights exist with correct shapes
-[w.shape for w in net.get_weights()]
-# Output: [(20, 256), (256,), (256, 10), (10,)]</code></pre>
-                        <div class="note-box fragment">
-                            <p><strong>Automatic:</strong> TensorFlow's Keras API handles lazy initialization transparently</p>
-                        </div>
-                    </div>
-                </section>
-
-                <section>
                     <h2 class="truncate-title">Framework Comparison</h2>
                     <div class="comparison-table-container">
-                        <table class="framework-comparison">
+                        <table class="framework-comparison" style="font-size: 0.5em;">
                             <thead>
                                 <tr>
                                     <th>Framework</th>
@@ -3102,7 +2727,7 @@ output = net(X)
                             </tbody>
                         </table>
                     </div>
-                    <div class="emphasis-box fragment mt-lg">
+                    <div class="emphasis-box fragment mt-lg" style="font-size: 0.5em;">
                         <p>Despite different approaches, all frameworks achieve the same goal: <br>
                         <strong>Simplifying network definition by deferring parameter initialization</strong></p>
                     </div>
@@ -3142,24 +2767,8 @@ output = net(X)
             <!-- Section 18: Practical Examples and Exercises (Vertical) -->
             <section>
                 <section>
-                    <h2 class="truncate-title">Complete Practical Example</h2>
-                    <div id="lazy-init-demo" class="demo-container"></div>
-                    <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 20px; z-index: 100; position: relative;">
-                        <label style="display: flex; align-items: center; gap: 8px;">
-                            Input Features: 
-                            <input type="range" id="input-dim-slider" min="10" max="100" value="20" style="width: 150px;">
-                            <span id="input-dim-value" style="font-family: monospace; min-width: 30px;">20</span>
-                        </label>
-                        <button id="init-network-btn" class="demo-btn">Initialize Network</button>
-                    </div>
-                    <div class="code-display mt-lg">
-                        <pre><code id="demo-code" class="python"># Click "Initialize Network" to see the process</code></pre>
-                    </div>
-                </section>
-
-                <section>
                     <h2 class="truncate-title">Common Pitfalls and Solutions</h2>
-                    <div class="pitfalls-grid">
+                    <div class="pitfalls-grid" style="font-size: 0.5em;">
                         <div class="pitfall-card fragment">
                             <div class="pitfall-header error">⚠️ Pitfall 1: Accessing Uninitialized Parameters</div>
                             <pre><code class="python"># Wrong - parameters not ready yet
@@ -3189,7 +2798,7 @@ net(torch.rand(2, 30))  # Error!</code></pre>
 
                 <section>
                     <h2 class="truncate-title">Exercise Solutions from the Book</h2>
-                    <div class="exercise-container">
+                    <div class="exercise-container" style="font-size: 0.5em;">
                         <div class="exercise fragment">
                             <h4>Exercise 1: Partial Dimension Specification</h4>
                             <p><em>What happens if you specify input dimensions to the first layer but not subsequent layers?</em></p>
@@ -3219,7 +2828,7 @@ nn.AdaptiveAvgPool2d((1, 1))  # Always outputs 1x1</code></pre>
 
                 <section>
                     <h2 class="truncate-title">Best Practices Summary</h2>
-                    <div class="best-practices">
+                    <div class="best-practices" style="font-size: 0.5em;">
                         <div class="practice-item fragment">
                             <div class="icon">✅</div>
                             <div class="content">
@@ -3248,9 +2857,6 @@ nn.AdaptiveAvgPool2d((1, 1))  # Always outputs 1x1</code></pre>
                                 <p>Choose frameworks based on your preference for explicit vs implicit behavior</p>
                             </div>
                         </div>
-                    </div>
-                    <div class="emphasis-box fragment mt-lg">
-                        <p><strong>Remember:</strong> Lazy initialization is a tool for convenience, not a replacement for understanding your model's architecture</p>
                     </div>
                 </section>
 
@@ -3290,7 +2896,7 @@ nn.AdaptiveAvgPool2d((1, 1))  # Always outputs 1x1</code></pre>
                 <section data-sources='[{"text": "Dive into Deep Learning - Custom Layers", "url": "https://d2l.ai/chapter_builders-guide/custom-layer.html"}]'>
                     <h2 class="truncate-title">Why Create Custom Layers?</h2>
                     <div class="custom-layer-intro">
-                        <div class="scenario-grid">
+                        <div class="scenario-grid" style="font-size: 0.5em; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem;">
                             <div class="scenario fragment">
                                 <div class="icon">🔬</div>
                                 <h4>Novel Research</h4>
@@ -3320,7 +2926,7 @@ nn.AdaptiveAvgPool2d((1, 1))  # Always outputs 1x1</code></pre>
 
                 <section>
                     <h2 class="truncate-title">Two Types of Custom Layers</h2>
-                    <div class="layer-types-comparison">
+                    <div class="layer-types-comparison" style="font-size: 0.5em;">
                         <div class="layer-type fragment">
                             <h3>Layers Without Parameters</h3>
                             <div class="layer-card">
@@ -3398,7 +3004,7 @@ nn.AdaptiveAvgPool2d((1, 1))  # Always outputs 1x1</code></pre>
                         <div class="visual-explanation fragment">
                             <div id="centered-layer-visual" style="width: 100%; height: 300px;"></div>
                         </div>
-                        <div class="explanation fragment">
+                        <div class="explanation fragment" style="font-size: 0.5em;">
                             <p>The <span class="tooltip">CenteredLayer<span class="tooltiptext">A custom layer that centers data by subtracting the mean</span></span> performs mean centering:</p>
                             <ul>
                                 <li>Computes the mean of all input elements</li>
@@ -3411,7 +3017,7 @@ nn.AdaptiveAvgPool2d((1, 1))  # Always outputs 1x1</code></pre>
 
                 <section>
                     <h2 class="truncate-title">Implementing CenteredLayer in PyTorch</h2>
-                    <pre><code class="language-python" data-line-numbers="1-8|1-2|4-5|7-8">import torch
+                    <pre><code class="language-python">import torch
 from torch import nn
 
 class CenteredLayer(nn.Module):
@@ -3421,7 +3027,7 @@ class CenteredLayer(nn.Module):
     def forward(self, X):
         return X - X.mean()</code></pre>
                     
-                    <div class="code-explanation fragment">
+                    <div class="code-explanation fragment" style="font-size: 0.75em;">
                         <h4>Key Components:</h4>
                         <ul>
                             <li><strong>Inheritance:</strong> Extends <span class="tooltip">nn.Module<span class="tooltiptext">Base class for all neural network modules in PyTorch</span></span></li>
@@ -3431,28 +3037,11 @@ class CenteredLayer(nn.Module):
                         </ul>
                     </div>
                     
-                    <div class="usage-example fragment">
+                    <div class="usage-example fragment" style="font-size: 0.75em;">
                         <h4>Testing the Layer:</h4>
                         <pre><code class="language-python">layer = CenteredLayer()
 Y = layer(torch.FloatTensor([1, 2, 3, 4, 5]))
 print(Y)  # tensor([-2., -1.,  0.,  1.,  2.])</code></pre>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Interactive CenteredLayer Demo</h2>
-                    <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100; position: relative;">
-                        <label style="display: flex; align-items: center; gap: 8px;">
-                            Data Values: 
-                            <input type="text" id="centered-input-values" value="1,2,3,4,5" style="width: 150px; font-family: monospace;">
-                        </label>
-                        <button id="centered-update-btn" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Update</button>
-                        <button id="centered-random-btn" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Random Data</button>
-                    </div>
-                    <div id="centered-layer-demo" style="width: 100%; height: 400px;"></div>
-                    <div class="demo-output fragment" style="margin-top: 20px; text-align: center;">
-                        <p><strong>Mean:</strong> <span id="centered-mean-value" style="font-family: monospace; color: #FC8484;">3.0</span></p>
-                        <p><strong>Centered Output:</strong> <span id="centered-output-values" style="font-family: monospace; color: #2DD2C0;">[-2, -1, 0, 1, 2]</span></p>
                     </div>
                 </section>
 
@@ -3475,7 +3064,7 @@ print(f"Output shape: {Y.shape}")
 print(f"Output mean: {Y.mean():.6f}")
 # Output mean will be close to 0</code></pre>
                     
-                    <div class="integration-notes fragment">
+                    <div class="integration-notes fragment" style="font-size: 0.75em;">
                         <h4>Integration Benefits:</h4>
                         <ul>
                             <li>✅ Seamlessly integrates with <span class="tooltip">nn.Sequential<span class="tooltiptext">Container module that chains layers in sequence</span></span></li>
@@ -3526,20 +3115,17 @@ print(f"Output mean: {Y.mean():.6f}")
                         <div class="math-display">
                             $$y = \text{ReLU}(Wx + b)$$
                             <div class="math-components fragment">
-                                <span style="color: #10099F;">W ∈ ℝ^{m×n}</span>: Weight matrix<br>
-                                <span style="color: #2DD2C0;">b ∈ ℝ^m</span>: Bias vector<br>
-                                <span style="color: #FC8484;">ReLU(z) = max(0, z)</span>: Activation
+                                <span style="color: #10099F;">$W \in \mathbb{R}^{m \times n}$</span>: Weight matrix<br>
+                                <span style="color: #2DD2C0;">$b \in \mathbb{R}^m$</span>: Bias vector<br>
+                                <span style="color: #FC8484;">$\text{ReLU}(z) = \max(0, z)$</span>: Activation
                             </div>
-                        </div>
-                        <div class="layer-flow fragment">
-                            <div id="mylinear-flow-visual" style="width: 100%; height: 250px;"></div>
                         </div>
                     </div>
                 </section>
 
                 <section>
                     <h2 class="truncate-title">Implementing MyLinear Layer</h2>
-                    <pre><code class="language-python" data-line-numbers="1-13|5-8|10-13">import torch
+                    <pre><code class="language-python">import torch
 from torch import nn
 import torch.nn.functional as F
 
@@ -3553,7 +3139,7 @@ class MyLinear(nn.Module):
         linear = torch.matmul(X, self.weight.data) + self.bias.data
         return F.relu(linear)</code></pre>
                     
-                    <div class="parameter-explanation fragment">
+                    <div class="parameter-explanation fragment" style="font-size: 0.5em;">
                         <h4>Understanding <span class="tooltip">nn.Parameter<span class="tooltiptext">Wrapper that tells PyTorch this tensor should be treated as a learnable parameter</span></span>:</h4>
                         <ul>
                             <li>Automatically registered as model parameter</li>
@@ -3563,7 +3149,7 @@ class MyLinear(nn.Module):
                         </ul>
                     </div>
                     
-                    <div class="initialization-note fragment">
+                    <div class="initialization-note fragment" style="font-size: 0.5em;">
                         <div class="emphasis-box">
                             <p>⚠️ Using <code>torch.randn</code> for initialization is simple but not optimal. 
                             Production code should use proper initialization like <span class="tooltip">Xavier/He initialization<span class="tooltiptext">Methods to initialize weights based on layer dimensions to maintain gradient magnitudes</span></span></p>
@@ -3572,26 +3158,8 @@ class MyLinear(nn.Module):
                 </section>
 
                 <section>
-                    <h2 class="truncate-title">Interactive MyLinear Layer Demo</h2>
-                    <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100; position: relative;">
-                        <label style="display: flex; align-items: center; gap: 8px;">
-                            Input Size: 
-                            <input type="range" id="mylinear-input-size" min="2" max="8" value="4" style="width: 100px;">
-                            <span id="mylinear-input-size-value" style="font-family: monospace;">4</span>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px;">
-                            Output Size: 
-                            <input type="range" id="mylinear-output-size" min="2" max="6" value="3" style="width: 100px;">
-                            <span id="mylinear-output-size-value" style="font-family: monospace;">3</span>
-                        </label>
-                        <button id="mylinear-randomize-btn" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Randomize Weights</button>
-                    </div>
-                    <div id="mylinear-demo" style="width: 100%; height: 450px;"></div>
-                </section>
-
-                <section>
                     <h2 class="truncate-title">Parameter Management in Custom Layers</h2>
-                    <pre><code class="language-python" data-line-numbers="1-5|7-10|12-16">linear = MyLinear(5, 3)
+                    <pre><code class="language-python" data-line-numbers="1-5|7-11|12-19">linear = MyLinear(5, 3)
 
 # Access parameters
 print(linear.weight.shape)  # torch.Size([5, 3])
@@ -3611,22 +3179,22 @@ net = nn.Sequential(
 
 print(f"Total parameters: {sum(p.numel() for p in net.parameters())}")</code></pre>
                     
-                    <div class="parameter-features fragment">
+                    <div class="parameter-features fragment" style="font-size: 0.5em;">
                         <h4>Automatic Features:</h4>
-                        <div class="feature-grid">
-                            <div class="feature">
+                        <div class="feature-grid" style="display: flex; justify-content: space-between; gap: 1rem;">
+                            <div class="feature" style="flex: 1; text-align: center;">
                                 <span class="icon">🎯</span>
                                 <p>Gradient computation</p>
                             </div>
-                            <div class="feature">
+                            <div class="feature" style="flex: 1; text-align: center;">
                                 <span class="icon">💾</span>
                                 <p>Model serialization</p>
                             </div>
-                            <div class="feature">
+                            <div class="feature" style="flex: 1; text-align: center;">
                                 <span class="icon">🚀</span>
                                 <p>Device placement</p>
                             </div>
-                            <div class="feature">
+                            <div class="feature" style="flex: 1; text-align: center;">
                                 <span class="icon">🔧</span>
                                 <p>Optimizer updates</p>
                             </div>
@@ -3636,12 +3204,12 @@ print(f"Total parameters: {sum(p.numel() for p in net.parameters())}")</code></p
 
                 <section>
                     <h2 class="truncate-title">Advanced: Tensor Reduction Layer</h2>
-                    <div class="tensor-reduction-concept">
+                    <div class="tensor-reduction-concept" style="font-size: 0.75em;">
                         <h3>Mathematical Formulation</h3>
                         <div class="math-display">
                             $$y_k = \sum_{i,j} W_{ijk} \cdot x_i \cdot x_j$$
                         </div>
-                        <div class="explanation fragment">
+                        <div class="explanation fragment" style="font-size: 0.75em;">
                             <p>This creates a <span class="tooltip">bilinear form<span class="tooltiptext">A function that is linear in each of its arguments when the others are held fixed</span></span> with learnable weights:</p>
                             <ul>
                                 <li><strong>Input:</strong> Vector x ∈ ℝⁿ</li>
@@ -3705,7 +3273,7 @@ print(f"Total parameters: {sum(p.numel() for p in net.parameters())}")</code></p
             <section>
                 <section>
                     <h2 class="truncate-title">Building Complex Models with Custom Layers</h2>
-                    <pre><code class="language-python" data-line-numbers="1-20|1-7|9-16|18-20">class CustomNet(nn.Module):
+                    <pre><code class="language-python">class CustomNet(nn.Module):
     def __init__(self):
         super().__init__()
         self.linear1 = nn.Linear(784, 128)
@@ -3726,7 +3294,7 @@ test_input = torch.randn(32, 784)
 output = model(test_input)
 print(f"Output shape: {output.shape}")  # [32, 10]</code></pre>
                     
-                    <div class="design-principles fragment">
+                    <div class="design-principles fragment" style="font-size: 0.5em;">
                         <h4>Best Practices for Custom Layers:</h4>
                         <ul>
                             <li>🎯 <strong>Single Responsibility:</strong> Each layer should do one thing well</li>
@@ -3739,7 +3307,7 @@ print(f"Output shape: {output.shape}")  # [32, 10]</code></pre>
 
                 <section>
                     <h2 class="truncate-title">Exercise: Fourier Coefficient Layer</h2>
-                    <div class="exercise-box">
+                    <div class="exercise-box" style="font-size: 0.5em;">
                         <h3>Challenge: Implement a layer that returns Fourier coefficients</h3>
                         <div class="exercise-requirements">
                             <p><strong>Requirements:</strong></p>
@@ -3775,7 +3343,7 @@ print(f"Output shape: {output.shape}")  # [32, 10]</code></pre>
 
                 <section>
                     <h2 class="truncate-title">Common Pitfalls and Solutions</h2>
-                    <div class="pitfalls-grid">
+                    <div class="pitfalls-grid" style="font-size: 0.5em;">
                         <div class="pitfall fragment">
                             <h4>❌ Pitfall: Breaking Gradient Flow</h4>
                             <pre><code class="language-python"># Bad: Using .numpy() breaks gradients
@@ -3804,7 +3372,7 @@ def forward(self, x):
 
                 <section>
                     <h2 class="truncate-title">Framework Comparison: Custom Layers</h2>
-                    <div class="framework-comparison">
+                    <div class="framework-comparison" style="font-size: 0.5em;">
                         <table>
                             <thead>
                                 <tr>
@@ -3885,7 +3453,7 @@ def forward(self, x):
                     <div class="io-overview">
                         <div class="fragment">
                             <h3>Why Model Persistence Matters</h3>
-                            <div class="reasons-grid">
+                            <div class="reasons-grid" style="font-size: 0.5em;">
                                 <div class="reason-card">
                                     <div class="icon">💾</div>
                                     <h4>Training Checkpoints</h4>
@@ -3911,20 +3479,6 @@ def forward(self, x):
                         <div class="fragment emphasis-box mt-lg">
                             <p>⚠️ We save <strong>parameters</strong>, not architecture! Models must be reconstructed in code.</p>
                         </div>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">The File I/O Workflow</h2>
-                    <div class="io-workflow-viz">
-                        <div id="io-workflow-container"></div>
-                        <div class="demo-controls mt-md">
-                            <button id="io-workflow-animate" class="ui-button">Animate Workflow</button>
-                            <button id="io-workflow-reset" class="ui-button-secondary">Reset</button>
-                        </div>
-                    </div>
-                    <div class="fragment explanation-box mt-md">
-                        <p><span class="tooltip">Serialization<span class="tooltiptext">Converting in-memory objects to a format that can be stored on disk</span></span> transforms tensors and parameters into persistent storage formats</p>
                     </div>
                 </section>
 
@@ -3988,15 +3542,12 @@ print(x2)  # array([0, 1, 2, 3], dtype=int32)</code></pre>
                                 </div>
                             </div>
                         </div>
-                        <div class="fragment mt-md">
-                            <div class="file-size-viz" id="tensor-size-viz"></div>
-                        </div>
                     </div>
                 </section>
 
                 <section>
                     <h2 class="truncate-title">Saving Tensor Collections</h2>
-                    <div class="collections-section">
+                    <div class="collections-section" style="font-size: 0.5em;">
                         <h3>Lists and Dictionaries</h3>
                         <div class="code-comparison">
                             <div class="code-block">
@@ -4078,9 +3629,6 @@ mydict2 = jnp.load('mydict.npy',
 net = MLP()
 X = torch.randn(size=(2, 20))
 Y = net(X)  # Initialize lazy layers</code></pre>
-                        <div class="fragment mt-md">
-                            <div class="state-dict-viz" id="state-dict-container"></div>
-                        </div>
                         <div class="fragment emphasis-box mt-md">
                             <p>The <span class="tooltip">state_dict<span class="tooltiptext">A Python dictionary that maps layer names to their parameter tensors</span></span> contains all learnable parameters</p>
                         </div>
@@ -4164,7 +3712,7 @@ net.save_weights('mlp.params')
 
                 <section>
                     <h2 class="truncate-title">Loading Model Parameters</h2>
-                    <div class="loading-params-section">
+                    <div class="loading-params-section" style="font-size: 0.5em;">
                         <h3>The Two-Step Process</h3>
                         <div class="loading-steps">
                             <div class="step fragment">
@@ -4192,21 +3740,6 @@ clone.eval()  # Set to evaluation mode</code></pre>
                             <pre><code class="language-python"># Both models should produce identical outputs
 Y_clone = clone(X)
 assert torch.all(Y_clone == Y)  # True!</code></pre>
-                        </div>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Interactive Model Comparison</h2>
-                    <div class="model-comparison-viz">
-                        <div id="model-comparison-container"></div>
-                        <div class="demo-controls mt-md">
-                            <button id="compare-models" class="ui-button">Compare Outputs</button>
-                            <button id="add-noise" class="ui-button-secondary">Add Noise to Clone</button>
-                            <button id="reset-comparison" class="ui-button-secondary">Reset</button>
-                        </div>
-                        <div class="comparison-results mt-md">
-                            <div id="comparison-output"></div>
                         </div>
                     </div>
                 </section>
@@ -4553,21 +4086,12 @@ metadata = {
             <!-- ============================= -->
             
             <section>
-                <section class="title-slide" data-sources='[{"text": "Dive into Deep Learning - GPUs", "url": "https://d2l.ai/chapter_builders-guide/use-gpu.html"}]'>
-                    <img src="../shared/images/uoi_logo_blue.png" alt="University of Iceland Logo" class="ui-logo">
-                    <h1 class="truncate-title">GPUs in Deep Learning</h1>
-                    <p>Harnessing Computational Power</p>
-                    <p class="mt-lg">
-                        <small>Builder's Guide - Part 7</small>
-                    </p>
-                </section>
-
                 <section>
                     <h2 class="truncate-title">GPU Performance Evolution</h2>
                     <div class="gpu-timeline-container">
                         <p>GPU performance has increased by a factor of <strong>1000x every decade</strong> since 2000!</p>
                         <div id="gpu-timeline-viz" style="width: 100%; height: 400px; margin: 20px 0;"></div>
-                        <div class="fragment emphasis-box">
+                        <div class="fragment emphasis-box" style="font-size: 0.5em;">
                             <p>This exponential growth has enabled the deep learning revolution</p>
                         </div>
                     </div>
@@ -4846,7 +4370,7 @@ if Z.device == gpu(1):
 
                 <section>
                     <h2 class="truncate-title">Performance Best Practices</h2>
-                    <div class="best-practices">
+                    <div class="best-practices" style="font-size: 0.5em;">
                         <div class="practice-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                             <div class="do-card" style="background: #e8f5e9; padding: 20px; border-radius: 8px;">
                                 <h4>✅ Do</h4>
@@ -4868,7 +4392,14 @@ if Z.device == gpu(1):
                             </div>
                         </div>
                         <div class="fragment emphasis-box" style="margin-top: 20px;">
-                            <p>Remember: Transferring data invokes the <span class="tooltip">GIL<span class="tooltiptext">Global Interpreter Lock - Python's mechanism that allows only one thread to execute Python bytecode at a time</span></span> when converting to NumPy!</p>
+                            <p>⚠️ <strong>Critical Performance Impact:</strong> When you print a GPU tensor or convert it to NumPy, PyTorch must:</p>
+                            <ul style="text-align: left; margin-top: 10px;">
+                                <li>Transfer data from GPU memory to CPU memory</li>
+                                <li>Synchronize GPU operations (blocking)</li>
+                                <li>Invoke Python's <span class="tooltip">GIL<span class="tooltiptext">Global Interpreter Lock - Python's mechanism that allows only one thread to execute Python bytecode at a time</span></span> during NumPy conversion</li>
+                                <li>Create a copy in system RAM</li>
+                            </ul>
+                            <p style="margin-top: 10px;">This can cause significant slowdowns in training loops. Use <code>.detach().cpu().numpy()</code> explicitly to make transfers visible in your code!</p>
                         </div>
                     </div>
                 </section>
@@ -4953,47 +4484,6 @@ print(net[0].weight.device)  # cuda:0
                         <div class="fragment emphasis-box" style="margin-top: 20px;">
                             <p>💡 The model automatically uses the device of its parameters</p>
                         </div>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Trainer GPU Support</h2>
-                    <div class="trainer-gpu">
-                        <pre><code class="python" data-trim data-line-numbers="1-4|6-10|12-18">
-@d2l.add_to_class(d2l.Trainer)
-def __init__(self, max_epochs, num_gpus=0, gradient_clip_val=0):
-    self.save_hyperparameters()
-    self.gpus = [d2l.gpu(i) for i in range(min(num_gpus, d2l.num_gpus()))]
-
-@d2l.add_to_class(d2l.Trainer)
-def prepare_batch(self, batch):
-    if self.gpus:
-        batch = [a.to(self.gpus[0]) for a in batch]
-    return batch
-
-@d2l.add_to_class(d2l.Trainer)
-def prepare_model(self, model):
-    model.trainer = self
-    model.board.xlim = [0, self.max_epochs]
-    if self.gpus:
-        model.to(self.gpus[0])
-    self.model = model
-                        </code></pre>
-                        <p class="fragment" style="margin-top: 15px;">The trainer automatically handles device placement for batches and models</p>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="truncate-title">Interactive: Model GPU Deployment</h2>
-                    <div id="model-gpu-demo" style="width: 100%; height: 450px;">
-                        <div class="model-controls" style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
-                            <button id="create-model" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Create Model</button>
-                            <button id="move-gpu" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Move to GPU</button>
-                            <button id="check-params" style="background: #FFA05F; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Check Parameters</button>
-                            <button id="forward-pass" style="background: #FC8484; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Forward Pass</button>
-                            <button id="reset-model" style="background: #666; color: white; border: none; padding: 8px 16px; border-radius: 5px;">Reset</button>
-                        </div>
-                        <div id="model-viz" style="height: 350px;"></div>
                     </div>
                 </section>
 
@@ -5114,7 +4604,7 @@ if len(devices) > 1:
 
                 <section>
                     <h2 class="truncate-title">Performance Optimization Tips</h2>
-                    <div class="optimization-tips">
+                    <div class="optimization-tips" style="font-size: 0.5em;">
                         <div class="tip-cards" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                             <div class="tip-card" style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
                                 <h4>📊 Monitoring</h4>
@@ -5197,7 +4687,7 @@ if len(devices) > 1:
             transition: 'slide',
             math: {
                 mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js',
-                config: 'TeX-AMS_HTML-full'
+                config: 'TeX-AMS_SVG-full'
             },
             plugins: [ RevealHighlight, RevealNotes, RevealMath ]
         });

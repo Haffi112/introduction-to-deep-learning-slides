@@ -53,6 +53,7 @@ function animateTitleSlide() {
 
 // Revolution slide timeline animation
 function animateRevolutionSlide() {
+  if (!Reveal.getCurrentSlide) return;
   const slide = Reveal.getCurrentSlide();
   if (!slide || !slide.querySelector('.timeline')) return;
   
@@ -65,6 +66,7 @@ function animateRevolutionSlide() {
 
 // Course structure animation
 function animateCourseStructure() {
+  if (!Reveal.getCurrentSlide) return;
   const slide = Reveal.getCurrentSlide();
   if (!slide) return;
   

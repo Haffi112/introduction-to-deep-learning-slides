@@ -72,7 +72,7 @@ class TitleHandler {
 
     adjustCurrentSlideTitles() {
         // Only adjust titles in the current slide for better performance
-        if (typeof Reveal !== 'undefined') {
+        if (typeof Reveal !== 'undefined' && Reveal.getCurrentSlide) {
             const currentSlide = Reveal.getCurrentSlide();
             if (currentSlide) {
                 const titles = currentSlide.querySelectorAll(this.options.selector);

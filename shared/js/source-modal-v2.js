@@ -91,6 +91,10 @@
     
     // Update source icon visibility based on current slide
     function updateSourceIconVisibility() {
+        // Check if Reveal is initialized and has getCurrentSlide method
+        if (!window.Reveal || !Reveal.getCurrentSlide) {
+            return;
+        }
         const currentSlide = Reveal.getCurrentSlide();
         
         // Hide all source icons

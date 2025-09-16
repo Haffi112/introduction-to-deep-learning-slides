@@ -32,11 +32,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 </g>
                 
                 <g id="dilated-conv">
-                    <text x="350" y="30" text-anchor="middle" font-weight="bold" fill="#10099F">
+                    <text x="400" y="30" text-anchor="middle" font-weight="bold" fill="#10099F">
                         Dilated Conv (dilation=2)
                     </text>
                     ${dilatedGroup}
-                    <text x="350" y="240" text-anchor="middle" font-size="12" fill="#666">
+                    <text x="400" y="240" text-anchor="middle" font-size="12" fill="#666">
                         Receptive Field: 5×5
                     </text>
                 </g>
