@@ -1,0 +1,196 @@
+/* Simplified RNN-specific custom styles */
+
+/* Content container */
+.content-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Sequential tasks layout */
+.sequential-tasks {
+    text-align: left;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.sequential-tasks h4 {
+    color: #10099F;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.sequential-tasks ul {
+    margin-left: 20px;
+}
+
+/* RNN definition */
+.rnn-definition {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.rnn-definition p {
+    text-align: left;
+    line-height: 1.6;
+}
+
+/* Unfolding visualization */
+.unfolding-viz {
+    text-align: center;
+}
+
+.unfolding-viz h4 {
+    color: #10099F;
+    margin-bottom: 20px;
+}
+
+/* RNN history */
+.rnn-history {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.rnn-history h4 {
+    color: #10099F;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+/* Key insight box */
+.insight-box {
+    background: linear-gradient(135deg, #10099F 0%, #2DD2C0 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 10px;
+    font-size: 1.1em;
+    text-align: center;
+    margin: 20px auto;
+    max-width: 650px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Key insight content */
+.key-insight {
+    max-width: 750px;
+    margin: 0 auto;
+}
+
+.key-insight h4 {
+    color: #10099F;
+    margin-top: 25px;
+    margin-bottom: 15px;
+}
+
+/* Beyond RNNs section */
+.beyond-rnns {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+/* NLP focus */
+.nlp-focus {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.nlp-focus h4 {
+    color: #10099F;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+/* Chapter roadmap */
+.roadmap {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.roadmap h4 {
+    color: #10099F;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.roadmap ol {
+    line-height: 1.8;
+    margin-left: 20px;
+}
+
+/* Summary content */
+.summary-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.summary-points {
+    text-align: left;
+}
+
+.summary-points h4 {
+    color: #10099F;
+    margin-bottom: 10px;
+}
+
+.summary-points p {
+    margin-bottom: 15px;
+}
+
+/* Emphasis box - use default styling from reveal-theme.css */
+/* Removed custom overrides to maintain consistency with earlier slide packs */
+
+/* Utility classes */
+.mt-lg {
+    margin-top: 30px;
+}
+
+.mt-md {
+    margin-top: 20px;
+}
+
+/* Tooltips handled by tooltip-modal.js - no custom styling needed */
+
+/* Lists styling */
+ul {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+ul li {
+    margin: 8px 0;
+}
+
+/* Fragment animations */
+.fragment {
+    visibility: visible !important;
+}
+
+.fragment.visible {
+    opacity: 1 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .content-container,
+    .sequential-tasks,
+    .rnn-definition,
+    .rnn-history,
+    .key-insight,
+    .beyond-rnns,
+    .nlp-focus,
+    .roadmap,
+    .summary-content,
+    .insight-box {
+        max-width: 95%;
+        padding: 10px;
+    }
+
+    .insight-box {
+        font-size: 1em;
+        padding: 20px;
+    }
+}
