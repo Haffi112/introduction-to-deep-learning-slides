@@ -1,0 +1,39 @@
+/* Custom styles for Modern RNNs presentation */
+
+/* Most styles inherited from shared CSS */
+/* This file contains only presentation-specific overrides */
+
+/* Ensure proper spacing for code examples */
+.reveal pre {
+    width: 100%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Grid layouts for concept cards */
+.concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+/* Additional emphasis box variants */
+.emphasis-box.success {
+    background: #F0FFF9;
+    border-left: 4px solid #2DD2C0;
+}
+
+.emphasis-box.warning {
+    background: #FFFBF0;
+    border-left: 4px solid #FAC55B;
+}
+
+.emphasis-box.error {
+    background: #FFF5F5;
+    border-left: 4px solid #FC8484;
+}
+
+.emphasis-box.info {
+    background: #F5F5FF;
+    border-left: 4px solid #10099F;
+}

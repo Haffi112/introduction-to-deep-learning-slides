@@ -556,7 +556,7 @@ Output: Hvað er að frétta af þér?</pre>
 
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 9.1.1", "url": "https://d2l.ai/chapter_recurrent-neural-networks/sequence.html#autoregressive-models"}]'>
                     <h2 class="truncate-title">The Autoregressive Problem</h2>
-                    <div class="ar-problem">
+                    <div class="ar-problem" style="font-size: 0.7em;">
                         <div class="fragment">
                             <h4>Goal: Estimate the Distribution</h4>
                             <p>$$P(x_t \mid x_{t-1}, \ldots, x_1)$$</p>
@@ -2335,7 +2335,7 @@ len(corpus), len(vocab)
 
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 9.3", "url": "https://d2l.ai/chapter_recurrent-neural-networks/language-model.html"}]'>
                     <h3 class="truncate-title">Applications of Language Models</h3>
-                    <div class="comparison-grid">
+                    <div class="comparison-grid" style="font-size: 0.7em;">
                         <div>
                             <h4>Speech Recognition</h4>
                             <p>Disambiguate similar-sounding phrases:</p>
@@ -2350,7 +2350,7 @@ len(corpus), len(vocab)
                             <p>$$x_t \sim P(x_t \mid x_{t-1}, \ldots, x_1)$$</p>
                         </div>
                     </div>
-                    <div class="fragment emphasis-box">
+                    <div class="fragment emphasis-box" style="font-size: 0.7em;">
                         <p>Language models help distinguish between grammatically correct but semantically unlikely sequences</p>
                     </div>
                 </section>
@@ -2954,7 +2954,7 @@ len(corpus), len(vocab)
             <section>
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 9.3.3", "url": "https://d2l.ai/chapter_recurrent-neural-networks/language-model.html#partitioning-sequences"}]'>
                     <h2 class="truncate-title">Partitioning Sequences</h2>
-                    <p>Preparing data for language model training</p>
+                    <p>Preparing data for language model training</p> 
                     <div class="emphasis-box">
                         <p>Goal: Create overlapping subsequences of fixed length for efficient training</p>
                     </div>
@@ -2970,20 +2970,20 @@ len(corpus), len(vocab)
                     <h3 class="truncate-title">Partitioning Mathematics</h3>
                     <p>Given corpus of length $T$ and subsequence length $n$:</p>
 
-                    <div class="math-box">
+                    <div class="math-box" style="font-size: 0.7em;">
                         <p>1. Random offset: $d \sim \text{Uniform}(0, n-1)$</p>
                         <p>2. Number of subsequences: $m = \lfloor (T-d)/n \rfloor$</p>
                         <p>3. Subsequences: $\mathbf{x}_d, \mathbf{x}_{d+n}, \ldots, \mathbf{x}_{d+n(m-1)}$</p>
                     </div>
 
-                    <div class="fragment">
+                    <div class="fragment" style="font-size: 0.7em;">
                         <p>Where each subsequence:</p>
                         <div class="math-box">
                             $$\mathbf{x}_t = [x_t, x_{t+1}, \ldots, x_{t+n-1}]$$
                         </div>
                     </div>
 
-                    <div class="fragment">
+                    <div class="fragment" style="font-size: 0.7em;">
                         <p>Input-target pairs:</p>
                         <div class="math-box">
                             <p>Input: $\mathbf{x}_t = [x_t, \ldots, x_{t+n-1}]$</p>
@@ -4462,10 +4462,6 @@ model.predict('it has', 20, data.vocab, device)
                 <section>
                     <h2 class="truncate-title">Performance Analysis: APIs vs Scratch</h2>
                     <div class="performance-overview">
-                        <div class="fragment">
-                            <h4>Computational Efficiency Gains</h4>
-                            <div id="performance-chart" style="width: 100%; height: 350px;"></div>
-                        </div>
                         <div class="fragment emphasis-box mt-md">
                             <p>High-level APIs provide 2-3x speedup with identical model quality</p>
                         </div>
@@ -4647,22 +4643,6 @@ model.predict('it has', 20, data.vocab, device)
                 </section>
 
                 <section>
-                    <h2 class="truncate-title">Unrolling the Computational Graph</h2>
-                    <div class="interactive-demo">
-                        <div class="demo-controls" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; z-index: 100; position: relative;">
-                            <button id="unroll-btn" style="background: #10099F; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Unroll Network</button>
-                            <button id="roll-btn" style="background: #2DD2C0; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">Roll Back</button>
-                            <label style="display: flex; align-items: center; gap: 8px;">
-                                Steps:
-                                <input type="range" id="unroll-steps" min="1" max="5" value="3" style="width: 100px;">
-                                <span id="steps-value" style="font-family: monospace;">3</span>
-                            </label>
-                        </div>
-                        <div id="unroll-animation" style="width: 100%; height: 350px;"></div>
-                    </div>
-                </section>
-
-                <section>
                     <h2 class="truncate-title">Computational Dependencies</h2>
                     <div class="dependency-viz" style="font-size: 0.75em;">
                         <p>Each hidden state depends on previous states and parameters:</p>
@@ -4774,11 +4754,6 @@ model.predict('it has', 20, data.vocab, device)
                         <div class="equation-box">
                             $$\frac{\partial h_t}{\partial w_h} = \frac{\partial f(x_t, h_{t-1}, w_h)}{\partial w_h} + \frac{\partial f(x_t, h_{t-1}, w_h)}{\partial h_{t-1}} \frac{\partial h_{t-1}}{\partial w_h}$$
                         </div>
-                        <div class="fragment">
-                            <div class="recursion-viz" id="recursive-deps" style="margin-top: 20px;">
-                                <svg width="100%" height="200" viewBox="0 0 700 200"></svg>
-                            </div>
-                        </div>
                     </div>
                 </section>
 
@@ -4868,7 +4843,7 @@ model.predict('it has', 20, data.vocab, device)
                         <div class="butterfly-demo" id="butterfly-viz" style="margin: 20px 0;">
                             <svg width="100%" height="300" viewBox="0 0 700 300"></svg>
                         </div>
-                        <div class="fragment">
+                        <div class="fragment" style="font-size: 0.7em;">
                             <ul>
                                 <li>Subtle initial changes → dramatic outcome changes</li>
                                 <li>Computationally expensive for long sequences</li>
@@ -5020,11 +4995,6 @@ model.predict('it has', 20, data.vocab, device)
                             <p>For earlier time steps $t < T$ (recursive):</p>
                             <div class="equation-box">
                                 $$\frac{\partial L}{\partial \mathbf{h}_t} = \mathbf{W}_{hh}^\top \frac{\partial L}{\partial \mathbf{h}_{t+1}} + \mathbf{W}_{qh}^\top \frac{\partial L}{\partial \mathbf{o}_t}$$
-                            </div>
-                        </div>
-                        <div class="fragment">
-                            <div class="gradient-flow-interactive" id="hidden-gradient-flow">
-                                <svg width="100%" height="200" viewBox="0 0 700 200"></svg>
                             </div>
                         </div>
                     </div>
