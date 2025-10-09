@@ -4141,12 +4141,12 @@ def predict_step(self, batch, device, num_steps,
                 <!-- BLEU Example -->
                 <section>
                     <h2 class="truncate-title">BLEU Calculation Example</h2>
-                    <div style="font-size: 0.7em;">
+                    <div style="font-size: 0.5em;">
                         <p><strong>Target sequence:</strong> <code>A B C D E F</code></p>
                         <p><strong>Predicted sequence:</strong> <code>A B B C D</code></p>
                     </div>
 
-                    <div style="margin: 25px 0; background: #f5f5f5; padding: 20px; border-radius: 8px; font-size: 0.5em;">
+                    <div style="margin: 25px 0; background: #f5f5f5; padding: 20px; border-radius: 8px; font-size: 0.3em;">
                         <h4 style="color: #10099F; margin-top: 0;">Calculate n-gram Precisions</h4>
 
                         <div style="margin: 15px 0;">
@@ -4255,9 +4255,9 @@ def predict_step(self, batch, device, num_steps,
                 <!-- Translation Examples -->
                 <section>
                     <h2 class="truncate-title">Translation Examples and BLEU Scores</h2>
-                    <p style="font-size: 0.9em;">Results from our trained seq2seq model on English → French translation</p>
+                    <p style="font-size: 0.7em;">Results from our trained seq2seq model on English → French translation</p>
 
-                    <div style="margin: 25px 0; font-family: 'Source Code Pro', monospace; font-size: 0.8em;">
+                    <div style="margin: 25px 0; font-family: 'Source Code Pro', monospace; font-size: 0.4em;">
                         <div style="background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #10099F;">
                             <strong>Input:</strong> go .<br>
                             <strong style="color: #10099F;">Prediction:</strong> va !<br>
@@ -4287,7 +4287,7 @@ def predict_step(self, batch, device, num_steps,
                         </div>
                     </div>
 
-                    <p style="font-size: 0.85em; margin-top: 20px;">
+                    <p style="font-size: 0.65em; margin-top: 20px;">
                         <strong>Observations:</strong> Simple sentences achieve perfect translation. More complex sentences may produce semantically different but grammatically correct outputs.
                     </p>
                 </section>
@@ -4296,7 +4296,7 @@ def predict_step(self, batch, device, num_steps,
                 <section>
                     <h2 class="truncate-title">Summary: Sequence-to-Sequence Learning</h2>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; font-size: 0.85em;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; font-size: 0.55em;">
                         <div>
                             <h4 style="color: #10099F;">Architecture</h4>
                             <ul>
@@ -4334,7 +4334,7 @@ def predict_step(self, batch, device, num_steps,
                         </div>
                     </div>
 
-                    <div class="emphasis-box" style="margin-top: 25px;">
+                    <div class="emphasis-box" style="margin-top: 25px; font-size: 0.5em;">
                         <p><strong>Limitations:</strong> Fixed-size context bottleneck, information loss for long sequences → Next: Attention mechanisms!</p>
                     </div>
                 </section>
@@ -4377,7 +4377,7 @@ def predict_step(self, batch, device, num_steps,
                 <!-- Title Slide for Beam Search -->
                 <section data-sources='[{"text": "Dive into Deep Learning - Chapter 10.8: Beam Search", "url": "https://d2l.ai/chapter_recurrent-modern/beam-search.html"}]'>
                     <h2 class="truncate-title">Beam Search: Generating Better Sequences</h2>
-                    <div style="font-size: 0.85em;">
+                    <div style="font-size: 0.65em;">
                         <div class="fragment">
                             <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F;">
                                 <h4 style="color: #10099F; margin-top: 0;">The Core Challenge</h4>
@@ -4419,7 +4419,7 @@ def predict_step(self, batch, device, num_steps,
                 <!-- Greedy Search Example -->
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 10.8.1", "url": "https://d2l.ai/chapter_recurrent-modern/beam-search.html#greedy-search"}]'>
                     <h2 class="truncate-title">Why Greedy Search Can Fail</h2>
-                    <div style="font-size: 0.75em;">
+                    <div style="font-size: 0.55em;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
                             <div>
                                 <h4 style="color: #10099F; font-size: 0.95em;">Greedy Choice: Always Pick Maximum</h4>
@@ -4454,7 +4454,7 @@ def predict_step(self, batch, device, num_steps,
                             {
                                 "text": "It is too computationally expensive",
                                 "correct": false,
-                                "explanation": "Greedy search is actually very efficient with O(|Y|T') complexity, making it one of the fastest methods."
+                                "explanation": "Greedy search is actually very efficient with O(|Y|Tprime) complexity, making it one of the fastest methods."
                             },
                             {
                                 "text": "It maximizes the probability of individual tokens rather than the entire sequence",
@@ -4478,7 +4478,7 @@ def predict_step(self, batch, device, num_steps,
                 <!-- Exhaustive Search -->
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 10.8.2", "url": "https://d2l.ai/chapter_recurrent-modern/beam-search.html#exhaustive-search"}]'>
                     <h2 class="truncate-title">Exhaustive Search: The Optimal but Impractical Solution</h2>
-                    <div style="font-size: 0.8em;">
+                    <div style="font-size: 0.6em;">
                         <div class="fragment">
                             <h4 style="color: #10099F;">The Ideal Approach</h4>
                             <p>Enumerate <strong>all</strong> possible output sequences, compute their probabilities, and select the one with the highest probability.</p>
@@ -4502,7 +4502,7 @@ def predict_step(self, batch, device, num_steps,
                 <!-- Computational Comparison -->
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 10.8.2", "url": "https://d2l.ai/chapter_recurrent-modern/beam-search.html#exhaustive-search"}]'>
                     <h2 class="truncate-title">Greedy vs. Exhaustive: A Massive Gap</h2>
-                    <div style="font-size: 0.8em;">
+                    <div style="font-size: 0.6em;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 30px;">
                             <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0;">
                                 <h4 style="color: #2DD2C0; margin-top: 0;">✓ Greedy Search</h4>
@@ -4532,7 +4532,7 @@ def predict_step(self, batch, device, num_steps,
                 <!-- Beam Search Introduction -->
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 10.8.3", "url": "https://d2l.ai/chapter_recurrent-modern/beam-search.html#beam-search"}]'>
                     <h2 class="truncate-title">Beam Search: The Practical Compromise</h2>
-                    <div style="font-size: 0.8em;">
+                    <div style="font-size: 0.6em;">
                         <div class="fragment">
                             <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F;">
                                 <h4 style="color: #10099F; margin-top: 0;">The Core Idea</h4>
@@ -4558,9 +4558,9 @@ def predict_step(self, batch, device, num_steps,
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 10.8.3", "url": "https://d2l.ai/chapter_recurrent-modern/beam-search.html#beam-search"}]'>
                     <h2 class="truncate-title">Beam Search in Action</h2>
                     <div style="font-size: 0.75em;">
-                        <p><strong>Example:</strong> Vocabulary \(\mathcal{Y} = \{A, B, C, D, E\}\), beam size \(k=2\), max length \(T'=3\)</p>
-                        <img src="../shared/images/beam-search.svg" alt="Beam search visualization" style="width: 100%; max-width: 800px; margin: 20px auto; display: block;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 20px; font-size: 0.9em;">
+                        <p style="font-size: 0.8em;"><strong>Example:</strong> Vocabulary \(\mathcal{Y} = \{A, B, C, D, E\}\), beam size \(k=2\), max length \(T'=3\)</p>
+                        <img src="../shared/images/beam-search.svg" alt="Beam search visualization" style="width: 50%; max-width: 800px; margin: 20px auto; display: block;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 20px; font-size: 0.5em;">
                             <div class="emphasis-box" style="background: #F5F5FF;">
                                 <h5 style="color: #10099F; margin-top: 0;">Time Step 1</h5>
                                 <p style="margin: 0;">Select top 2 tokens: <strong>A</strong> and <strong>C</strong></p>
@@ -4577,7 +4577,7 @@ def predict_step(self, batch, device, num_steps,
                                 <p style="margin: 5px 0 0 0;">Keep top 2: <strong>ABD</strong> and <strong>CED</strong></p>
                             </div>
                         </div>
-                        <div class="emphasis-box" style="margin-top: 20px; background: #F5F5F5;">
+                        <div class="emphasis-box" style="margin-top: 20px; background: #F5F5F5; font-size: 0.5em;">
                             <p style="margin: 0;"><strong>Final candidates:</strong> A, C, AB, CE, ABD, CED (sequences ending at different steps)</p>
                         </div>
                     </div>
@@ -4586,7 +4586,7 @@ def predict_step(self, batch, device, num_steps,
                 <!-- Beam Search Equations -->
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 10.8.3", "url": "https://d2l.ai/chapter_recurrent-modern/beam-search.html#beam-search"}]'>
                     <h2 class="truncate-title">Beam Search: The Mathematics</h2>
-                    <div style="font-size: 0.75em;">
+                    <div style="font-size: 0.5em;">
                         <div class="fragment">
                             <h4 style="color: #10099F;">At Each Time Step</h4>
                             <p><strong>Time step 2:</strong> For each of the \(k\) candidates from step 1, compute joint probabilities:</p>
@@ -4648,7 +4648,7 @@ def predict_step(self, batch, device, num_steps,
                 <!-- Beam Search Scoring -->
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 10.8.3", "url": "https://d2l.ai/chapter_recurrent-modern/beam-search.html#beam-search"}]'>
                     <h2 class="truncate-title">Scoring and Selecting the Final Output</h2>
-                    <div style="font-size: 0.75em;">
+                    <div style="font-size: 0.5em;">
                         <div class="fragment">
                             <h4 style="color: #10099F;">The Problem with Direct Probabilities</h4>
                             <p>Longer sequences have more probability terms multiplied together, naturally resulting in smaller probabilities. This biases the search toward shorter sequences!</p>
@@ -4674,7 +4674,7 @@ def predict_step(self, batch, device, num_steps,
                 <!-- Computational Cost -->
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 10.8.3", "url": "https://d2l.ai/chapter_recurrent-modern/beam-search.html#beam-search"}]'>
                     <h2 class="truncate-title">Computational Cost: The Full Picture</h2>
-                    <div style="font-size: 0.75em;">
+                    <div style="font-size: 0.65em;">
                         <div style="margin-top: 20px;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
                                 <thead>
@@ -4737,7 +4737,7 @@ def predict_step(self, batch, device, num_steps,
                             {
                                 "text": "Increasing the beam size k always improves the quality of the output",
                                 "correct": false,
-                                "explanation": "While larger k tends to improve quality, it does not always do so. The model might have learned patterns that don\'t align perfectly with the true optimal sequence."
+                                "explanation": "While larger k tends to improve quality, it does not always do so. The model might have learned patterns that do not align perfectly with the true optimal sequence."
                             },
                             {
                                 "text": "Beam search with k=1 is equivalent to greedy search",
@@ -4756,7 +4756,7 @@ def predict_step(self, batch, device, num_steps,
                 <!-- Summary -->
                 <section data-sources='[{"text": "Dive into Deep Learning - Section 10.8.4", "url": "https://d2l.ai/chapter_recurrent-modern/beam-search.html#summary"}]'>
                     <h2 class="truncate-title">Summary: Sequence Search Strategies</h2>
-                    <div style="font-size: 0.8em;">
+                    <div style="font-size: 0.5em;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 25px;">
                             <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; min-height: 200px;">
                                 <h4 style="color: #2DD2C0; margin-top: 0;">Greedy Search</h4>

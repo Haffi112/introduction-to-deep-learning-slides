@@ -1,0 +1,30 @@
+/* Custom styles for Attention Mechanisms presentation */
+
+/* Additional emphasis for gradient boxes */
+.reveal section .emphasis-box {
+    transition: transform 0.3s ease;
+}
+
+.reveal section .emphasis-box:hover {
+    transform: translateY(-2px);
+}
+
+/* Enhanced grid layouts for content organization */
+.reveal section [style*="display: grid"] {
+    align-items: start;
+}
+
+/* Ensure proper spacing for nested content */
+.reveal .fragment + .fragment {
+    margin-top: 20px;
+}
+
+/* Style improvements for timeline/progression displays */
+.reveal section [style*="linear-gradient"] {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Better visual hierarchy for numbered steps */
+.reveal section [style*="font-size: 2em"] {
+    line-height: 1;
+}
