@@ -1,0 +1,168 @@
+/* Final Project Slides - Custom Styling */
+
+/* Grid layouts */
+.grid-3-cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.grid-2x2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Two column layout */
+.two-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.column {
+    text-align: left;
+}
+
+/* Margin utilities */
+.mt-sm {
+    margin-top: 10px;
+}
+
+.mt-md {
+    margin-top: 20px;
+}
+
+.mt-lg {
+    margin-top: 30px;
+}
+
+/* Code styling */
+code {
+    font-family: 'Source Code Pro', monospace;
+    background: #F5F5F5;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #262626;
+    font-size: 0.9em;
+}
+
+/* Table enhancements */
+table {
+    font-size: 0.85em;
+}
+
+table th {
+    font-weight: bold;
+}
+
+table tr:nth-child(even) {
+    background: #FAFAFA;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .grid-3-cols {
+        grid-template-columns: 1fr;
+    }
+
+    .grid-2x2 {
+        grid-template-columns: 1fr;
+    }
+
+    .two-column {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Learning curve visualization helpers */
+.curve-container {
+    background: #F5F5F5;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+/* Task badges */
+.task-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.85em;
+    margin: 5px;
+}
+
+.task-1 {
+    background: #10099F;
+    color: white;
+}
+
+.task-2 {
+    background: #2DD2C0;
+    color: white;
+}
+
+.task-3 {
+    background: #FAC55B;
+    color: #262626;
+}
+
+.task-4 {
+    background: #FFA05F;
+    color: white;
+}
+
+/* Enhanced emphasis boxes */
+.emphasis-box {
+    background: #F5F5F5;
+    border-left: 4px solid #10099F;
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+/* Dataset cards */
+.dataset-card {
+    background: white;
+    border: 2px solid #EEEEEE;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 15px 0;
+    transition: all 0.3s ease;
+}
+
+.dataset-card:hover {
+    border-color: #10099F;
+    box-shadow: 0 4px 12px rgba(16, 9, 159, 0.1);
+}
+
+/* Difficulty stars */
+.difficulty-stars {
+    color: #FAC55B;
+    font-size: 1.2em;
+}
+
+/* Timeline styling */
+.timeline-item {
+    padding: 15px;
+    margin: 10px 0;
+    border-left: 3px solid #10099F;
+    background: #F5F5F5;
+}
+
+/* Checklist items */
+.checklist li::before {
+    content: "☐ ";
+    color: #10099F;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.checklist li.done::before {
+    content: "✓ ";
+    color: #2DD2C0;
+}

@@ -1,0 +1,2125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative Adversarial Networks - Introduction to Deep Learning</title>
+
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+    <link rel="stylesheet" href="../shared/css/reveal-theme.css">
+    <link rel="stylesheet" href="../shared/css/common.css">
+    <link rel="stylesheet" href="../shared/css/quiz.css">
+    <link rel="stylesheet" href="css/gan-custom.css">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/monokai.css">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Title Slide -->
+            <section class="title-slide">
+                <img src="../shared/images/uoi_logo_blue.png" alt="University of Iceland Logo" class="ui-logo">
+                <h1 class="truncate-title">Generative Adversarial Networks</h1>
+                <p>Chapter 20: Learning to Generate Realistic Data</p>
+                <p>Based on "Dive into Deep Learning" by Zhang et al.</p>
+                <p class="mt-lg">
+                    <small>Instructor: Hafsteinn Einarsson</small><br>
+                    <small>University of Iceland</small>
+                </p>
+            </section>
+
+            <!-- Single Vertical Section: GANs -->
+            <section>
+                <!-- Slide 1: Discriminative vs Generative Learning -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Two Paradigms of Machine Learning</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                                <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F;">
+                                    <h4 style="color: #10099F; margin-top: 0;">Discriminative Learning</h4>
+                                    <p style="margin: 10px 0; font-size: 0.95em;">Learn mappings from <strong>data → labels</strong></p>
+                                    <ul style="font-size: 0.9em; margin: 10px 0;">
+                                        <li>Classification: cat vs. dog photos</li>
+                                        <li>Regression: predict house prices</li>
+                                        <li><strong>Question:</strong> "Which category?"</li>
+                                    </ul>
+                                    <p style="margin: 10px 0; font-size: 0.85em; color: #666;">✓ What we've studied throughout this course</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                                    <h4 style="color: #2DD2C0; margin-top: 0;">Generative Modeling</h4>
+                                    <p style="margin: 10px 0; font-size: 0.95em;">Learn to <strong>synthesize new data</strong></p>
+                                    <ul style="font-size: 0.9em; margin: 10px 0;">
+                                        <li>Generate photorealistic faces</li>
+                                        <li>Create synthetic data samples</li>
+                                        <li><strong>Question:</strong> "What does the data look like?"</li>
+                                    </ul>
+                                    <p style="margin: 10px 0; font-size: 0.85em; color: #666;">★ Our new frontier</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>The Challenge:</strong> Given a large dataset without labels, learn a model that captures its characteristics and can generate new, similar examples</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 2: Historical Context -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">The State of Generative Modeling Before GANs</h2>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <h4 style="color: #10099F;">Deep Learning's Success Story (Pre-2014)</h4>
+                            <div class="emphasis-box" style="background: #F5F5FF; padding: 15px; margin: 15px 0;">
+                                <p style="margin: 0; font-size: 0.95em;">Deep neural networks revolutionized <strong>discriminative learning</strong>:</p>
+                                <ul style="font-size: 0.9em; margin: 10px 0 0 20px;">
+                                    <li>Classification accuracy: useless → human-level in just 5-6 years</li>
+                                    <li>Backpropagation upended everything we knew</li>
+                                    <li>Success on large, complicated datasets</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #FC8484;">The Generative Challenge</h4>
+                            <div class="emphasis-box" style="background: #FFF5F5; padding: 15px; margin: 15px 0;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>Problem:</strong> No method existed to synthesize novel photorealistic images</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>Key Insight:</strong> Could we apply discriminative deep networks to solve generative problems? <span class="tooltip">RNN<span class="tooltiptext">Recurrent Neural Network: A type of network that processes sequential data by maintaining hidden states</span></span> language models showed this was possible, trained to predict the next character, they could act as generative models!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ 1: Understanding Discriminative vs Generative -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Which of the following tasks is an example of generative modeling?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Classifying emails as spam or not spam",
+                                "correct": false,
+                                "explanation": "This is discriminative learning - mapping input data (emails) to labels (spam/not spam)."
+                            },
+                            {
+                                "text": "Creating synthetic images of human faces that look realistic",
+                                "correct": true,
+                                "explanation": "Correct! This is generative modeling - synthesizing new data samples that resemble a distribution of real faces."
+                            },
+                            {
+                                "text": "Predicting house prices based on features",
+                                "correct": false,
+                                "explanation": "This is regression, a form of discriminative learning that maps features to continuous labels."
+                            },
+                            {
+                                "text": "Detecting objects in images",
+                                "correct": false,
+                                "explanation": "Object detection is discriminative learning - identifying and localizing specific objects in images."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Slide 3: Enter GANs -->
+                <section data-sources='[{"text": "Goodfellow et al. 2014 - Generative Adversarial Networks", "url": "https://arxiv.org/abs/1406.2661"}, {"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">The 2014 Breakthrough: Generative Adversarial Networks</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F; padding: 15px; margin: 15px 0;">
+                                <p style="margin: 0; font-size: 1em;"><strong>Paper:</strong> Goodfellow et al. (2014) - "Generative Adversarial Nets"</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #10099F;">Core Insight</h4>
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 20px; margin: 15px 0;">
+                                <p style="margin: 0; font-size: 1.1em; font-weight: bold; color: #2DD2C0;">A data generator is good if we cannot tell fake data apart from real data</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #FAC55B;">Connection to Statistics</h4>
+                            <ul style="font-size: 0.9em;">
+                                <li><strong><span class="tooltip">Two-sample test<span class="tooltiptext">A statistical test to determine whether two datasets come from the same distribution</span></span>:</strong> Test whether datasets X and X' come from the same distribution</li>
+                                <li><strong>Traditional approach:</strong> Use test to say "these datasets differ"</li>
+                                <li><strong>GAN approach:</strong> Use test <em>constructively</em> to provide training signals!</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>Innovation:</strong> Leverage discriminative models to train generative models, improve the generator until it produces data that fools even state-of-the-art classifiers!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 4: GAN Architecture Overview -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">GAN Architecture: The Adversarial Game</h2>
+                    <div style="font-size: 0.65em;">
+                        <div style="text-align: center; margin: 20px 0;">
+                            <img src="images/gan_architecture.svg" alt="GAN Architecture" style="max-width: 50%; height: 150px;">
+                        </div>
+                        <div class="fragment">
+                            <h4 style="color: #10099F;">Two Networks in Competition</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                                <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                                    <h5 style="color: #2DD2C0; margin-top: 0;">Generator (G)</h5>
+                                    <p style="font-size: 0.9em; margin: 5px 0;">Creates synthetic data</p>
+                                    <p style="font-size: 0.85em; margin: 5px 0;">Goal: <strong>Fool the discriminator</strong></p>
+                                </div>
+                                <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484;">
+                                    <h5 style="color: #FC8484; margin-top: 0;">Discriminator (D)</h5>
+                                    <p style="font-size: 0.9em; margin: 5px 0;">Distinguishes real from fake</p>
+                                    <p style="font-size: 0.85em; margin: 5px 0;">Goal: <strong>Detect all fakes</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>The Process:</strong> Generator creates → Discriminator judges → Generator improves → Discriminator adapts → Repeat until equilibrium</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 6: The Generator Network -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">The Generator Network</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="fragment">
+                            <h4 style="color: #2DD2C0;">Input: Random Noise</h4>
+                            <div class="emphasis-box" style="background: #F0FFF9; padding: 15px; margin: 15px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;">Draws <span class="tooltip">latent variable<span class="tooltiptext">A random vector from a simple distribution (usually Gaussian) that the generator transforms into realistic data</span></span> from a source of randomness:</p>
+                                <p style="margin: 10px 0; font-size: 1.1em; text-align: center; font-family: monospace; background: white; padding: 10px; border-radius: 5px;">
+                                    <strong style="color: #2DD2C0;">z</strong> ~ 𝒩(0, 1)
+                                </p>
+                                <p style="margin: 5px 0; font-size: 0.9em; color: #666;">Typically: <strong>z</strong> ∈ ℝ<sup>d</sup> drawn from standard normal distribution</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #2DD2C0;">Transformation: Neural Network</h4>
+                            <div class="emphasis-box" style="background: #F0FFF9; padding: 15px; margin: 15px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;">Applies a function (neural network) to generate synthetic data:</p>
+                                <p style="margin: 10px 0; font-size: 1.1em; text-align: center; font-family: monospace; background: white; padding: 10px; border-radius: 5px;">
+                                    <strong style="color: #10099F;">x'</strong> = <strong style="color: #2DD2C0;">G</strong>(<strong style="color: #2DD2C0;">z</strong>)
+                                </p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #2DD2C0;">Goal: Fool the Discriminator</h4>
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.95em;">The generator wants: <strong>D(G(z)) ≈ 1</strong></p>
+                                <p style="margin: 5px 0; font-size: 0.85em;">(Discriminator classifies generated data as real)</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 7: The Discriminator Network -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">The Discriminator Network</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <h4 style="color: #FC8484;">Task: Binary Classification</h4>
+                            <div class="emphasis-box" style="background: #FFF5F5; padding: 15px; margin: 15px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;">Distinguishes if input <strong>x</strong> is real or fake</p>
+                                <ul style="font-size: 0.9em; margin: 10px 0;">
+                                    <li>Input: data sample <strong>x</strong> (real or generated)</li>
+                                    <li>Output: scalar prediction <strong>o</strong> ∈ ℝ</li>
+                                    <li>Apply <span class="tooltip">sigmoid<span class="tooltiptext">Sigmoid function: σ(x) = 1/(1+e^(-x)), maps any real number to (0,1) for probability interpretation</span></span> function: <strong>D(x) = 1/(1+e<sup>-o</sup>)</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #FC8484;">Output Interpretation</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85em;">
+                                <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 12px;">
+                                    <p style="margin: 0; font-size: 0.95em;"><strong>D(x) → 1:</strong> Real data</p>
+                                    <p style="margin: 5px 0; font-size: 0.85em; color: #666;">Label y = 1</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 12px;">
+                                    <p style="margin: 0; font-size: 0.95em;"><strong>D(x) → 0:</strong> Fake data</p>
+                                    <p style="margin: 5px 0; font-size: 0.85em; color: #666;">Label y = 0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>Goal:</strong> Maximize accuracy—correctly identify real as real (D(x)→1) and fake as fake (D(x')→0)</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ 2: Understanding Discriminator -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What does the discriminator output D(x) = 0.9 indicate?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "The discriminator is 90% certain the input is fake",
+                                "correct": false,
+                                "explanation": "Actually, D(x) = 0.9 means the discriminator thinks the input is likely REAL (probability 0.9)."
+                            },
+                            {
+                                "text": "The discriminator is 90% certain the input is real",
+                                "correct": true,
+                                "explanation": "Correct! D(x) outputs a probability between 0 and 1, where values close to 1 indicate high confidence that the input is real data."
+                            },
+                            {
+                                "text": "The generator has achieved 90% training accuracy",
+                                "correct": false,
+                                "explanation": "D(x) is the output of the discriminator for a single input, not a measure of generator performance across the dataset."
+                            },
+                            {
+                                "text": "The model needs 90% more training epochs",
+                                "correct": false,
+                                "explanation": "D(x) is a prediction probability, not a metric about training progress or remaining epochs."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Slide 8: Discriminator Loss -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Discriminator Loss Function</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <h4 style="color: #FC8484;">Binary Cross-Entropy Loss</h4>
+                            <div class="emphasis-box" style="background: #FFF5F5; padding: 20px; margin: 20px 0;">
+                                <p style="margin: 10px 0; font-size: 1.2em; text-align: center; font-family: monospace;">
+                                    min<sub>D</sub> { <span style="color: #2DD2C0;"><strong>-y log D(x)</strong></span> - <span style="color: #FC8484;"><strong>(1-y) log(1-D(x))</strong></span> }
+                                </p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #10099F;">Understanding Each Term</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; font-size: 0.85em;">
+                                <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 12px;">
+                                    <p style="margin: 0; font-size: 0.95em; color: #2DD2C0;"><strong>First term: -y log D(x)</strong></p>
+                                    <p style="margin: 8px 0; font-size: 0.85em;">Activates when <strong>y = 1</strong> (real data)</p>
+                                    <p style="margin: 5px 0; font-size: 0.85em;">Penalizes if D(x) is far from 1</p>
+                                    <p style="margin: 5px 0; font-size: 0.8em; color: #666;">Encourages: D(real) → 1</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 12px;">
+                                    <p style="margin: 0; font-size: 0.95em; color: #FC8484;"><strong>Second term: -(1-y) log(1-D(x))</strong></p>
+                                    <p style="margin: 8px 0; font-size: 0.85em;">Activates when <strong>y = 0</strong> (fake data)</p>
+                                    <p style="margin: 5px 0; font-size: 0.85em;">Penalizes if D(x) is far from 0</p>
+                                    <p style="margin: 5px 0; font-size: 0.8em; color: #666;">Encourages: D(fake) → 0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>Discriminator's Objective:</strong> Minimize this loss = correctly identify real data as real and fake data as fake</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 9: Generator Loss (Initial) -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Generator Loss: Initial Formulation</h2>
+                    <div style="font-size: 0.5em;">
+                        <div class="fragment">
+                            <h4 style="color: #2DD2C0;">Theoretical Formulation</h4>
+                            <div class="emphasis-box" style="background: #F0FFF9; padding: 20px; margin: 20px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;">Generator wants to <strong>maximize</strong> discriminator's error on fake data:</p>
+                                <p style="margin: 15px 0; font-size: 1.2em; text-align: center; font-family: monospace;">
+                                    max<sub>G</sub> { <strong>-log(1 - D(G(z)))</strong> }
+                                </p>
+                                <p style="margin: 5px 0; font-size: 0.9em; text-align: center; color: #666;">When y = 0, maximize the cross-entropy loss</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #FC8484;">The Problem with This Formulation</h4>
+                            <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 15px;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>Vanishing Gradients (Early in Training):</strong> When the generator is doing poorly, <strong>D(G(z)) ≈ 0</strong></p>
+                                <p style="margin: 10px 0; font-size: 0.9em;">Then: <strong>1 - D(G(z)) ≈ 1</strong> → <strong>-log(1 - D(G(z))) ≈ 0</strong></p>
+                                <p style="margin: 10px 0; font-size: 0.9em; color: #FC8484;">Result: <strong>Gradients are too small</strong> when the generator needs them most!</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 5px 0; font-size: 0.9em;">The loss saturates at <strong>both extremes</strong>:</p>
+                                <ul style="margin: 8px 0; font-size: 0.85em; line-height: 1.5;">
+                                    <li>When D(G(z)) ≈ 0 (generator is bad) → weak gradients</li>
+                                    <li>When D(G(z)) ≈ 1 (generator is good) → weak gradients</li>
+                                </ul>
+                                <p style="margin: 5px 0; font-size: 0.9em;">Theoretically correct but <strong>practically problematic</strong> for training!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 10: Generator Loss (Practical) -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Generator Loss: Practical Formulation</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <h4 style="color: #2DD2C0;">Better Approach</h4>
+                            <div class="emphasis-box" style="background: #F0FFF9; padding: 20px; margin: 20px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;">Instead, <strong>minimize</strong> this loss:</p>
+                                <p style="margin: 15px 0; font-size: 1.2em; text-align: center; font-family: monospace;">
+                                    min<sub>G</sub> { <strong>-log(D(G(z)))</strong> }
+                                </p>
+                                <p style="margin: 10px 0; font-size: 0.9em; text-align: center; color: #666;">Equivalent to: feed fake data x' = G(z) with label <strong>y = 1</strong></p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #10099F;">Why This Works Better</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; font-size: 0.85em;">
+                                <div class="emphasis-box" style="background: #FFF5F5; padding: 12px;">
+                                    <p style="margin: 0; font-size: 0.9em; color: #FC8484;"><strong>Original (saturating):</strong></p>
+                                    <p style="margin: 5px 0; font-size: 0.85em;">max -log(1-D(G(z)))</p>
+                                    <p style="margin: 5px 0; font-size: 0.8em; color: #666;">✗ Weak gradients when D(G(z)) ≈ 0</p>
+                                    <p style="margin: 5px 0; font-size: 0.75em; color: #999;">(generator is poor - early training)</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #F0FFF9; padding: 12px;">
+                                    <p style="margin: 0; font-size: 0.9em; color: #2DD2C0;"><strong>Non-saturating (better):</strong></p>
+                                    <p style="margin: 5px 0; font-size: 0.85em;">min -log(D(G(z)))</p>
+                                    <p style="margin: 5px 0; font-size: 0.8em; color: #666;">✓ Strong gradients when D(G(z)) ≈ 0</p>
+                                    <p style="margin: 5px 0; font-size: 0.75em; color: #999;">(generator improves faster early on)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 10: Generator Loss (Practical) -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Generator Loss: Practical Formulation</h2>
+                    <div style="font-size: 0.5em;">
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #10099F;">Numerical Example: Gradient Strength</h4>
+                            <table style="width: 100%; font-size: 0.75em; margin: 10px 0; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: #10099F; color: white;">
+                                        <th style="padding: 8px; border: 1px solid #ddd;">D(G(z))</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd;">Saturating Loss</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd;">Non-saturating Loss</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd;">Comparison</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background: #FFF5F5;">
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;"><strong>0.1</strong><br><span style="font-size: 0.8em; color: #999;">(poor G)</span></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">-log(0.9) ≈ <strong>0.11</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">-log(0.1) ≈ <strong>2.30</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center; color: #2DD2C0;"><strong>20× stronger!</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;"><strong>0.5</strong><br><span style="font-size: 0.8em; color: #999;">(medium G)</span></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">-log(0.5) ≈ <strong>0.69</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">-log(0.5) ≈ <strong>0.69</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center; color: #666;">Similar</td>
+                                    </tr>
+                                    <tr style="background: #F0FFF9;">
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;"><strong>0.9</strong><br><span style="font-size: 0.8em; color: #999;">(good G)</span></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">-log(0.1) ≈ <strong>2.30</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">-log(0.9) ≈ <strong>0.11</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center; color: #666;">Both work</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>Key Insight:</strong> The non-saturating loss provides much stronger gradients early in training when the generator needs them most!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ 3: Understanding Generator Loss -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why do we use min -log(D(G(z))) instead of max -log(1-D(G(z))) for the generator loss?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Because it is mathematically simpler to implement",
+                                "correct": false,
+                                "explanation": "While implementation is similar, the real reason is about gradient flow, not simplicity."
+                            },
+                            {
+                                "text": "To prevent vanishing gradients when the generator performs poorly",
+                                "correct": true,
+                                "explanation": "Correct! The non-saturating loss provides much stronger gradients early in training. When D(G(z)) ≈ 0 (generator is doing poorly), the original loss -log(1-D(G(z))) ≈ 0 gives tiny gradients, but the practical loss -log(D(G(z))) ≈ 2.3 provides strong gradients, enabling faster improvement."
+                            },
+                            {
+                                "text": "Because the discriminator requires this specific formulation",
+                                "correct": false,
+                                "explanation": "The discriminator loss is independent of the generator loss formulation. This choice is specifically to help generator training."
+                            },
+                            {
+                                "text": "To make both networks minimize the same objective",
+                                "correct": false,
+                                "explanation": "The networks have opposing objectives in the adversarial game. This formulation helps training dynamics, not objective alignment."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Slide 11: The Minimax Game -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">The Complete Objective: A Minimax Game</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <h4 style="color: #10099F;">Combined Objective Function</h4>
+                            <div class="emphasis-box" style="background: #F5F5FF; padding: 20px; margin: 20px 0;">
+                                <p style="margin: 15px 0; font-size: 1.1em; text-align: center; font-family: 'Source Code Pro', monospace; line-height: 1.6;">
+                                    min<sub style="color: #FC8484;">D</sub> max<sub style="color: #2DD2C0;">G</sub> {
+                                    <span style="color: #2DD2C0;">-𝔼<sub>x~Data</sub></span> log <span style="color: #FC8484;">D</span>(<span style="color: #2DD2C0;">x</span>)
+                                    - <span style="color: #FC8484;">𝔼<sub>z~Noise</sub></span> log(1 - <span style="color: #FC8484;">D</span>(<span style="color: #2DD2C0;">G</span>(<span style="color: #FC8484;">z</span>))) }
+                                </p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #10099F;">Breaking Down the Terms</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; font-size: 0.85em;">
+                                <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 12px;">
+                                    <p style="margin: 0; font-size: 0.9em; color: #2DD2C0;"><strong>𝔼<sub>x~Data</sub> log D(x)</strong></p>
+                                    <p style="margin: 8px 0; font-size: 0.85em;"><span class="tooltip">Expectation<span class="tooltiptext">Mathematical expectation: the average value over all possible samples from a distribution</span></span> over real data</p>
+                                    <p style="margin: 5px 0; font-size: 0.8em; color: #666;">Discriminator should output high values for real data</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 12px;">
+                                    <p style="margin: 0; font-size: 0.9em; color: #FC8484;"><strong>𝔼<sub>z~Noise</sub> log(1-D(G(z)))</strong></p>
+                                    <p style="margin: 8px 0; font-size: 0.85em;">Expectation over noise samples</p>
+                                    <p style="margin: 5px 0; font-size: 0.8em; color: #666;">Discriminator should output low values for fake data</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #FAC55B;">The Adversarial Dynamic</h4>
+                            <ul style="font-size: 0.9em;">
+                                <li><strong style="color: #FC8484;">Discriminator (min<sub>D</sub>):</strong> Wants to minimize = correctly classify real and fake</li>
+                                <li><strong style="color: #2DD2C0;">Generator (max<sub>G</sub>):</strong> Wants to maximize = fool the discriminator</li>
+                                <li><strong>Competition:</strong> Both networks improve in response to each other</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 12: Training Process -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Training Dynamics: Alternating Updates</h2>
+                    <div style="font-size: 0.5em;">
+                        <div class="fragment">
+                            <h4 style="color: #10099F;">The Training Loop</h4>
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px; margin: 15px 0;">
+                                <div style="display: flex; align-items: center; gap: 15px; margin: 10px 0; padding: 12px; background: #FFF5F5; border-left: 4px solid #FC8484; border-radius: 5px;">
+                                    <div style="font-size: 2em; color: #FC8484;">①</div>
+                                    <div style="flex: 1;">
+                                        <p style="margin: 0; font-size: 0.95em; font-weight: bold; color: #FC8484;">Update Discriminator</p>
+                                        <p style="margin: 5px 0; font-size: 0.85em;">Sample real data + generate fake data</p>
+                                        <p style="margin: 5px 0; font-size: 0.85em;">Minimize discriminator loss (improve detection)</p>
+                                    </div>
+                                </div>
+                                <div style="text-align: center; font-size: 1.5em; margin: 5px 0; color: #10099F;">↓</div>
+                                <div style="display: flex; align-items: center; gap: 15px; margin: 10px 0; padding: 12px; background: #F0FFF9; border-left: 4px solid #2DD2C0; border-radius: 5px;">
+                                    <div style="font-size: 2em; color: #2DD2C0;">②</div>
+                                    <div style="flex: 1;">
+                                        <p style="margin: 0; font-size: 0.95em; font-weight: bold; color: #2DD2C0;">Update Generator</p>
+                                        <p style="margin: 5px 0; font-size: 0.85em;">Generate new fake data</p>
+                                        <p style="margin: 5px 0; font-size: 0.85em;">Minimize generator loss (fool discriminator)</p>
+                                    </div>
+                                </div>
+                                <div style="text-align: center; font-size: 1.5em; margin: 5px 0; color: #10099F;">↓</div>
+                                <div style="text-align: center; padding: 10px; background: #FFFBF0; border-radius: 5px;">
+                                    <p style="margin: 0; font-size: 0.95em; font-weight: bold; color: #FAC55B;">Repeat until convergence</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #10099F;">Convergence: The Equilibrium State</h4>
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>Ideally:</strong> Generator produces data indistinguishable from real data, and discriminator can only guess randomly (D(x) = 0.5 for all x)</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ 4: Training Dynamics -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "During GAN training, what does it mean when both the generator and discriminator losses converge to approximately log(2) ≈ 0.693?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "The training has failed and needs to be restarted",
+                                "correct": false,
+                                "explanation": "Actually, this is a sign of successful training, not failure. The losses converging to log(2) indicates equilibrium."
+                            },
+                            {
+                                "text": "The discriminator can no longer distinguish real from fake data",
+                                "correct": true,
+                                "explanation": "Correct! When D(x) = 0.5 for all inputs (random guessing), the cross-entropy loss equals -log(0.5) = log(2) ≈ 0.693. This indicates the generator is producing realistic data that fools the discriminator."
+                            },
+                            {
+                                "text": "The generator has stopped producing diverse outputs",
+                                "correct": false,
+                                "explanation": "This convergence value indicates equilibrium between G and D, not a mode collapse issue (which would show different symptoms)."
+                            },
+                            {
+                                "text": "We need to increase the learning rate for both networks",
+                                "correct": false,
+                                "explanation": "This convergence indicates successful training equilibrium. Increasing learning rates could destabilize the trained model."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Slide 13: Example Setup -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">A Simple Example: Fitting a Gaussian Distribution</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B; padding: 15px; margin: 15px 0;">
+                                <p style="margin: 0; font-size: 1em; font-style: italic;">"The world's most inefficient estimator of parameters for a Gaussian"</p>
+                                <p style="margin: 10px 0; font-size: 0.85em; color: #666;">— Using a powerful tool for a simple task to demonstrate concepts</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #10099F;">Data Generation Process</h4>
+                            <div class="emphasis-box" style="background: #F5F5FF; padding: 15px; margin: 15px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;">Generate 2D Gaussian data with transformation:</p>
+                                <div style="background: white; padding: 15px; border-radius: 5px; margin: 10px 0; font-family: 'Source Code Pro', monospace;">
+                                    <p style="margin: 5px 0; font-size: 0.9em;"><strong>X</strong> ~ 𝒩(0, 1) with shape (1000, 2)</p>
+                                    <p style="margin: 5px 0; font-size: 0.9em;"><strong>A</strong> = [[1, 2], [-0.1, 0.5]]</p>
+                                    <p style="margin: 5px 0; font-size: 0.9em;"><strong>b</strong> = [1, 2]</p>
+                                    <p style="margin: 10px 0; font-size: 1em; color: #10099F;"><strong>data</strong> = <strong>X</strong> @ <strong>A</strong> + <strong>b</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #10099F;">Resulting Distribution</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85em;">
+                                <div class="emphasis-box" style="background: #F0FFF9; padding: 12px;">
+                                    <p style="margin: 0; font-size: 0.9em;"><strong>Mean:</strong> b = [1, 2]</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #F0FFF9; padding: 12px;">
+                                    <p style="margin: 0; font-size: 0.9em;"><strong>Covariance:</strong> A<sup>T</sup>A = [[1.01, 1.95], [1.95, 4.25]]</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 14: Real Data Visualization -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">The Real Data Distribution</h2>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <img src="images/real_data_scatter.svg" alt="Real Data Scatter Plot" style="max-width: 60%; height: auto; border: 1px solid #EEEEEE; border-radius: 8px; padding: 10px; background: white;">
+                    </div>
+                    <div class="fragment" style="margin-top: 20px;">
+                        <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F;">
+                            <p style="margin: 0; font-size: 0.9em;"><strong>Goal:</strong> Train a GAN to generate new samples that match this distribution</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 15: Network Architectures -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Network Architectures for the Example</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <h4 style="color: #2DD2C0;">Generator: Simple Linear Model</h4>
+                            <div class="emphasis-box" style="background: #F0FFF9; padding: 15px; margin: 15px 0;">
+                                <div style="background: white; padding: 15px; border-radius: 5px; font-family: 'Source Code Pro', monospace; font-size: 0.9em;">
+                                    <p style="margin: 5px 0;">net_G = Sequential(Linear(2, 2))</p>
+                                </div>
+                                <p style="margin: 10px 0; font-size: 0.9em; color: #666;">Just one linear layer: 2D input (noise) → 2D output (data)</p>
+                                <p style="margin: 5px 0; font-size: 0.85em;"><strong>Why so simple?</strong> The data itself is generated by a linear transformation!</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #FC8484;">Discriminator: 3-Layer MLP</h4>
+                            <div class="emphasis-box" style="background: #FFF5F5; padding: 15px; margin: 15px 0;">
+                                <div style="background: white; padding: 15px; border-radius: 5px; font-family: 'Source Code Pro', monospace; font-size: 0.9em;">
+                                    <p style="margin: 5px 0;">net_D = Sequential(</p>
+                                    <p style="margin: 5px 0; padding-left: 20px;">Linear(2, 5), Tanh(),</p>
+                                    <p style="margin: 5px 0; padding-left: 20px;">Linear(5, 3), Tanh(),</p>
+                                    <p style="margin: 5px 0; padding-left: 20px;">Linear(3, 1))</p>
+                                </div>
+                                <p style="margin: 10px 0; font-size: 0.9em; color: #666;">Architecture: 2 → 5 → 3 → 1 with <span class="tooltip">Tanh activations<span class="tooltiptext">Hyperbolic tangent activation: tanh(x) = (e^x - e^(-x))/(e^x + e^(-x)), outputs values in range [-1, 1]</span></span></p>
+                                <p style="margin: 5px 0; font-size: 0.85em;"><strong>More discriminating:</strong> Needs nonlinearity to learn the decision boundary</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 16: Training Hyperparameters -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Training Configuration</h2>
+                    <div style="font-size: 0.5em;">
+                        <div class="fragment">
+                            <h4 style="color: #10099F;">Hyperparameters</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
+                                <div class="emphasis-box" style="background: #FFF5F5; padding: 15px;">
+                                    <p style="margin: 5px 0; font-size: 0.95em;"><strong style="color: #FC8484;">Discriminator Learning Rate:</strong></p>
+                                    <p style="margin: 5px 0; font-size: 1.1em; font-family: monospace;">lr_D = 0.05</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #F0FFF9; padding: 15px;">
+                                    <p style="margin: 5px 0; font-size: 0.95em;"><strong style="color: #2DD2C0;">Generator Learning Rate:</strong></p>
+                                    <p style="margin: 5px 0; font-size: 1.1em; font-family: monospace;">lr_G = 0.005</p>
+                                </div>
+                            </div>
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B; margin: 15px 0; padding: 12px;">
+                                <p style="margin: 0; font-size: 0.9em;"><strong>Note:</strong> Discriminator learning rate is 10× higher—common practice to balance training dynamics</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #10099F;">Other Settings</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; font-size: 0.85em;">
+                                <div class="emphasis-box" style="background: #F5F5FF; padding: 12px; text-align: center;">
+                                    <p style="margin: 5px 0; font-size: 0.9em;"><strong>Latent Dimension</strong></p>
+                                    <p style="margin: 5px 0; font-size: 1.1em; font-family: monospace; color: #10099F;">2</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #F5F5FF; padding: 12px; text-align: center;">
+                                    <p style="margin: 5px 0; font-size: 0.9em;"><strong>Batch Size</strong></p>
+                                    <p style="margin: 5px 0; font-size: 1.1em; font-family: monospace; color: #10099F;">8</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #F5F5FF; padding: 12px; text-align: center;">
+                                    <p style="margin: 5px 0; font-size: 0.9em;"><strong>Epochs</strong></p>
+                                    <p style="margin: 5px 0; font-size: 1.1em; font-family: monospace; color: #10099F;">20</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #F5F5FF; padding: 15px;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>Optimizer:</strong> <span class="tooltip">Adam<span class="tooltiptext">Adaptive Moment Estimation: An optimization algorithm that adapts learning rates for each parameter using first and second moment estimates</span></span> (for both networks)</p>
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>Loss Function:</strong> Binary Cross-Entropy with Logits</p>
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>Weight Initialization:</strong> Normal(0, 0.02)</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 17: Training Results -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Training Results: Convergence to Equilibrium</h2>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <img src="images/training_results.svg" alt="Training Results" style="max-width: 300px; height: auto; border: 1px solid #EEEEEE; border-radius: 8px; padding: 10px; background: white;">
+                    </div>
+                    <div class="fragment" style="margin-top: 20px; font-size: 0.85em;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 12px;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong style="color: #FC8484;">Loss Curves (Top):</strong></p>
+                                <p style="margin: 5px 0; font-size: 0.85em;">Both losses converge to ~0.693</p>
+                                <p style="margin: 5px 0; font-size: 0.8em; color: #666;">= log(2) ≈ equilibrium</p>
+                            </div>
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 12px;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong style="color: #2DD2C0;">Scatter Plot (Bottom):</strong></p>
+                                <p style="margin: 5px 0; font-size: 0.85em;">Blue = real, Orange = generated</p>
+                                <p style="margin: 5px 0; font-size: 0.8em; color: #666;">Distributions overlap!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 18: Key Insights -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Key Insights from the Example</h2>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 15px; margin: 15px 0;">
+                                <h4 style="color: #2DD2C0; margin-top: 0;">✓ Success: Generator Learned the Distribution</h4>
+                                <p style="margin: 5px 0; font-size: 0.95em;">Generated samples are indistinguishable from real data</p>
+                                <p style="margin: 5px 0; font-size: 0.9em;">The simple linear generator discovered the linear transformation!</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 15px; margin: 15px 0;">
+                                <h4 style="color: #FC8484; margin-top: 0;">⚖️ Equilibrium Reached</h4>
+                                <p style="margin: 5px 0; font-size: 0.95em;">Both losses = log(2) ≈ 0.693</p>
+                                <p style="margin: 5px 0; font-size: 0.9em;">This is the cross-entropy loss when D(x) = 0.5 (random guessing)</p>
+                                <p style="margin: 5px 0; font-size: 0.9em;">Discriminator can no longer reliably distinguish real from fake</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F; padding: 15px; margin: 15px 0;">
+                                <h4 style="color: #10099F; margin-top: 0;">💡 Proof of Concept</h4>
+                                <p style="margin: 5px 0; font-size: 0.95em;">The adversarial training process works!</p>
+                                <p style="margin: 5px 0; font-size: 0.9em;">Even on a toy problem, we see the fundamental GAN dynamics</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 19: Summary -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Summary: Generative Adversarial Networks</h2>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F; padding: 15px; margin: 10px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>1. Architecture:</strong> GANs compose two deep networks—the <span style="color: #2DD2C0;">generator</span> and the <span style="color: #FC8484;">discriminator</span></p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 15px; margin: 10px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>2. Generator's Goal:</strong> Maximize log(D(x')) to fool the discriminator into believing fake data is real</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 15px; margin: 10px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>3. Discriminator's Goal:</strong> Minimize cross-entropy loss: min { -y log D(x) - (1-y)log(1-D(x)) }</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B; padding: 15px; margin: 10px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>4. Training Dynamic:</strong> Adversarial training leads to an equilibrium where generated data becomes increasingly realistic</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #F5F5FF; padding: 15px;">
+                                <p style="margin: 0; font-size: 0.95em; text-align: center;"><strong>Key Innovation:</strong> Using discriminative models to provide training signals for generative models</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ 5: Comprehensive Understanding -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the primary innovation that GANs introduced to generative modeling?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Using deeper neural networks than previous methods",
+                                "correct": false,
+                                "explanation": "While GANs can use deep networks, this is not their primary innovation. Deep networks were already used in other contexts."
+                            },
+                            {
+                                "text": "Training two networks in an adversarial game to improve generation quality",
+                                "correct": true,
+                                "explanation": "Correct! The key innovation is the adversarial training framework where a discriminator provides training signals to improve the generator, leveraging discriminative models to train generative models."
+                            },
+                            {
+                                "text": "Generating data from Gaussian noise",
+                                "correct": false,
+                                "explanation": "Using random noise as input is not unique to GANs—many generative models use random sampling. The innovation is how they train using adversarial dynamics."
+                            },
+                            {
+                                "text": "Applying backpropagation to generative models",
+                                "correct": false,
+                                "explanation": "Backpropagation was already used in generative models before GANs. The adversarial training framework is what makes GANs unique."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Slide 20: Theoretical Question -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1 Exercises", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html#exercises"}]'>
+                    <h2 class="truncate-title">Thought Exercise: Does Equilibrium Exist?</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F; padding: 20px; margin: 20px 0;">
+                                <h4 style="color: #10099F; margin-top: 0;">Question</h4>
+                                <p style="margin: 10px 0; font-size: 1em;">Does an equilibrium exist where the generator wins?</p>
+                                <p style="margin: 10px 0; font-size: 0.95em; font-style: italic;">That is, can the discriminator end up unable to distinguish the two distributions on <strong>finite samples</strong>?</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #FAC55B;">Points to Consider</h4>
+                            <ul style="font-size: 0.9em; line-height: 1.6;">
+                                <li>What happens when both distributions are identical?</li>
+                                <li>Role of finite sample sizes vs. infinite populations</li>
+                                <li>Can a discriminator always find some difference in finite samples?</li>
+                                <li>What does "Nash equilibrium" mean in this context?</li>
+                                <li>Practical vs. theoretical convergence</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.9em;"><strong>Reflection:</strong> This is an open theoretical question that touches on statistical learning theory, sample complexity, and game theory.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 21: From Theory to Practice -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">From Theory to Practice: Implementing GANs</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F; padding: 20px; margin: 20px 0;">
+                                <p style="margin: 10px 0; font-size: 1.05em;"><strong>Now let's implement a complete GAN from scratch!</strong></p>
+                                <p style="margin: 10px 0; font-size: 0.95em;">We'll build the "world's most inefficient estimator" for a Gaussian distribution to understand every component.</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #10099F;">Implementation Overview</h4>
+                            <ul style="font-size: 0.9em; line-height: 1.8;">
+                                <li><strong style="color: #2DD2C0;">1. Data Generation:</strong> Create our "real" Gaussian dataset</li>
+                                <li><strong style="color: #FC8484;">2. Network Architectures:</strong> Define Generator and Discriminator</li>
+                                <li><strong style="color: #FAC55B;">3. Update Functions:</strong> Implement alternating training</li>
+                                <li><strong style="color: #10099F;">4. Training Loop:</strong> Put it all together</li>
+                                <li><strong style="color: #2DD2C0;">5. Results:</strong> Visualize convergence</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                                <p style="margin: 0; font-size: 0.9em;"><strong>Framework:</strong> We'll use PyTorch, but the concepts apply to any deep learning framework</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 22: Generating the Real Data -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Step 1: Generate "Real" Data</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <h4 style="color: #10099F;">Setup: Import Libraries</h4>
+                            <div style="background: #262626; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                <pre><code class="language-python" style="font-size: 0.85em;">import torch
+from torch import nn
+from d2l import torch as d2l</code></pre>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #10099F;">Generate 2D Gaussian Data</h4>
+                            <div style="background: #262626; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                <pre><code class="language-python" style="font-size: 0.85em;"># Sample from standard normal
+X = torch.normal(0.0, 1, (1000, 2))
+
+# Define linear transformation
+A = torch.tensor([[1, 2], [-0.1, 0.5]])
+b = torch.tensor([1, 2])
+
+# Apply transformation
+data = torch.matmul(X, A) + b</code></pre>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F;">
+                                <p style="margin: 5px 0; font-size: 0.9em;"><strong>Result:</strong> Gaussian with mean <strong>b</strong> = [1, 2] and covariance <strong>A<sup>T</sup>A</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 23: Visualizing the Generated Data -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Visualizing Our Dataset</h2>
+                    <div style="font-size: 0.85em;">
+                        <div style="text-align: center; margin: 20px 0;">
+                            <img src="images/output_gan_scatter.svg" alt="Generated Data Scatter Plot" style="max-width: 60%; height: auto; border: 1px solid #EEEEEE; border-radius: 8px; padding: 10px; background: white;">
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #F5F5FF; padding: 15px;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>Covariance matrix:</strong></p>
+                                <div style="background: white; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: 'Source Code Pro', monospace; font-size: 0.9em; text-align: center;">
+                                    <p style="margin: 0;">[[1.01, 1.95],</p>
+                                    <p style="margin: 0;"> [1.95, 4.25]]</p>
+                                </div>
+                                <p style="margin: 5px 0; font-size: 0.9em; color: #666;">Notice the positive correlation (off-diagonal elements)</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 24: Data Loader Setup -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Creating the Data Loader</h2>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <h4 style="color: #10099F;">Batch Iterator</h4>
+                            <div style="background: #262626; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                <pre><code class="language-python" style="font-size: 0.85em;">batch_size = 8
+data_iter = d2l.load_array((data,), batch_size)</code></pre>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #10099F;">What This Does</h4>
+                            <ul style="font-size: 0.9em; line-height: 1.8;">
+                                <li><strong>Batching:</strong> Groups data into mini-batches of 8 samples</li>
+                                <li><strong>Iteration:</strong> Provides samples for training loop</li>
+                                <li><strong>Efficiency:</strong> Enables parallel processing on GPU</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.9em;"><strong>Note:</strong> Small batch size (8) is typical for GANs—helps stabilize training</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ: Data Generation -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why do we apply the transformation data = X @ A + b instead of directly sampling from the target distribution?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To make the problem harder for the GAN",
+                                "correct": false,
+                                "explanation": "While it does create a specific distribution, the main reason is to create a known ground truth that we can verify against."
+                            },
+                            {
+                                "text": "To create a dataset with known statistical properties (mean and covariance) for validation",
+                                "correct": true,
+                                "explanation": "Correct! By using a linear transformation, we know exactly what mean (b) and covariance (AᵀA) the data should have, making it easy to verify if the GAN learns correctly."
+                            },
+                            {
+                                "text": "Because PyTorch cannot sample from arbitrary Gaussian distributions",
+                                "correct": false,
+                                "explanation": "PyTorch can sample from various distributions. The transformation is used to create specific, verifiable statistical properties."
+                            },
+                            {
+                                "text": "To reduce memory usage during training",
+                                "correct": false,
+                                "explanation": "The transformation does not affect memory usage. Its purpose is to create a dataset with known, controllable properties."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Slide 25: Generator Network Implementation -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Step 2: Implementing the Generator</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <h4 style="color: #2DD2C0;">Simplest Possible Architecture</h4>
+                            <div style="background: #262626; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                <pre><code class="language-python" style="font-size: 0.85em;">net_G = nn.Sequential(nn.Linear(2, 2))</code></pre>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #2DD2C0;">Why So Simple?</h4>
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 15px; margin: 15px 0;">
+                                <ul style="font-size: 0.9em; margin: 10px 0; line-height: 1.8;">
+                                    <li><strong>Input:</strong> 2D noise vector <strong>z</strong> ~ 𝒩(0, 1)</li>
+                                    <li><strong>Output:</strong> 2D data point <strong>x'</strong></li>
+                                    <li><strong>Perfect match:</strong> Our real data is generated by a linear transformation!</li>
+                                    <li><strong>Capacity:</strong> A single <span class="tooltip">linear layer<span class="tooltiptext">Linear Layer: Computes y = Wx + b, where W is a weight matrix and b is a bias vector. This is the simplest neural network layer.</span></span> can learn any linear transformation</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.9em;"><strong>Key Insight:</strong> The generator literally just needs to learn matrix A and vector b!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 26: Discriminator Network Implementation -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Step 2: Implementing the Discriminator</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <h4 style="color: #FC8484;">More Complex: 3-Layer MLP</h4>
+                            <div style="background: #262626; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                <pre><code class="language-python" style="font-size: 0.85em;">net_D = nn.Sequential(
+    nn.Linear(2, 5), nn.Tanh(),
+    nn.Linear(5, 3), nn.Tanh(),
+    nn.Linear(3, 1)
+)</code></pre>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 style="color: #FC8484;">Architecture Breakdown</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 15px 0; font-size: 0.85em;">
+                                <div class="emphasis-box" style="background: #FFF5F5; padding: 12px; text-align: center;">
+                                    <p style="margin: 5px 0; font-weight: bold;">Layer 1</p>
+                                    <p style="margin: 5px 0; font-size: 0.85em;">2 → 5</p>
+                                    <p style="margin: 5px 0; font-size: 0.8em; color: #666;">Tanh activation</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #FFF5F5; padding: 12px; text-align: center;">
+                                    <p style="margin: 5px 0; font-weight: bold;">Layer 2</p>
+                                    <p style="margin: 5px 0; font-size: 0.85em;">5 → 3</p>
+                                    <p style="margin: 5px 0; font-size: 0.8em; color: #666;">Tanh activation</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #FFF5F5; padding: 12px; text-align: center;">
+                                    <p style="margin: 5px 0; font-weight: bold;">Layer 3</p>
+                                    <p style="margin: 5px 0; font-size: 0.85em;">3 → 1</p>
+                                    <p style="margin: 5px 0; font-size: 0.8em; color: #666;">No activation</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #FC8484;">
+                                <p style="margin: 0; font-size: 0.9em;"><strong>Why more complex?</strong> The discriminator needs <span class="tooltip">nonlinearity<span class="tooltiptext">Nonlinearity: Functions like Tanh that allow neural networks to learn complex, non-linear decision boundaries. Without them, networks can only learn linear transformations.</span></span> to learn the decision boundary between real and fake distributions</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 27: Discriminator Update Function -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Step 3: Discriminator Update Function</h2>
+                    <div style="font-size: 0.75em;">
+                        <div style="background: #262626; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                            <pre><code class="language-python" style="font-size: 0.8em;">def update_D(X, Z, net_D, net_G, loss, trainer_D):
+    """Update discriminator."""
+    batch_size = X.shape[0]
+    ones = torch.ones((batch_size,), device=X.device)
+    zeros = torch.zeros((batch_size,), device=X.device)
+
+    trainer_D.zero_grad()
+
+    # Discriminator output on real data
+    real_Y = net_D(X)
+
+    # Generate fake data
+    fake_X = net_G(Z)
+
+    # Discriminator output on fake data
+    # IMPORTANT: detach() prevents gradients from flowing to net_G
+    fake_Y = net_D(fake_X.detach())
+
+    # Compute loss
+    loss_D = (loss(real_Y, ones.reshape(real_Y.shape)) +
+              loss(fake_Y, zeros.reshape(fake_Y.shape))) / 2
+
+    # Backpropagation
+    loss_D.backward()
+    trainer_D.step()
+
+    return loss_D</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 28: Understanding detach() -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Critical Detail: The detach() Operation</h2>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <h4 style="color: #FC8484;">Why fake_X.detach()?</h4>
+                            <div style="background: #262626; padding: 12px; border-radius: 8px; margin: 15px 0;">
+                                <pre><code class="language-python" style="font-size: 0.85em;">fake_X = net_G(Z)
+fake_Y = net_D(fake_X.detach())  # ← detach() is crucial!</code></pre>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 15px;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>Purpose:</strong> Breaks the <span class="tooltip">computational graph<span class="tooltiptext">Computational Graph: A directed graph representing the sequence of operations in a neural network. Used by autograd systems to compute gradients via backpropagation.</span></span> connection between G and D</p>
+                                <ul style="font-size: 0.9em; margin: 10px 0; line-height: 1.8;">
+                                    <li><strong>Without detach():</strong> Gradients would flow through both net_D AND net_G</li>
+                                    <li><strong>With detach():</strong> Gradients only update net_D parameters</li>
+                                    <li><strong>Why it matters:</strong> We're only updating D right now, not G!</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.9em;"><strong>Key Principle:</strong> Alternating updates require careful gradient management</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ: Understanding detach() -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What would happen if we removed the detach() call in the discriminator update: fake_Y = net_D(fake_X)?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "The code would crash with an error",
+                                "correct": false,
+                                "explanation": "The code would still run without errors, but the training behavior would be incorrect."
+                            },
+                            {
+                                "text": "Gradients would incorrectly flow back to the generator during discriminator updates",
+                                "correct": true,
+                                "explanation": "Correct! Without detach(), when we call loss_D.backward(), gradients would propagate through both net_D and net_G, inadvertently updating the generator when we only want to update the discriminator."
+                            },
+                            {
+                                "text": "The generator would train faster",
+                                "correct": false,
+                                "explanation": "While the generator would receive gradients during the discriminator update, these would be the wrong gradients at the wrong time, harming the adversarial training dynamics."
+                            },
+                            {
+                                "text": "The discriminator would become too powerful",
+                                "correct": false,
+                                "explanation": "The issue is not about discriminator power, but about maintaining proper alternating updates. Gradients should only update one network at a time."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Slide 29: Generator Update Function -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Step 3: Generator Update Function</h2>
+                    <div style="font-size: 0.8em;">
+                        <div style="background: #262626; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                            <pre><code class="language-python" style="font-size: 0.8em;">def update_G(Z, net_D, net_G, loss, trainer_G):
+    """Update generator."""
+    batch_size = Z.shape[0]
+    ones = torch.ones((batch_size,), device=Z.device)
+
+    trainer_G.zero_grad()
+
+    # Generate fake data
+    fake_X = net_G(Z)
+
+    # Discriminator output on fake data
+    # Note: NO detach() here - we WANT gradients to flow to net_G
+    fake_Y = net_D(fake_X)
+
+    # Compute loss (pretend fake data is real, y=1)
+    loss_G = loss(fake_Y, ones.reshape(fake_Y.shape))
+
+    # Backpropagation
+    loss_G.backward()
+    trainer_G.step()
+
+    return loss_G</code></pre>
+                        </div>
+                        <div class="fragment" style="margin-top: 15px;">
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 12px;">
+                                <p style="margin: 5px 0; font-size: 0.9em;"><strong>Key Difference:</strong> We recompute fake_Y (not fake_X!) because net_D has changed since the D update</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 30: Training Loop Structure -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Step 4: Training Loop Setup</h2>
+                    <div style="font-size: 0.75em;">
+                        <div style="background: #262626; padding: 10px; border-radius: 8px; margin: 10px 0;">
+                            <pre><code class="language-python" style="font-size: 0.75em;">def train(net_D, net_G, data_iter, num_epochs, lr_D, lr_G, latent_dim, data):
+    # Loss function: Binary Cross-Entropy with Logits
+    loss = nn.BCEWithLogitsLoss(reduction='sum')
+
+    # Initialize network weights
+    for w in net_D.parameters():
+        nn.init.normal_(w, 0, 0.02)
+    for w in net_G.parameters():
+        nn.init.normal_(w, 0, 0.02)
+
+    # Create optimizers
+    trainer_D = torch.optim.Adam(net_D.parameters(), lr=lr_D)
+    trainer_G = torch.optim.Adam(net_G.parameters(), lr=lr_G)
+
+    # Set up visualization
+    animator = d2l.Animator(xlabel='epoch', ylabel='loss',
+                            xlim=[1, num_epochs], nrows=2, figsize=(5, 5),
+                            legend=['discriminator', 'generator'])
+    animator.fig.subplots_adjust(hspace=0.3)</code></pre>
+                        </div>
+                        <div class="fragment" style="margin-top: 15px;">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F; padding: 12px;">
+                                <p style="margin: 5px 0; font-size: 0.9em;"><strong>Weight Init:</strong> Normal(0, 0.02) is standard for GANs—prevents extreme initial outputs</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 31: Training Loop - Main Logic -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Step 4: Training Loop - Main Logic</h2>
+                    <div style="font-size: 0.75em;">
+                        <div style="background: #262626; padding: 10px; border-radius: 8px; margin: 10px 0;">
+                            <pre><code class="language-python" style="font-size: 0.75em;">    for epoch in range(num_epochs):
+        # Train one epoch
+        timer = d2l.Timer()
+        metric = d2l.Accumulator(3)  # loss_D, loss_G, num_examples
+
+        for (X,) in data_iter:
+            batch_size = X.shape[0]
+
+            # Sample random noise
+            Z = torch.normal(0, 1, size=(batch_size, latent_dim))
+
+            # Update discriminator
+            metric.add(update_D(X, Z, net_D, net_G, loss, trainer_D),
+                       # Update generator
+                       update_G(Z, net_D, net_G, loss, trainer_G),
+                       batch_size)
+
+        # Visualize generated examples
+        Z = torch.normal(0, 1, size=(100, latent_dim))
+        fake_X = net_G(Z).detach().numpy()
+        animator.axes[1].cla()
+        animator.axes[1].scatter(data[:, 0], data[:, 1])
+        animator.axes[1].scatter(fake_X[:, 0], fake_X[:, 1])
+        animator.axes[1].legend(['real', 'generated'])
+
+        # Show the losses
+        loss_D, loss_G = metric[0]/metric[2], metric[1]/metric[2]
+        animator.add(epoch + 1, (loss_D, loss_G))</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 32: Key Implementation Details -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Key Implementation Details</h2>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F; padding: 15px; margin: 10px 0;">
+                                <h4 style="color: #10099F; margin-top: 0;">1. Noise Sampling</h4>
+                                <div style="background: #262626; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                                    <code style="color: #2DD2C0; font-size: 0.9em;">Z = torch.normal(0, 1, size=(batch_size, latent_dim))</code>
+                                </div>
+                                <p style="margin: 5px 0; font-size: 0.9em;">Fresh noise for each batch—ensures diverse generated samples</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 15px; margin: 10px 0;">
+                                <h4 style="color: #FC8484; margin-top: 0;">2. Alternating Updates</h4>
+                                <p style="margin: 5px 0; font-size: 0.9em;">Within each batch: Update D → Update G → Repeat</p>
+                                <p style="margin: 5px 0; font-size: 0.85em; color: #666;">Both networks improve in response to each other</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 15px; margin: 10px 0;">
+                                <h4 style="color: #2DD2C0; margin-top: 0;">3. Visualization</h4>
+                                <p style="margin: 5px 0; font-size: 0.9em;">After each epoch: Generate 100 samples and plot alongside real data</p>
+                                <p style="margin: 5px 0; font-size: 0.85em; color: #666;">Lets us visually monitor convergence</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ: Training Loop -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why do we sample fresh noise Z = torch.normal(...) for each batch instead of using the same noise throughout training?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To reduce memory usage",
+                                "correct": false,
+                                "explanation": "Memory usage is not a concern here—noise vectors are small. The reason is about generation diversity."
+                            },
+                            {
+                                "text": "To ensure the generator learns to map the entire noise distribution to the data distribution",
+                                "correct": true,
+                                "explanation": "Correct! Using fresh noise each time ensures the generator must learn to transform ANY noise sample into realistic data, not just memorize outputs for a fixed set of noise inputs. This promotes generalization."
+                            },
+                            {
+                                "text": "Because PyTorch requires it for gradient computation",
+                                "correct": false,
+                                "explanation": "PyTorch does not have this requirement. We could reuse noise, but it would harm the ability of the generator to generalize."
+                            },
+                            {
+                                "text": "To make the discriminator training harder",
+                                "correct": false,
+                                "explanation": "While it does provide variety to the discriminator, the primary purpose is to train the generator to handle any noise input, not to challenge the discriminator."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Slide 33: Running the Training -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Step 5: Execute Training</h2>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <h4 style="color: #10099F;">Set Hyperparameters</h4>
+                            <div style="background: #262626; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                <pre><code class="language-python" style="font-size: 0.85em;">lr_D = 0.05          # Discriminator learning rate
+lr_G = 0.005         # Generator learning rate (10x smaller!)
+latent_dim = 2       # Dimension of noise vector
+num_epochs = 20      # Training epochs</code></pre>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #10099F;">Run Training</h4>
+                            <div style="background: #262626; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                <pre><code class="language-python" style="font-size: 0.85em;">train(net_D, net_G, data_iter, num_epochs, lr_D, lr_G,
+      latent_dim, data[:100].detach().numpy())</code></pre>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B; padding: 15px;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>Expected Output:</strong></p>
+                                <p style="margin: 5px 0; font-family: monospace; font-size: 0.85em;">loss_D 0.693, loss_G 0.693, 1020.0 examples/sec</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 34: Training Results Visualization -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Training Results: Visualizing Convergence</h2>
+                    <div style="font-size: 0.85em;">
+                        <div style="text-align: center; margin: 15px 0;">
+                            <img src="images/output_gan_training.svg" alt="Training Progress" style="max-width: 300px; height: auto; border: 1px solid #EEEEEE; border-radius: 8px; padding: 10px; background: white;">
+                        </div>
+                        <div class="fragment" style="margin-top: 15px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85em;">
+                                <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 12px;">
+                                    <p style="margin: 5px 0; font-size: 0.95em;"><strong style="color: #FC8484;">Top Plot: Loss Curves</strong></p>
+                                    <p style="margin: 5px 0; font-size: 0.85em;">Both converge to ~0.693 ≈ log(2)</p>
+                                    <p style="margin: 5px 0; font-size: 0.8em; color: #666;">= Equilibrium state</p>
+                                </div>
+                                <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 12px;">
+                                    <p style="margin: 5px 0; font-size: 0.95em;"><strong style="color: #2DD2C0;">Bottom Plot: Data Distribution</strong></p>
+                                    <p style="margin: 5px 0; font-size: 0.85em;">Blue (real) overlaps with orange (fake)</p>
+                                    <p style="margin: 5px 0; font-size: 0.8em; color: #666;">= Successful generation!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 35: Analyzing the Results -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Analyzing the Training Results</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 15px; margin: 15px 0;">
+                                <h4 style="color: #2DD2C0; margin-top: 0;">✓ Success Indicators</h4>
+                                <ul style="font-size: 0.9em; margin: 10px 0; line-height: 1.8;">
+                                    <li><strong>Loss Convergence:</strong> Both losses stabilize at log(2) ≈ 0.693</li>
+                                    <li><strong>Distribution Match:</strong> Generated samples overlap with real data</li>
+                                    <li><strong>Equilibrium:</strong> Discriminator outputs ~0.5 (random guessing)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F; padding: 15px; margin: 15px 0;">
+                                <h4 style="color: #10099F; margin-top: 0;">What the Generator Learned</h4>
+                                <p style="margin: 5px 0; font-size: 0.9em;">The single linear layer discovered the transformation:</p>
+                                <div style="background: white; padding: 10px; border-radius: 5px; margin: 10px 0; text-align: center; font-family: monospace;">
+                                    <p style="margin: 5px 0;">G(z) ≈ z @ A + b</p>
+                                </div>
+                                <p style="margin: 5px 0; font-size: 0.85em; color: #666;">Where A and b match the original data generation parameters!</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.9em;"><strong>Proof of concept:</strong> The adversarial training framework successfully trained a generative model!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 36: Common Training Issues -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Common GAN Training Issues</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 12px; margin: 10px 0;">
+                                <h4 style="color: #FC8484; margin-top: 0;">1. Mode Collapse</h4>
+                                <p style="margin: 5px 0; font-size: 0.9em;"><strong>Problem:</strong> Generator produces limited variety (same outputs)</p>
+                                <p style="margin: 5px 0; font-size: 0.85em;"><strong>Symptom:</strong> Generated samples cluster in one region</p>
+                                <p style="margin: 5px 0; font-size: 0.85em;"><strong>Cause:</strong> Generator finds a "safe" output that fools D consistently</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F; padding: 12px; margin: 10px 0;">
+                                <h4 style="color: #10099F; margin-top: 0;">2. <span class="tooltip">Vanishing Gradients<span class="tooltiptext">Vanishing Gradients: When gradients become extremely small during backpropagation, preventing effective learning. Common in deep networks and adversarial training.</span></span></h4>
+                                <p style="margin: 5px 0; font-size: 0.9em;"><strong>Problem:</strong> Generator stops learning</p>
+                                <p style="margin: 5px 0; font-size: 0.85em;"><strong>Symptom:</strong> Generator loss stays high, no improvement</p>
+                                <p style="margin: 5px 0; font-size: 0.85em;"><strong>Cause:</strong> Discriminator too strong—provides no useful gradient signal</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 12px; margin: 10px 0;">
+                                <h4 style="color: #2DD2C0; margin-top: 0;">3. Oscillation / Non-Convergence</h4>
+                                <p style="margin: 5px 0; font-size: 0.9em;"><strong>Problem:</strong> Losses oscillate wildly, no stability</p>
+                                <p style="margin: 5px 0; font-size: 0.85em;"><strong>Symptom:</strong> Loss curves jump erratically</p>
+                                <p style="margin: 5px 0; font-size: 0.85em;"><strong>Cause:</strong> Learning rates too high or imbalanced training</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ: Training Issues -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "You observe that your GAN generates only 3-4 distinct images despite training on a diverse dataset. What is the most likely issue?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "The learning rate is too low",
+                                "correct": false,
+                                "explanation": "Low learning rate would slow training but would not cause the generator to produce only a few distinct outputs. This is a different problem."
+                            },
+                            {
+                                "text": "Mode collapse - the generator has converged to a few safe outputs",
+                                "correct": true,
+                                "explanation": "Correct! This is classic mode collapse. The generator has found a few outputs that consistently fool the discriminator and has stopped exploring the full data distribution. Solutions include minibatch discrimination, unrolled GANs, or using different architectures."
+                            },
+                            {
+                                "text": "The discriminator is too weak",
+                                "correct": false,
+                                "explanation": "A weak discriminator would not cause mode collapse. In fact, mode collapse often occurs when the discriminator provides insufficient gradient information to encourage diversity."
+                            },
+                            {
+                                "text": "The latent dimension is too small",
+                                "correct": false,
+                                "explanation": "While a very small latent dimension might limit capacity, it would not typically cause the generator to produce only 3-4 images. Mode collapse is about optimization dynamics, not capacity."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Slide 37: Implementation Summary -->
+                <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.1", "url": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html"}]'>
+                    <h2 class="truncate-title">Implementation Summary</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F5F5FF; border-left: 4px solid #10099F; padding: 12px; margin: 8px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>1. Data:</strong> Generate or load real data, create data loader</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 12px; margin: 8px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>2. Networks:</strong> Define generator G (simple) and discriminator D (more complex)</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 12px; margin: 8px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>3. Update Functions:</strong> Implement update_D() with detach() and update_G()</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #FFFBF0; border-left: 4px solid #FAC55B; padding: 12px; margin: 8px 0;">
+                                <p style="margin: 5px 0; font-size: 0.95em;"><strong>4. Training Loop:</strong> Alternate D and G updates, visualize progress</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #F5F5FF; padding: 15px;">
+                                <h4 style="color: #10099F; margin-top: 0;">Critical Implementation Details</h4>
+                                <ul style="font-size: 0.85em; margin: 5px 0; line-height: 1.6;">
+                                    <li>Use <code>fake_X.detach()</code> in discriminator update</li>
+                                    <li>Initialize weights carefully (Normal(0, 0.02))</li>
+                                    <li>Balance learning rates (lr_D > lr_G typically)</li>
+                                    <li>Monitor both losses and visual quality</li>
+                                    <li>Sample fresh noise for each batch</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Final MCQ: Comprehensive Understanding -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "In the complete GAN training pipeline, which statement is TRUE about the order of operations?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Sample noise → Update generator → Generate fake data → Update discriminator",
+                                "correct": false,
+                                "explanation": "The generator must be updated after we have fake data and have updated the discriminator. This order would not make sense."
+                            },
+                            {
+                                "text": "Sample noise → Generate fake data → Update discriminator (with detach) → Update generator (without detach)",
+                                "correct": true,
+                                "explanation": "Correct! We first sample noise and generate fake data. Then we update the discriminator using detached fake data (no G gradients). Finally, we update the generator where gradients flow through both G and D. This is the proper alternating update sequence."
+                            },
+                            {
+                                "text": "Update discriminator → Sample noise → Update generator → Generate fake data",
+                                "correct": false,
+                                "explanation": "We need fake data before we can update the discriminator. The discriminator needs both real and fake data to compute its loss."
+                            },
+                            {
+                                "text": "Generate fake data → Update both networks simultaneously → Sample new noise",
+                                "correct": false,
+                                "explanation": "GANs require alternating updates, not simultaneous updates. Updating both at once would not properly implement the adversarial game."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+            </section>
+
+            <!-- =============================================== -->
+            <!-- DCGAN Section: Deep Convolutional GANs         -->
+            <!-- =============================================== -->
+            <section data-sources='[{"text": "Dive into Deep Learning - Chapter 20.2: DCGAN", "url": "https://d2l.ai/chapter_generative-adversarial-networks/dcgan.html"}]'>
+
+                <!-- Introduction to DCGAN -->
+                <section>
+                    <h2 class="truncate-title">Deep Convolutional Generative Adversarial Networks (DCGAN)</h2>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <p>We've seen GANs work on simple 2D Gaussian distributions...</p>
+                            <div class="emphasis-box" style="background: #F5F5FF; padding: 15px; margin: 15px 0;">
+                                <p style="margin: 0; font-size: 1em;"><strong style="color: #10099F;">Now:</strong> Let's apply GANs to generate photorealistic images!</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #2DD2C0; margin-bottom: 10px;">Key Idea</h4>
+                            <p>Leverage <span class="tooltip">convolutional architectures<span class="tooltiptext">Neural networks that use convolution operations, proven highly successful for image tasks like classification and object detection</span></span> that have proven so successful for discriminative computer vision problems</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #10099F; margin-bottom: 10px;">DCGAN (Radford et al., 2015)</h4>
+                            <ul style="font-size: 0.9em; line-height: 1.8;">
+                                <li>Uses deep convolutional networks for both G and D</li>
+                                <li>Specific architectural guidelines for stability</li>
+                                <li>Generates high-quality images</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- The Pokemon Dataset -->
+                <section>
+                    <h2 class="truncate-title">The Pokemon Dataset</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <p>We'll use a collection of Pokemon sprites from <a href="https://pokemondb.net/sprites" target="_blank" style="color: #10099F;">pokemondb</a></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 15px;">
+                            <h4 style="color: #2DD2C0; margin-bottom: 10px;">Data Preprocessing</h4>
+                            <ul style="font-size: 0.9em; line-height: 1.6;">
+                                <li>Resize images to \(64 \times 64\) pixels</li>
+                                <li>Normalize pixel values from \([0, 1]\) to \([-1, 1]\)</li>
+                                <li>This matches the <span class="tooltip">tanh<span class="tooltiptext">Hyperbolic tangent activation function that outputs values in the range [-1, 1]</span></span> output range of the generator</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Data Loading Code -->
+                <section>
+                    <h3 class="truncate-title">Data Loading and Transformation</h3>
+                    <div style="font-size: 0.7em;">
+                        <pre><code class="language-python">import torch
+import torchvision
+from torch import nn
+
+# Download and load the dataset
+d2l.DATA_HUB['pokemon'] = (d2l.DATA_URL + 'pokemon.zip',
+                           'c065c0e2593b8b161a2d7873e42418bf6a21106c')
+data_dir = d2l.download_extract('pokemon')
+pokemon = torchvision.datasets.ImageFolder(data_dir)</code></pre>
+                        <div class="fragment" style="margin-top: 15px;">
+                            <pre><code class="language-python"># Define transformations
+batch_size = 256
+transformer = torchvision.transforms.Compose([
+    torchvision.transforms.Resize((64, 64)),
+    torchvision.transforms.ToTensor(),
+    torchvision.transforms.Normalize(0.5, 0.5)  # [0,1] → [-1,1]
+])
+
+pokemon.transform = transformer
+data_iter = torch.utils.data.DataLoader(
+    pokemon, batch_size=batch_size, shuffle=True,
+    num_workers=d2l.get_dataloader_workers())</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Generator Architecture Overview -->
+                <section>
+                    <h2 class="truncate-title">The Generator Architecture</h2>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F5F5FF; padding: 15px; margin: 15px 0;">
+                                <p style="margin: 0;"><strong>Task:</strong> Map noise variable \(\mathbf{z} \in \mathbb{R}^d\) to a \(64 \times 64\) RGB image</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #2DD2C0; margin-bottom: 10px;">Key Technique: Transposed Convolution</h4>
+                            <p>Uses <span class="tooltip">transposed convolution layers<span class="tooltiptext">Also called deconvolution or fractionally-strided convolution. Upsamples the input by learning how to expand spatial dimensions</span></span> to progressively increase spatial dimensions</p>
+                            <ul style="font-size: 0.9em; line-height: 1.6; margin-top: 10px;">
+                                <li>Opposite of regular convolution</li>
+                                <li>Increases width and height</li>
+                                <li>Learns upsampling filters</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Generator Building Block -->
+                <section>
+                    <h3 class="truncate-title">Generator Building Block (G_block)</h3>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Architecture:</strong> TransposedConv2d → <span class="tooltip">BatchNorm<span class="tooltiptext">Batch Normalization: normalizes layer inputs across the batch to stabilize training and allow higher learning rates</span></span> → ReLU</p>
+                            <pre><code class="language-python">class G_block(nn.Module):
+    def __init__(self, out_channels, in_channels=3,
+                 kernel_size=4, strides=2, padding=1, **kwargs):
+        super(G_block, self).__init__(**kwargs)
+        self.conv2d_trans = nn.ConvTranspose2d(
+            in_channels, out_channels, kernel_size,
+            strides, padding, bias=False)
+        self.batch_norm = nn.BatchNorm2d(out_channels)
+        self.activation = nn.ReLU()
+
+    def forward(self, X):
+        return self.activation(self.batch_norm(self.conv2d_trans(X)))</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Transposed Convolution Math -->
+                <section>
+                    <h3 class="truncate-title">Output Size Calculation</h3>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <p>With default settings (\(k_h = k_w = 4\), \(s_h = s_w = 2\), \(p_h = p_w = 1\)):</p>
+                            <p style="margin-top: 15px; font-size: 0.95em;">$$n'_h \times n'_w = [(k_h + s_h(n_h - 1) - 2p_h)] \times [(k_w + s_w(n_w - 1) - 2p_w)]$$</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Example:</strong> Input \(16 \times 16\) → Output \(32 \times 32\)</p>
+                            <p style="font-size: 0.9em; margin-top: 10px;">$$\begin{aligned}
+                            n'_h \times n'_w &= [(4 + 2 \times (16-1) - 2 \times 1)] \times [(4 + 2 \times (16-1) - 2 \times 1)] \\
+                            &= 32 \times 32
+                            \end{aligned}$$</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <pre><code class="language-python">x = torch.zeros((2, 3, 16, 16))
+g_blk = G_block(20)
+g_blk(x).shape  # Output: torch.Size([2, 20, 32, 32])</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ: Transposed Convolution -->
+                <section>
+                    <h3 class="truncate-title">Test Your Understanding</h3>
+                    <div data-mcq='{
+                        "question": "Given a transposed convolution layer with kernel size 4×4, stride 1×1, and padding 0, what will be the output spatial dimensions for an input of size 1×1?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "2×2",
+                                "correct": false,
+                                "explanation": "With kernel=4, stride=1, padding=0, the formula gives: (4 + 1×(1-1) - 2×0) = 4, not 2."
+                            },
+                            {
+                                "text": "4×4",
+                                "correct": true,
+                                "explanation": "Correct! Using the formula: n_h = (4 + 1×(1-1) - 2×0) = 4. The transposed convolution expands the 1×1 input to 4×4."
+                            },
+                            {
+                                "text": "3×3",
+                                "correct": false,
+                                "explanation": "The calculation would be (4 + 1×(1-1) - 2×0) = 4, not 3."
+                            },
+                            {
+                                "text": "8×8",
+                                "correct": false,
+                                "explanation": "This would require different parameters. With the given parameters, the output is 4×4."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Complete Generator Network -->
+                <section>
+                    <h3 class="truncate-title">Complete Generator Network</h3>
+                    <div style="font-size: 0.72em;">
+                        <div class="fragment">
+                            <p><strong>Architecture:</strong> 4 G_blocks + final transposed convolution</p>
+                            <table style="font-size: 0.9em; margin: 15px auto; border-collapse: collapse;">
+                                <tr style="background: #10099F; color: white;">
+                                    <th style="padding: 8px; border: 1px solid #EEEEEE;">Layer</th>
+                                    <th style="padding: 8px; border: 1px solid #EEEEEE;">Output Channels</th>
+                                    <th style="padding: 8px; border: 1px solid #EEEEEE;">Spatial Size</th>
+                                </tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">Input (noise z)</td><td style="padding: 8px; border: 1px solid #EEEEEE;">100</td><td style="padding: 8px; border: 1px solid #EEEEEE;">1×1</td></tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">G_block 1</td><td style="padding: 8px; border: 1px solid #EEEEEE;">512</td><td style="padding: 8px; border: 1px solid #EEEEEE;">4×4</td></tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">G_block 2</td><td style="padding: 8px; border: 1px solid #EEEEEE;">256</td><td style="padding: 8px; border: 1px solid #EEEEEE;">8×8</td></tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">G_block 3</td><td style="padding: 8px; border: 1px solid #EEEEEE;">128</td><td style="padding: 8px; border: 1px solid #EEEEEE;">16×16</td></tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">G_block 4</td><td style="padding: 8px; border: 1px solid #EEEEEE;">64</td><td style="padding: 8px; border: 1px solid #EEEEEE;">32×32</td></tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">Final Conv + Tanh</td><td style="padding: 8px; border: 1px solid #EEEEEE;">3 (RGB)</td><td style="padding: 8px; border: 1px solid #EEEEEE;">64×64</td></tr>
+                            </table>
+                        </div>
+                        <div class="fragment" style="margin-top: 15px;">
+                            <pre><code class="language-python">n_G = 64
+net_G = nn.Sequential(
+    G_block(in_channels=100, out_channels=n_G*8, strides=1, padding=0),
+    G_block(in_channels=n_G*8, out_channels=n_G*4),
+    G_block(in_channels=n_G*4, out_channels=n_G*2),
+    G_block(in_channels=n_G*2, out_channels=n_G),
+    nn.ConvTranspose2d(in_channels=n_G, out_channels=3,
+                       kernel_size=4, stride=2, padding=1, bias=False),
+    nn.Tanh()  # Output range: [-1, 1]
+)</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Discriminator Architecture Overview -->
+                <section>
+                    <h2 class="truncate-title">The Discriminator Architecture</h2>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F5F5FF; padding: 15px; margin: 15px 0;">
+                                <p style="margin: 0;"><strong>Task:</strong> Classify \(64 \times 64\) RGB images as real or fake</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #2DD2C0; margin-bottom: 10px;">Architecture</h4>
+                            <ul style="font-size: 0.9em; line-height: 1.6;">
+                                <li>Standard convolutional network (mirror of generator)</li>
+                                <li>Progressively downsamples spatial dimensions</li>
+                                <li>Increases channel depth</li>
+                                <li>Uses <strong>Leaky ReLU</strong> activation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Leaky ReLU -->
+                <section>
+                    <h3 class="truncate-title">Leaky ReLU Activation</h3>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <p>Standard ReLU can cause "dying ReLU" problem where neurons only output 0</p>
+                            <p style="margin-top: 15px;"><strong>Leaky ReLU</strong> allows small negative values:</p>
+                            <p style="font-size: 0.95em; margin-top: 10px;">$$\text{Leaky ReLU}(x) = \begin{cases}
+                            x & \text{if } x > 0 \\
+                            \alpha x & \text{otherwise}
+                            \end{cases}$$</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <ul style="font-size: 0.9em; line-height: 1.6;">
+                                <li>\(\alpha = 0\): Standard ReLU</li>
+                                <li>\(\alpha = 1\): Identity function</li>
+                                <li>\(\alpha \in (0, 1)\): Leaky ReLU (typically \(\alpha = 0.2\))</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 15px;">
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>Benefit:</strong> Allows gradients to flow even for negative inputs, preventing neurons from "dying"</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ: Leaky ReLU -->
+                <section>
+                    <h3 class="truncate-title">Test Your Understanding</h3>
+                    <div data-mcq='{
+                        "question": "What is the output of Leaky ReLU with α=0.2 for an input value of -5?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "0",
+                                "correct": false,
+                                "explanation": "This would be the output for standard ReLU. Leaky ReLU allows negative outputs."
+                            },
+                            {
+                                "text": "-1",
+                                "correct": true,
+                                "explanation": "Correct! Leaky ReLU(−5) = 0.2 × (−5) = −1. For negative inputs, Leaky ReLU multiplies by α."
+                            },
+                            {
+                                "text": "-5",
+                                "correct": false,
+                                "explanation": "This would be the output if α=1 (identity function). With α=0.2, the output is 0.2 × (−5) = −1."
+                            },
+                            {
+                                "text": "5",
+                                "correct": false,
+                                "explanation": "Leaky ReLU does not take the absolute value. It outputs α × x for negative inputs."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Discriminator Building Block -->
+                <section>
+                    <h3 class="truncate-title">Discriminator Building Block (D_block)</h3>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Architecture:</strong> Conv2d → BatchNorm → LeakyReLU(0.2)</p>
+                            <pre><code class="language-python">class D_block(nn.Module):
+    def __init__(self, out_channels, in_channels=3,
+                 kernel_size=4, strides=2, padding=1,
+                 alpha=0.2, **kwargs):
+        super(D_block, self).__init__(**kwargs)
+        self.conv2d = nn.Conv2d(in_channels, out_channels,
+                                kernel_size, strides, padding,
+                                bias=False)
+        self.batch_norm = nn.BatchNorm2d(out_channels)
+        self.activation = nn.LeakyReLU(alpha, inplace=True)
+
+    def forward(self, X):
+        return self.activation(self.batch_norm(self.conv2d(X)))</code></pre>
+                        </div>
+                        <div class="fragment" style="margin-top: 15px;">
+                            <p><strong>Output size:</strong> Halves spatial dimensions</p>
+                            <p style="font-size: 0.9em; margin-top: 10px;">$$n'_h \times n'_w = \lfloor(n_h - k_h + 2p_h + s_h)/s_h\rfloor \times \lfloor(n_w - k_w + 2p_w + s_w)/s_w\rfloor$$</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Discriminator Math Example -->
+                <section>
+                    <h3 class="truncate-title">Downsampling Example</h3>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <p><strong>Example:</strong> Input \(16 \times 16\) → Output \(8 \times 8\)</p>
+                            <p style="margin-top: 10px;">With \(k_h = k_w = 4\), \(s_h = s_w = 2\), \(p_h = p_w = 1\):</p>
+                            <p style="font-size: 0.9em; margin-top: 15px;">$$\begin{aligned}
+                            n'_h \times n'_w &= \lfloor(16 - 4 + 2 \times 1 + 2)/2\rfloor \times \lfloor(16 - 4 + 2 \times 1 + 2)/2\rfloor \\
+                            &= \lfloor 16/2 \rfloor \times \lfloor 16/2 \rfloor \\
+                            &= 8 \times 8
+                            \end{aligned}$$</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <pre><code class="language-python">x = torch.zeros((2, 3, 16, 16))
+d_blk = D_block(20)
+d_blk(x).shape  # Output: torch.Size([2, 20, 8, 8])</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Complete Discriminator Network -->
+                <section>
+                    <h3 class="truncate-title">Complete Discriminator Network</h3>
+                    <div style="font-size: 0.72em;">
+                        <div class="fragment">
+                            <p><strong>Architecture:</strong> 4 D_blocks + final convolution</p>
+                            <table style="font-size: 0.9em; margin: 15px auto; border-collapse: collapse;">
+                                <tr style="background: #10099F; color: white;">
+                                    <th style="padding: 8px; border: 1px solid #EEEEEE;">Layer</th>
+                                    <th style="padding: 8px; border: 1px solid #EEEEEE;">Output Channels</th>
+                                    <th style="padding: 8px; border: 1px solid #EEEEEE;">Spatial Size</th>
+                                </tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">Input (RGB image)</td><td style="padding: 8px; border: 1px solid #EEEEEE;">3</td><td style="padding: 8px; border: 1px solid #EEEEEE;">64×64</td></tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">D_block 1</td><td style="padding: 8px; border: 1px solid #EEEEEE;">64</td><td style="padding: 8px; border: 1px solid #EEEEEE;">32×32</td></tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">D_block 2</td><td style="padding: 8px; border: 1px solid #EEEEEE;">128</td><td style="padding: 8px; border: 1px solid #EEEEEE;">16×16</td></tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">D_block 3</td><td style="padding: 8px; border: 1px solid #EEEEEE;">256</td><td style="padding: 8px; border: 1px solid #EEEEEE;">8×8</td></tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">D_block 4</td><td style="padding: 8px; border: 1px solid #EEEEEE;">512</td><td style="padding: 8px; border: 1px solid #EEEEEE;">4×4</td></tr>
+                                <tr><td style="padding: 8px; border: 1px solid #EEEEEE;">Final Conv</td><td style="padding: 8px; border: 1px solid #EEEEEE;">1</td><td style="padding: 8px; border: 1px solid #EEEEEE;">1×1</td></tr>
+                            </table>
+                        </div>
+                        <div class="fragment" style="margin-top: 15px;">
+                            <pre><code class="language-python">n_D = 64
+net_D = nn.Sequential(
+    D_block(n_D),                                        # 3→64, 64→32
+    D_block(in_channels=n_D, out_channels=n_D*2),        # 64→128, 32→16
+    D_block(in_channels=n_D*2, out_channels=n_D*4),      # 128→256, 16→8
+    D_block(in_channels=n_D*4, out_channels=n_D*8),      # 256→512, 8→4
+    nn.Conv2d(in_channels=n_D*8, out_channels=1,         # 512→1, 4→1
+              kernel_size=4, bias=False)
+)</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MCQ: Discriminator -->
+                <section>
+                    <h3 class="truncate-title">Test Your Understanding</h3>
+                    <div data-mcq='{
+                        "question": "Why does the discriminator use Leaky ReLU instead of standard ReLU?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Leaky ReLU is faster to compute",
+                                "correct": false,
+                                "explanation": "Computational speed is not the primary reason. The key benefit is gradient flow."
+                            },
+                            {
+                                "text": "Leaky ReLU allows gradients to flow for negative inputs, preventing dying neurons",
+                                "correct": true,
+                                "explanation": "Correct! Leaky ReLU outputs α×x for negative inputs rather than 0, allowing gradients to backpropagate even when x < 0. This helps prevent neurons from becoming permanently inactive."
+                            },
+                            {
+                                "text": "Leaky ReLU produces outputs in the range [-1, 1]",
+                                "correct": false,
+                                "explanation": "Leaky ReLU does not bound outputs to [-1, 1]. For positive inputs, it outputs the input unchanged (unbounded)."
+                            },
+                            {
+                                "text": "Leaky ReLU is required for batch normalization to work",
+                                "correct": false,
+                                "explanation": "Batch normalization works with various activation functions. The choice of Leaky ReLU is about gradient flow, not batch normalization compatibility."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Training Details -->
+                <section>
+                    <h2 class="truncate-title">Training DCGAN</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <h4 style="color: #2DD2C0; margin-bottom: 10px;">Key Hyperparameters</h4>
+                            <ul style="font-size: 0.9em; line-height: 1.6;">
+                                <li><strong>Learning rate:</strong> 0.0002 (same for both G and D)</li>
+                                <li><strong>Optimizer:</strong> <span class="tooltip">Adam<span class="tooltiptext">Adaptive Moment Estimation: an optimization algorithm that adapts learning rates for each parameter</span></span> with \(\beta_1 = 0.5\), \(\beta_2 = 0.999\)</li>
+                                <li><strong>Batch size:</strong> 256</li>
+                                <li><strong>Latent dimension:</strong> 100</li>
+                                <li><strong>Weight initialization:</strong> Normal(0, 0.02)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFF5E6; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>Note:</strong> \(\beta_1 = 0.5\) (vs. 0.9 default) reduces momentum smoothness to handle rapidly changing gradients in adversarial training</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Training Code -->
+                <section>
+                    <h3 class="truncate-title">Training Function Structure</h3>
+                    <div style="font-size: 0.65em;">
+                        <pre><code class="language-python">def train(net_D, net_G, data_iter, num_epochs, lr, latent_dim):
+    # Loss function
+    loss = nn.BCEWithLogitsLoss(reduction='sum')
+
+    # Initialize weights: Normal(0, 0.02)
+    for w in net_D.parameters():
+        nn.init.normal_(w, 0, 0.02)
+    for w in net_G.parameters():
+        nn.init.normal_(w, 0, 0.02)
+
+    # Optimizers
+    trainer_hp = {'lr': lr, 'betas': [0.5, 0.999]}
+    trainer_D = torch.optim.Adam(net_D.parameters(), **trainer_hp)
+    trainer_G = torch.optim.Adam(net_G.parameters(), **trainer_hp)
+
+    for epoch in range(1, num_epochs + 1):
+        for X, _ in data_iter:
+            batch_size = X.shape[0]
+            # Sample noise
+            Z = torch.normal(0, 1, size=(batch_size, latent_dim, 1, 1))
+
+            # Update discriminator and generator
+            d2l.update_D(X, Z, net_D, net_G, loss, trainer_D)
+            d2l.update_G(Z, net_D, net_G, loss, trainer_G)</code></pre>
+                    </div>
+                </section>
+
+                <!-- Training Results -->
+                <section>
+                    <h3 class="truncate-title">Training Dynamics</h3>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <h4 style="color: #2DD2C0; margin-bottom: 10px;">What Happens During Training</h4>
+                            <ul style="font-size: 0.9em; line-height: 1.6;">
+                                <li><strong>Early epochs:</strong> Generator produces random noise-like images</li>
+                                <li><strong>Mid training:</strong> Basic shapes and colors emerge</li>
+                                <li><strong>Later epochs:</strong> Recognizable Pokemon-like sprites appear</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #10099F; margin-bottom: 10px;">Loss Behavior</h4>
+                            <ul style="font-size: 0.9em; line-height: 1.6;">
+                                <li>Discriminator loss decreases as it learns to classify</li>
+                                <li>Generator loss may oscillate as it tries to fool discriminator</li>
+                                <li>Not a traditional convergence - it's an equilibrium!</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFF5E6; border-left: 4px solid #FAC55B;">
+                                <p style="margin: 0; font-size: 0.95em;"><strong>Training time:</strong> 20 epochs on GPU takes several minutes. More epochs (100+) produce better results</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Summary -->
+                <section>
+                    <h2 class="truncate-title">Summary: Deep Convolutional GANs</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <h4 style="color: #2DD2C0; margin-bottom: 10px;">Key Architectural Principles</h4>
+                            <ul style="font-size: 0.9em; line-height: 1.6;">
+                                <li><strong>Generator:</strong> 4 transposed conv layers with BatchNorm & ReLU</li>
+                                <li><strong>Discriminator:</strong> 4 conv layers with BatchNorm & Leaky ReLU</li>
+                                <li><strong>No fully connected layers</strong> (except implicit in 1×1 spatial)</li>
+                                <li><strong>Batch normalization</strong> in all layers except input/output</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h4 style="color: #10099F; margin-bottom: 10px;">Key Training Insights</h4>
+                            <ul style="font-size: 0.9em; line-height: 1.6;">
+                                <li>Leaky ReLU prevents dying neurons in discriminator</li>
+                                <li>Lower Adam \(\beta_1\) (0.5) for adversarial dynamics</li>
+                                <li>Careful weight initialization (Normal 0, 0.02)</li>
+                                <li>Tanh output matches normalized data range</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Final MCQ -->
+                <section>
+                    <h3 class="truncate-title">Final Understanding Check</h3>
+                    <div data-mcq='{
+                        "question": "What is the primary architectural difference between the generator and discriminator in DCGAN?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "The generator uses ReLU while discriminator uses Leaky ReLU",
+                                "correct": true,
+                                "explanation": "Correct! The generator uses standard ReLU activation after batch normalization, while the discriminator uses Leaky ReLU (α=0.2) to prevent dying neurons and allow gradient flow for negative inputs."
+                            },
+                            {
+                                "text": "The generator has more layers than the discriminator",
+                                "correct": false,
+                                "explanation": "Both have 4 main convolutional blocks plus a final layer. They are architectural mirrors of each other."
+                            },
+                            {
+                                "text": "The generator does not use batch normalization",
+                                "correct": false,
+                                "explanation": "Both generator and discriminator use batch normalization in their building blocks (except input/output layers)."
+                            },
+                            {
+                                "text": "The discriminator uses transposed convolutions",
+                                "correct": false,
+                                "explanation": "The discriminator uses standard convolutions for downsampling. The generator uses transposed convolutions for upsampling."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js and plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/math/math.js"></script>
+
+    <!-- D3.js for visualizations -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- Shared JavaScript -->
+    <script src="../shared/js/title-handler.js"></script>
+    <script src="../shared/js/tooltip-modal.js"></script>
+    <script src="../shared/js/source-modal-v2.js"></script>
+    <script src="../shared/js/multiple-choice.js"></script>
+
+    <!-- Custom GAN visualization -->
+    <script src="js/gan-visualization.js"></script>
+
+    <!-- Initialize Reveal.js -->
+    <script>
+        Reveal.initialize({
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true,
+            transition: 'slide',
+            math: {
+                mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js',
+                config: 'TeX-AMS_SVG-full'
+            },
+            plugins: [ RevealMath, RevealHighlight, RevealNotes ]
+        });
+    </script>
+</body>
+</html>

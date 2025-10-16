@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Project - Introduction to Deep Learning</title>
+
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+    <link rel="stylesheet" href="../shared/css/reveal-theme.css">
+    <link rel="stylesheet" href="../shared/css/common.css">
+    <link rel="stylesheet" href="css/project-custom.css">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/monokai.css">
+
+    <!-- Dark Mode -->
+    <link rel="stylesheet" href="../shared/css/dark-mode.css">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Title Slide -->
+            <section class="title-slide">
+                <img src="../shared/images/uoi_logo_blue.png" alt="University of Iceland Logo" class="ui-logo">
+                <h1 class="truncate-title">Final Project</h1>
+                <p>Wildlife Image Classification with Transfer Learning and Zero-Shot Evaluation</p>
+                <p class="mt-lg">
+                    <small>Instructor: Hafsteinn Einarsson</small><br>
+                    <small>University of Iceland</small><br>
+                    <small class="mt-sm">Introduction to Deep Learning</small>
+                </p>
+            </section>
+
+            <!-- Section 1: Project Overview -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Project Overview</h2>
+                    <p>Explore three fundamentally different approaches to image classification</p>
+                    <div class="grid-3-cols mt-lg" style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <div style="background: #10099F; color: white; padding: 15px; border-radius: 8px; height: 100%;">
+                                <h4 style="color: white;">1️⃣ Train from Scratch</h4>
+                                <p style="font-size: 0.9em;">Build a CNN with random initialization</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #2DD2C0; color: white; padding: 15px; border-radius: 8px; height: 100%;">
+                                <h4 style="color: white;">2️⃣ Transfer Learning</h4>
+                                <p style="font-size: 0.9em;">Fine-tune a pretrained ImageNet model</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #FAC55B; color: #262626; padding: 15px; border-radius: 8px; height: 100%;">
+                                <h4 style="color: #262626;">3️⃣ Zero-Shot</h4>
+                                <p style="font-size: 0.9em;">Use SigLIP 2 vision-language model</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg">
+                        <p><strong>Goal:</strong> Compare these approaches through learning curves to understand when each excels</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Why Wildlife Classification?</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <h4>Real-World Impact</h4>
+                            <ul style="font-size: 0.85em;">
+                                <li class="fragment">🎥 Camera trap systems</li>
+                                <li class="fragment">🌿 Biodiversity monitoring</li>
+                                <li class="fragment">🔬 Citizen science platforms</li>
+                                <li class="fragment">🦁 Conservation efforts</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4>Technical Challenges</h4>
+                            <ul style="font-size: 0.85em;">
+                                <li class="fragment">Variable lighting conditions</li>
+                                <li class="fragment">Different poses and scales</li>
+                                <li class="fragment">Similar-looking species</li>
+                                <li class="fragment">Limited labeled data</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box mt-lg" style="font-size: 0.85em;">
+                        <p>Your work mirrors actual challenges faced by conservation organizations deploying AI in the field</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Learning Objectives</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="two-column">
+                            <div class="column">
+                                <h4>Technical Skills</h4>
+                                <ul style="font-size: 0.95em;">
+                                    <li class="fragment">Implement and train CNNs from scratch</li>
+                                    <li class="fragment">Apply transfer learning techniques</li>
+                                    <li class="fragment">Use vision-language models</li>
+                                    <li class="fragment">Generate learning curves</li>
+                                </ul>
+                            </div>
+                            <div class="column">
+                                <h4>Analytical Skills</h4>
+                                <ul style="font-size: 0.95em;">
+                                    <li class="fragment">Compare approaches systematically</li>
+                                    <li class="fragment">Understand data efficiency</li>
+                                    <li class="fragment">Make informed model selections</li>
+                                    <li class="fragment">Communicate findings clearly</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Project Requirements</h2>
+                    <div style="font-size: 0.75em;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr style="background: #10099F; color: white;">
+                                <th style="padding: 12px; border: 1px solid #EEEEEE;">Aspect</th>
+                                <th style="padding: 12px; border: 1px solid #EEEEEE;">Details</th>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Duration</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">4 weeks (final project period)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Work Mode</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Individual</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Total Points</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">100 points</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Report Length</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Max 8 pages (main text) + appendices</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Deadline</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Before December 1st</td>
+                            </tr>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section 2: Dataset Selection -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Dataset Selection</h2>
+                    <div class="emphasis-box" style="background: #FC8484; color: white; border-color: #FC8484;">
+                        <p><strong>Important:</strong> Choose ONE dataset for your entire project. All three approaches will be evaluated on the same dataset and test set.</p>
+                    </div>
+                    <div class="fragment mt-lg">
+                        <p>Three curated options with different difficulty levels:</p>
+                        <div style="display: flex; justify-content: space-around; margin-top: 20px; font-size: 0.8em;">
+                            <div class="fragment">★★ Beginner</div>
+                            <div class="fragment">★★★ Intermediate</div>
+                            <div class="fragment">★★★★ Advanced</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "Animals-10 Dataset on Kaggle", "url": "https://www.kaggle.com/datasets/alessiocorrado99/animals10"}]'>
+                    <h2 class="truncate-title">Option 1: Animals-10 Dataset ★★</h2>
+                    <div class="two-column" style="font-size: 0.75em;">
+                        <div class="column">
+                            <div style="background: #F5F5F5; padding: 15px; border-radius: 8px; border-left: 4px solid #10099F;">
+                                <h4 style="color: #10099F;">Dataset Details</h4>
+                                <ul style="font-size: 0.95em; text-align: left;">
+                                    <li><strong>Images:</strong> 28,000 total</li>
+                                    <li><strong>Classes:</strong> 10 common animals</li>
+                                    <li><strong>Per class:</strong> 2,000-5,000 images</li>
+                                    <li><strong>Size:</strong> ~800 MB</li>
+                                    <li><strong>License:</strong> Public domain</li>
+                                </ul>
+                                <p style="margin-top: 10px;"><strong>Classes:</strong> dog, cat, horse, spider, butterfly, chicken, sheep, cow, squirrel, elephant</p>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <h4 style="color: #2DD2C0;">Why Choose This?</h4>
+                            <ul style="font-size: 0.95em; text-align: left;">
+                                <li class="fragment">✅ Clear visual distinctions</li>
+                                <li class="fragment">✅ Fast training (2-4 hours/model)</li>
+                                <li class="fragment">✅ Sufficient data for learning curves</li>
+                                <li class="fragment">✅ Well-documented</li>
+                                <li class="fragment">✅ Good balance of challenge/feasibility</li>
+                            </ul>
+                            <div class="fragment emphasis-box mt-md" style="font-size: 0.9em;">
+                                <p><strong>Recommended</strong> for first-time deep learning projects</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "Oxford-IIIT Pet Dataset", "url": "https://www.tensorflow.org/datasets/catalog/oxford_iiit_pet"}]'>
+                    <h2 class="truncate-title">Option 2: Oxford-IIIT Pet Dataset ★★★</h2>
+                    <div class="two-column" style="font-size: 0.75em;">
+                        <div class="column">
+                            <div style="background: #F5F5F5; padding: 15px; border-radius: 8px; border-left: 4px solid #10099F;">
+                                <h4 style="color: #10099F;">Dataset Details</h4>
+                                <ul style="font-size: 0.95em; text-align: left;">
+                                    <li><strong>Images:</strong> 7,390 total</li>
+                                    <li><strong>Classes:</strong> 37 pet breeds</li>
+                                    <li><strong>Distribution:</strong> 25 dog + 12 cat breeds</li>
+                                    <li><strong>Per class:</strong> ~200 images</li>
+                                    <li><strong>Size:</strong> ~800 MB</li>
+                                    <li><strong>License:</strong> CC BY-SA 4.0</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <h4 style="color: #2DD2C0;">Why Choose This?</h4>
+                            <ul style="font-size: 0.95em; text-align: left;">
+                                <li class="fragment">🎯 Fine-grained classification</li>
+                                <li class="fragment">🎯 Subtle visual differences</li>
+                                <li class="fragment">🎯 More realistic challenge</li>
+                                <li class="fragment">🎯 Standard research benchmark</li>
+                                <li class="fragment">🎯 Available via TensorFlow Datasets</li>
+                            </ul>
+                            <div class="fragment emphasis-box mt-md" style="font-size: 0.9em; background: #FFF3E0; border-color: #FAC55B;">
+                                <p><strong>Challenge:</strong> Smaller dataset makes data efficiency experiments more dramatic</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "ANIMAL-10N Dataset", "url": "https://dm.kaist.ac.kr/datasets/animal-10n/"}]'>
+                    <h2 class="truncate-title">Option 3: ANIMAL-10N Dataset ★★★★</h2>
+                    <div class="two-column" style="font-size: 0.7em;">
+                        <div class="column">
+                            <div style="background: #F5F5F5; padding: 15px; border-radius: 8px; border-left: 4px solid #10099F;">
+                                <h4 style="color: #10099F;">Dataset Details</h4>
+                                <ul style="font-size: 0.95em; text-align: left;">
+                                    <li><strong>Train:</strong> 50,000 images</li>
+                                    <li><strong>Test:</strong> 5,000 images</li>
+                                    <li><strong>Classes:</strong> 10 confusing pairs</li>
+                                    <li><strong>Resolution:</strong> 32×32 RGB</li>
+                                    <li><strong>Size:</strong> ~300 MB</li>
+                                    <li><strong>Noise:</strong> ~8% label errors</li>
+                                </ul>
+                                <p style="margin-top: 10px; font-size: 0.9em;"><strong>Confusing pairs:</strong> cat/lynx, wolf/coyote, cheetah/jaguar, chimpanzee/orangutan, hamster/guinea pig</p>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <h4 style="color: #2DD2C0;">Why Choose This?</h4>
+                            <ul style="font-size: 0.95em; text-align: left;">
+                                <li class="fragment">🔥 Realistic label noise</li>
+                                <li class="fragment">🔥 Confusing visual boundaries</li>
+                                <li class="fragment">🔥 Robustness challenge</li>
+                                <li class="fragment">🔥 Mirrors real conservation data</li>
+                                <li class="fragment">🔥 Explore noise-robust techniques</li>
+                            </ul>
+                            <div class="fragment emphasis-box mt-md" style="font-size: 0.9em; background: #FFEBEE; border-color: #FC8484;">
+                                <p><strong>Advanced:</strong> Best for students interested in robust machine learning</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Alternative Datasets</h2>
+                    <div style="font-size: 0.75em;">
+                        <p>Other options available with <strong>instructor approval by end of Week 1:</strong></p>
+                        <div style="margin-top: 30px;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr style="background: #10099F; color: white;">
+                                    <th style="padding: 10px; border: 1px solid #EEEEEE;">Dataset</th>
+                                    <th style="padding: 10px; border: 1px solid #EEEEEE;">Images</th>
+                                    <th style="padding: 10px; border: 1px solid #EEEEEE;">Classes</th>
+                                    <th style="padding: 10px; border: 1px solid #EEEEEE;">Notes</th>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">Stanford Dogs</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">20,580</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">120 breeds</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">Fine-grained, similar to Oxford Pets</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">Caltech Camera Traps</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">243,100</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">22 species</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">Real conservation data, large-scale</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">Animal Image Dataset</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">5,400</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">90 species</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">Good for zero-shot evaluation</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section 3: Task 1 - Training from Scratch -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Task 1: Training from Scratch</h2>
+                    <div style="background: #10099F; color: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                        <h3 style="color: white;">30 Points</h3>
+                        <p style="font-size: 0.85em;">Build and train a CNN from random initialization</p>
+                    </div>
+                    <div class="fragment mt-lg" style="font-size: 0.8em;">
+                        <h4>Objective</h4>
+                        <p>Train a convolutional neural network from scratch on your chosen dataset</p>
+                        <div class="emphasis-box mt-md">
+                            <p>This establishes your baseline for understanding how much pretrained knowledge helps</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Architecture: ResNet-18</h2>
+                    <div class="two-column" style="font-size: 0.75em;">
+                        <div class="column">
+                            <h4>Requirements</h4>
+                            <ul style="font-size: 0.95em;">
+                                <li>ResNet-18 or similar CNN</li>
+                                <li>At least 10 layers</li>
+                                <li>Can use standard implementations</li>
+                                <li>Must demonstrate understanding</li>
+                            </ul>
+                            <div class="fragment mt-md" style="background: #F5F5F5; padding: 10px; border-radius: 5px;">
+                                <code style="font-size: 0.85em;">
+# PyTorch example<br>
+model = torchvision.models.resnet18(<br>
+&nbsp;&nbsp;weights=None  # Random init!<br>
+)
+                                </code>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="fragment">
+                                <h4>Key Components</h4>
+                                <ul style="font-size: 0.95em;">
+                                    <li><span class="tooltip">Residual connections<span class="tooltiptext">Skip connections that help gradients flow through deep networks</span></span></li>
+                                    <li>Batch normalization</li>
+                                    <li>ReLU activations</li>
+                                    <li>Adaptive pooling</li>
+                                    <li>Final classification layer</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Training Procedure</h2>
+                    <div style="font-size: 0.7em;">
+                        <div class="grid-2x2">
+                            <div class="fragment">
+                                <h4 style="color: #10099F;">Data Augmentation</h4>
+                                <ul style="font-size: 0.9em;">
+                                    <li>Random crops</li>
+                                    <li>Horizontal flips</li>
+                                    <li>Color jittering</li>
+                                    <li>Normalization</li>
+                                </ul>
+                            </div>
+                            <div class="fragment">
+                                <h4 style="color: #2DD2C0;">Optimization</h4>
+                                <ul style="font-size: 0.9em;">
+                                    <li>SGD with momentum / Adam</li>
+                                    <li>Learning rate scheduling</li>
+                                    <li>Early stopping</li>
+                                    <li>Gradient clipping (optional)</li>
+                                </ul>
+                            </div>
+                            <div class="fragment">
+                                <h4 style="color: #FAC55B;">Data Splits</h4>
+                                <ul style="font-size: 0.9em;">
+                                    <li>Train: 70-80%</li>
+                                    <li>Validation: 10-15%</li>
+                                    <li>Test: 10-15%</li>
+                                    <li>Stratified sampling</li>
+                                </ul>
+                            </div>
+                            <div class="fragment">
+                                <h4 style="color: #FC8484;">Regularization</h4>
+                                <ul style="font-size: 0.9em;">
+                                    <li>Weight decay</li>
+                                    <li>Dropout (optional)</li>
+                                    <li>Label smoothing (optional)</li>
+                                    <li>Data augmentation</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Deliverables for Task 1</h2>
+                    <div style="font-size: 0.75em;">
+                        <ol style="line-height: 1.8;">
+                            <li class="fragment"><strong>Trained model</strong> achieving reasonable validation accuracy</li>
+                            <li class="fragment"><strong>Training curves</strong> showing loss and accuracy vs. epochs</li>
+                            <li class="fragment"><strong>Final test accuracy</strong> on held-out test set</li>
+                            <li class="fragment"><strong>Hyperparameter documentation:</strong>
+                                <ul style="margin-left: 30px; margin-top: 10px;">
+                                    <li>Learning rate, batch size, optimizer settings</li>
+                                    <li>Number of epochs, early stopping patience</li>
+                                    <li>Data augmentation strategies used</li>
+                                    <li>Regularization techniques applied</li>
+                                </ul>
+                            </li>
+                            <li class="fragment"><strong>Training time</strong> (for compute comparison)</li>
+                        </ol>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section 4: Task 2 - Fine-Tuning -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Task 2: Fine-Tuning Pretrained Models</h2>
+                    <div style="background: #2DD2C0; color: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                        <h3 style="color: white;">30 Points</h3>
+                        <p style="font-size: 0.85em;">Leverage transfer learning from ImageNet</p>
+                    </div>
+                    <div class="fragment mt-lg" style="font-size: 0.8em;">
+                        <h4>Objective</h4>
+                        <p>Fine-tune a model pretrained on ImageNet to your wildlife dataset</p>
+                        <div class="emphasis-box mt-md">
+                            <p>ImageNet contains 1.2M images across 1000 classes—can this knowledge transfer to wildlife?</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Transfer Learning Concept</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="two-column">
+                            <div class="column">
+                                <h4>What Transfers?</h4>
+                                <div class="fragment">
+                                    <div style="background: #F5F5F5; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                                        <p><strong>Early layers:</strong></p>
+                                        <ul style="font-size: 0.9em;">
+                                            <li>Edge detectors</li>
+                                            <li>Texture patterns</li>
+                                            <li>Color filters</li>
+                                        </ul>
+                                        <p style="margin-top: 15px;"><strong>Later layers:</strong></p>
+                                        <ul style="font-size: 0.9em;">
+                                            <li>Object parts</li>
+                                            <li>Compositional features</li>
+                                            <li>High-level patterns</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="column">
+                                <h4>The Strategy</h4>
+                                <div class="fragment">
+                                    <ol style="font-size: 0.95em; line-height: 1.8;">
+                                        <li>Load pretrained weights</li>
+                                        <li>Replace final layer for your classes</li>
+                                        <li>Freeze early layers (optional)</li>
+                                        <li>Fine-tune on your data</li>
+                                    </ol>
+                                    <div class="emphasis-box mt-md" style="font-size: 0.85em;">
+                                        <p>Lower learning rate (10-100× smaller) prevents destroying pretrained features</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Layer Freezing Strategies</h2>
+                    <div style="font-size: 0.7em;">
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                            <tr style="background: #10099F; color: white;">
+                                <th style="padding: 10px; border: 1px solid #EEEEEE;">Strategy</th>
+                                <th style="padding: 10px; border: 1px solid #EEEEEE;">When to Use</th>
+                                <th style="padding: 10px; border: 1px solid #EEEEEE;">Pros</th>
+                                <th style="padding: 10px; border: 1px solid #EEEEEE;">Cons</th>
+                            </tr>
+                            <tr class="fragment">
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Freeze all but final layer</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Very small dataset (&lt;1000 images)</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Fast, prevents overfitting</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Limited adaptation</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Freeze early layers</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Medium dataset (1K-10K images)</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Good balance</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Need to choose cutoff</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Fine-tune all layers</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Large dataset (&gt;10K images)</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Maximum adaptation</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">Slower, risk overfitting</td>
+                            </tr>
+                        </table>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p><strong>Experiment!</strong> Try different strategies and document which works best for your dataset</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Deliverables for Task 2</h2>
+                    <div style="font-size: 0.75em;">
+                        <ol style="line-height: 1.8;">
+                            <li class="fragment"><strong>Fine-tuned model</strong> with documented layer freezing strategy</li>
+                            <li class="fragment"><strong>Training curves</strong> comparing convergence to Task 1</li>
+                            <li class="fragment"><strong>Final test accuracy</strong></li>
+                            <li class="fragment"><strong>Analysis:</strong>
+                                <ul style="margin-left: 30px; margin-top: 10px;">
+                                    <li>Which layers were frozen and why?</li>
+                                    <li>How much faster did it converge?</li>
+                                    <li>How does accuracy compare to training from scratch?</li>
+                                </ul>
+                            </li>
+                            <li class="fragment"><strong>Training time comparison</strong> with Task 1</li>
+                        </ol>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section 5: Task 3 - Zero-Shot -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Task 3: Zero-Shot Classification</h2>
+                    <div style="background: #FAC55B; color: #262626; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                        <h3 style="color: #262626;">20 Points</h3>
+                        <p style="font-size: 0.85em;">Use SigLIP 2 vision-language model</p>
+                    </div>
+                    <div class="fragment mt-lg" style="font-size: 0.8em;">
+                        <h4>Objective</h4>
+                        <p>Classify images without any training on your dataset</p>
+                        <div class="emphasis-box mt-md" style="background: #FFEBEE; border-color: #FC8484;">
+                            <p><strong>Critical:</strong> Zero-shot means NO training on your dataset—only evaluation!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">What is SigLIP 2?</h2>
+                    <div class="two-column" style="font-size: 0.75em;">
+                        <div class="column">
+                            <h4>Vision-Language Models</h4>
+                            <div class="fragment">
+                                <p>Models that understand both images and text</p>
+                                <ul style="font-size: 0.95em; margin-top: 15px;">
+                                    <li>Trained on millions of image-text pairs</li>
+                                    <li>Learn to match images with descriptions</li>
+                                    <li>Can classify without task-specific training</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <h4>How It Works</h4>
+                            <div class="fragment">
+                                <ol style="font-size: 0.95em; line-height: 1.8;">
+                                    <li>Encode image → vector</li>
+                                    <li>Encode text prompts → vectors</li>
+                                    <li>Compute similarity scores</li>
+                                    <li>Choose highest score</li>
+                                </ol>
+                                <div class="emphasis-box mt-md" style="font-size: 0.85em;">
+                                    <p>All classification happens via text prompts!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Prompt Engineering</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="two-column">
+                            <div class="column">
+                                <h4>Simple Prompts</h4>
+                                <div style="background: #F5F5F5; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.9em;">
+                                    <code>
+                                        "dog"<br>
+                                        "cat"<br>
+                                        "elephant"
+                                    </code>
+                                </div>
+                                <div class="fragment mt-md">
+                                    <h4 class="mt-lg">Better Prompts</h4>
+                                    <div style="background: #E8F5E9; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.9em;">
+                                        <code>
+                                            "a photo of a dog"<br>
+                                            "a photo of a cat"<br>
+                                            "a photo of an elephant"
+                                        </code>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="column">
+                                <h4>Advanced: Multiple Prompts</h4>
+                                <div class="fragment" style="background: #E3F2FD; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.85em;">
+                                    <p>For "dog":</p>
+                                    <code>
+                                        "a photo of a dog"<br>
+                                        "a dog in nature"<br>
+                                        "a picture of a dog"
+                                    </code>
+                                    <p style="margin-top: 10px; font-family: 'Atkinson Hyperlegible', sans-serif;">→ Average similarities</p>
+                                </div>
+                                <div class="fragment emphasis-box mt-md" style="font-size: 0.85em;">
+                                    <p><strong>Experiment!</strong> Document which prompts work best</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Optional: Fine-Tuning on Embeddings</h2>
+                    <div style="font-size: 0.75em;">
+                        <p>Alternative approach: Train a classifier on SigLIP 2 embeddings</p>
+                        <div class="fragment mt-md">
+                            <div class="two-column">
+                                <div class="column">
+                                    <h4>Method</h4>
+                                    <ol style="font-size: 0.95em; line-height: 1.6;">
+                                        <li>Extract image embeddings</li>
+                                        <li>Train logistic regression</li>
+                                        <li>Evaluate on test set</li>
+                                    </ol>
+                                </div>
+                                <div class="column">
+                                    <h4>Benefits</h4>
+                                    <ul style="font-size: 0.95em; line-height: 1.6;">
+                                        <li>Very data-efficient</li>
+                                        <li>Fast training</li>
+                                        <li>Shows transfer learning power</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="emphasis-box mt-md">
+                                <p>If you do this, include it in your learning curves!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Deliverables for Task 3</h2>
+                    <div style="font-size: 0.75em;">
+                        <ol style="line-height: 1.8;">
+                            <li class="fragment"><strong>Working zero-shot pipeline</strong> (no training!)</li>
+                            <li class="fragment"><strong>Test set accuracy</strong> using zero-shot evaluation</li>
+                            <li class="fragment"><strong>Prompt documentation:</strong>
+                                <ul style="margin-left: 30px; margin-top: 10px;">
+                                    <li>What prompt templates did you try?</li>
+                                    <li>Which worked best?</li>
+                                    <li>Did you use multiple prompts per class?</li>
+                                </ul>
+                            </li>
+                            <li class="fragment"><strong>(Optional)</strong> Results from embedding + logistic regression</li>
+                        </ol>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section 6: Task 4 - Learning Curves -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Task 4: Learning Curves & Analysis</h2>
+                    <div style="background: #FFA05F; color: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                        <h3 style="color: white;">20 Points</h3>
+                        <p style="font-size: 0.85em;">Systematic comparison across all approaches</p>
+                    </div>
+                    <div class="fragment mt-lg" style="font-size: 0.8em;">
+                        <h4>Objective</h4>
+                        <p>Understand how performance scales with training data</p>
+                        <div class="emphasis-box mt-md">
+                            <p><strong>Key question:</strong> When should you use each approach?</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">What is a Learning Curve?</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="two-column">
+                            <div class="column">
+                                <p>A plot showing how model performance changes with the amount of training data</p>
+                                <div class="fragment mt-md">
+                                    <h4>Why Learning Curves?</h4>
+                                    <ul style="font-size: 0.95em;">
+                                        <li>Show data efficiency</li>
+                                        <li>Compare approaches fairly</li>
+                                        <li>Predict performance with more data</li>
+                                        <li>Guide model selection</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="column fragment">
+                                <div style="background: #F5F5F5; padding: 15px; border-radius: 8px;">
+                                    <h4 style="color: #10099F; text-align: center;">Typical Pattern</h4>
+                                    <div style="border-left: 2px solid #262626; border-bottom: 2px solid #262626; padding: 20px; margin-top: 15px; position: relative; height: 200px;">
+                                        <div style="position: absolute; bottom: 10px; left: -60px; transform: rotate(-90deg); font-size: 0.8em;">Accuracy</div>
+                                        <div style="position: absolute; bottom: -30px; right: 0; font-size: 0.8em;">Training Data Size</div>
+                                        <!-- Curve representations -->
+                                        <div style="position: absolute; bottom: 20px; left: 20px; width: 80%; height: 160px;">
+                                            <svg width="100%" height="100%">
+                                                <path d="M 0 140 Q 50 80 100 40 T 200 20" stroke="#2DD2C0" stroke-width="3" fill="none" opacity="0.9"/>
+                                                <text x="200" y="15" font-size="12" fill="#2DD2C0">Fine-tune</text>
+                                                <path d="M 0 150 Q 80 120 160 80 T 280 40" stroke="#10099F" stroke-width="3" fill="none" opacity="0.9"/>
+                                                <text x="280" y="35" font-size="12" fill="#10099F">From scratch</text>
+                                                <line x1="0" y1="100" x2="300" y2="100" stroke="#FAC55B" stroke-width="2" stroke-dasharray="5,5"/>
+                                                <text x="240" y="95" font-size="12" fill="#FAC55B">Zero-shot</text>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Experimental Setup</h2>
+                    <div style="font-size: 0.75em;">
+                        <h4>Data Sizes to Evaluate</h4>
+                        <div class="fragment" style="background: #F5F5F5; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                            <p>For Tasks 1 & 2 (train from scratch, fine-tuning):</p>
+                            <div style="display: flex; justify-content: space-around; margin-top: 20px; font-size: 1.2em;">
+                                <div style="background: #10099F; color: white; padding: 15px 25px; border-radius: 8px;">10%</div>
+                                <div style="background: #2DD2C0; color: white; padding: 15px 25px; border-radius: 8px;">25%</div>
+                                <div style="background: #FAC55B; color: #262626; padding: 15px 25px; border-radius: 8px;">50%</div>
+                                <div style="background: #FFA05F; color: white; padding: 15px 25px; border-radius: 8px;">75%</div>
+                                <div style="background: #FC8484; color: white; padding: 15px 25px; border-radius: 8px;">100%</div>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p><strong>Important:</strong> Use stratified sampling to maintain class balance at each data size</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Metrics to Track</h2>
+                    <div style="font-size: 0.7em;">
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                            <tr style="background: #10099F; color: white;">
+                                <th style="padding: 10px; border: 1px solid #EEEEEE;">Data Size</th>
+                                <th style="padding: 10px; border: 1px solid #EEEEEE;">From Scratch Acc</th>
+                                <th style="padding: 10px; border: 1px solid #EEEEEE;">Fine-tune Acc</th>
+                                <th style="padding: 10px; border: 1px solid #EEEEEE;">Training Time (min)</th>
+                                <th style="padding: 10px; border: 1px solid #EEEEEE;">Epochs to Converge</th>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">10%</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">25%</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">50%</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">75%</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">100%</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">___</td>
+                            </tr>
+                            <tr style="background: #FAC55B;">
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Zero-shot</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;" colspan="4"><strong>Test Accuracy: ___</strong> (horizontal baseline)</td>
+                            </tr>
+                        </table>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Analysis Questions</h2>
+                    <div style="font-size: 0.75em;">
+                        <p>Your report should address these key questions:</p>
+                        <div style="margin-top: 30px;">
+                            <div class="fragment" style="background: #E3F2FD; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #10099F;">
+                                <strong>1. Data Efficiency:</strong> Which approach requires the least data to achieve good performance?
+                            </div>
+                            <div class="fragment" style="background: #E8F5E9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2DD2C0;">
+                                <strong>2. Crossover Point:</strong> At what data size does training from scratch match fine-tuning?
+                            </div>
+                            <div class="fragment" style="background: #FFF3E0; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #FAC55B;">
+                                <strong>3. Zero-Shot Competitiveness:</strong> In which data regime (low/medium/high) does zero-shot perform best relatively?
+                            </div>
+                            <div class="fragment" style="background: #FFEBEE; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #FC8484;">
+                                <strong>4. Computational Cost:</strong> How does training time scale with data size? Which approach is most efficient?
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Deliverables for Task 4</h2>
+                    <div style="font-size: 0.75em;">
+                        <ol style="line-height: 1.8;">
+                            <li class="fragment"><strong>Learning curve plot</strong> with all three approaches:
+                                <ul style="margin-left: 30px; margin-top: 10px;">
+                                    <li>X-axis: Training data size (% or number of samples)</li>
+                                    <li>Y-axis: Test accuracy</li>
+                                    <li>Three lines: from scratch, fine-tuning, zero-shot (horizontal)</li>
+                                    <li>Error bars if multiple trials (recommended)</li>
+                                </ul>
+                            </li>
+                            <li class="fragment"><strong>Results table</strong> with numerical values</li>
+                            <li class="fragment"><strong>Written analysis</strong> addressing the four key questions</li>
+                            <li class="fragment"><strong>Insights</strong> about when to use each approach</li>
+                        </ol>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section 7: Computational Resources -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Computational Resources</h2>
+                    <p style="font-size: 0.85em;">This project requires GPU access</p>
+                    <div class="fragment mt-lg">
+                        <div class="grid-3-cols" style="font-size: 0.75em; gap: 20px;">
+                            <div style="background: #E3F2FD; padding: 20px; border-radius: 8px; border-left: 4px solid #10099F;">
+                                <h4 style="color: #10099F;">Google Colab</h4>
+                                <p><strong>Free tier:</strong> 15-30 GPU hours/week</p>
+                                <p class="mt-sm"><strong>Recommended!</strong></p>
+                                <ul style="font-size: 0.9em; margin-top: 10px;">
+                                    <li>Easy setup</li>
+                                    <li>Jupyter notebooks</li>
+                                    <li>Free Tesla T4</li>
+                                </ul>
+                            </div>
+                            <div style="background: #E8F5E9; padding: 20px; border-radius: 8px; border-left: 4px solid #2DD2C0;">
+                                <h4 style="color: #2DD2C0;">Kaggle Kernels</h4>
+                                <p><strong>Free:</strong> 30 GPU hours/week</p>
+                                <ul style="font-size: 0.9em; margin-top: 10px;">
+                                    <li>Datasets built-in</li>
+                                    <li>P100 GPUs</li>
+                                    <li>Good for Animals-10</li>
+                                </ul>
+                            </div>
+                            <div style="background: #FFF3E0; padding: 20px; border-radius: 8px; border-left: 4px solid #FAC55B;">
+                                <h4 style="color: #FAC55B;">Personal GPU</h4>
+                                <p><strong>If available</strong></p>
+                                <ul style="font-size: 0.9em; margin-top: 10px;">
+                                    <li>6GB+ VRAM recommended</li>
+                                    <li>NVIDIA preferred</li>
+                                    <li>No time limits</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Estimated Compute Time</h2>
+                    <div style="font-size: 0.7em;">
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                            <tr style="background: #10099F; color: white;">
+                                <th style="padding: 12px; border: 1px solid #EEEEEE;">Task</th>
+                                <th style="padding: 12px; border: 1px solid #EEEEEE;">Time per Run</th>
+                                <th style="padding: 12px; border: 1px solid #EEEEEE;">Number of Runs</th>
+                                <th style="padding: 12px; border: 1px solid #EEEEEE;">Total Estimate</th>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Task 1: Train from Scratch</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">2-4 hours</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">5 data sizes</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>10-20 GPU hours</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Task 2: Fine-tuning</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">0.5-1 hour</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">5 data sizes</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>2.5-5 GPU hours</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Task 3: Zero-shot</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">&lt;10 minutes</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">1 evaluation</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Negligible</strong></td>
+                            </tr>
+                            <tr style="background: #F5F5F5; font-weight: bold;">
+                                <td colspan="3" style="padding: 10px; border: 1px solid #EEEEEE; text-align: right;">TOTAL:</td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>15-30 GPU hours</strong></td>
+                            </tr>
+                        </table>
+                        <div class="fragment emphasis-box mt-lg" style="font-size: 0.95em;">
+                            <p><strong>Note:</strong> Estimates are for Animals-10. Oxford Pets may be faster, ANIMAL-10N similar.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Tips for Managing Compute</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="grid-2x2">
+                            <div class="fragment">
+                                <div style="background: #E3F2FD; padding: 15px; border-radius: 8px; height: 100%;">
+                                    <h4 style="color: #10099F;">🚀 Start Early</h4>
+                                    <p style="font-size: 0.9em;">Spread computation across weeks to use free tier limits effectively</p>
+                                </div>
+                            </div>
+                            <div class="fragment">
+                                <div style="background: #E8F5E9; padding: 15px; border-radius: 8px; height: 100%;">
+                                    <h4 style="color: #2DD2C0;">🐛 Debug on Small Data</h4>
+                                    <p style="font-size: 0.9em;">Train 10% size first to catch bugs before expensive full runs</p>
+                                </div>
+                            </div>
+                            <div class="fragment">
+                                <div style="background: #FFF3E0; padding: 15px; border-radius: 8px; height: 100%;">
+                                    <h4 style="color: #FAC55B;">💾 Use Checkpointing</h4>
+                                    <p style="font-size: 0.9em;">Save models regularly to resume after disconnections</p>
+                                </div>
+                            </div>
+                            <div class="fragment">
+                                <div style="background: #FFEBEE; padding: 15px; border-radius: 8px; height: 100%;">
+                                    <h4 style="color: #FC8484;">⚡ Consider Smaller Models</h4>
+                                    <p style="font-size: 0.9em;">ResNet-18 instead of ResNet-50 if compute is very limited</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section 8: Report & Submission -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Report Structure</h2>
+                    <div style="font-size: 0.75em;">
+                        <p>A template is provided on Canvas. Maximum 8 pages (main text, excluding references and appendices)</p>
+                        <div class="fragment mt-lg">
+                            <div class="two-column">
+                                <div class="column">
+                                    <h4>Required Sections</h4>
+                                    <ol style="font-size: 0.95em; line-height: 1.8;">
+                                        <li>Abstract</li>
+                                        <li>Introduction</li>
+                                        <li>Methods</li>
+                                        <li>Results</li>
+                                        <li>Discussion</li>
+                                        <li>Conclusion</li>
+                                        <li>References</li>
+                                    </ol>
+                                </div>
+                                <div class="column">
+                                    <h4>Key Elements</h4>
+                                    <ul style="font-size: 0.95em; line-height: 1.8;">
+                                        <li>Clear writing</li>
+                                        <li>Reproducible methods</li>
+                                        <li>Effective visualizations</li>
+                                        <li>Insightful analysis</li>
+                                        <li>Proper citations</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Submission Requirements</h2>
+                    <div style="font-size: 0.7em;">
+                        <h4>What to Submit</h4>
+                        <div class="fragment mt-md">
+                            <div style="background: #F5F5F5; padding: 20px; border-radius: 8px;">
+                                <ol style="line-height: 1.8;">
+                                    <li><strong>Report (PDF):</strong> 8-page report following template
+                                        <ul style="margin-left: 30px; margin-top: 5px;">
+                                            <li>File name: <code>LastName_FirstName_DL_FinalProject.pdf</code></li>
+                                        </ul>
+                                    </li>
+                                    <li class="mt-sm"><strong>Code:</strong> Complete, runnable code
+                                        <ul style="margin-left: 30px; margin-top: 5px;">
+                                            <li>Submit as .zip, GitHub link, or Jupyter notebooks</li>
+                                            <li>Include <code>requirements.txt</code> or <code>environment.yml</code></li>
+                                            <li>Include README with reproduction instructions</li>
+                                            <li>File name: <code>LastName_FirstName_Code.zip</code></li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Grading Breakdown</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="two-column">
+                            <div class="column">
+                                <h4 style="color: #10099F;">Implementation & Experiments (60 points)</h4>
+                                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.95em;">
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;"><strong>Task 1:</strong> Training from Scratch</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE; text-align: right;">20</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;"><strong>Task 2:</strong> Fine-Tuning</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE; text-align: right;">20</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;"><strong>Task 3:</strong> Zero-Shot</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE; text-align: right;">10</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;"><strong>Task 4:</strong> Learning Curves</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE; text-align: right;">10</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="column">
+                                <h4 style="color: #2DD2C0;">Report Quality (40 points)</h4>
+                                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.95em;">
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Writing & Structure</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE; text-align: right;">10</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Methods Section</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE; text-align: right;">8</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Results Section</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE; text-align: right;">9</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Discussion & Analysis</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE; text-align: right;">13</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg" style="font-size: 1.1em;">
+                            <p><strong>Total: 100 Points</strong></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Important Policies</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="grid-2x2">
+                            <div class="fragment">
+                                <div style="background: #FFEBEE; padding: 15px; border-radius: 8px; border-left: 4px solid #FC8484;">
+                                    <h4 style="color: #FC8484;">📅 Late Policy</h4>
+                                    <p style="font-size: 0.9em;">-10% per day<br>Maximum 3 days late</p>
+                                </div>
+                            </div>
+                            <div class="fragment">
+                                <div style="background: #E8F5E9; padding: 15px; border-radius: 8px; border-left: 4px solid #2DD2C0;">
+                                    <h4 style="color: #2DD2C0;">🕐 Extensions</h4>
+                                    <p style="font-size: 0.9em;">Request 48h before deadline<br>Valid justification required</p>
+                                </div>
+                            </div>
+                            <div class="fragment">
+                                <div style="background: #E3F2FD; padding: 15px; border-radius: 8px; border-left: 4px solid #10099F;">
+                                    <h4 style="color: #10099F;">🎓 Academic Integrity</h4>
+                                    <p style="font-size: 0.9em;">All code and writing must be your own<br>Cite external resources</p>
+                                </div>
+                            </div>
+                            <div class="fragment">
+                                <div style="background: #FFF3E0; padding: 15px; border-radius: 8px; border-left: 4px solid #FAC55B;">
+                                    <h4 style="color: #FAC55B;">📝 Regrade Requests</h4>
+                                    <p style="font-size: 0.9em;">Within 1 week of grade release<br>Specific justification needed</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section 9: Timeline -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Weekly Milestones</h2>
+                    <p style="font-size: 0.85em;">Recommended timeline to stay on track</p>
+                    <div class="fragment mt-lg" style="font-size: 0.7em;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr style="background: #10099F; color: white;">
+                                <th style="padding: 12px; border: 1px solid #EEEEEE; width: 20%;">Week</th>
+                                <th style="padding: 12px; border: 1px solid #EEEEEE;">Goals</th>
+                                <th style="padding: 12px; border: 1px solid #EEEEEE; width: 25%;">Checkpoint</th>
+                            </tr>
+                            <tr class="fragment">
+                                <td style="padding: 10px; border: 1px solid #EEEEEE; background: #E3F2FD;"><strong>Week 1</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">
+                                    <ul style="margin: 0; padding-left: 20px;">
+                                        <li>Choose dataset and download</li>
+                                        <li>Set up development environment</li>
+                                        <li>Implement Task 1 on small subset</li>
+                                    </ul>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">✓ Working training pipeline</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td style="padding: 10px; border: 1px solid #EEEEEE; background: #E8F5E9;"><strong>Week 2</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">
+                                    <ul style="margin: 0; padding-left: 20px;">
+                                        <li>Complete Task 1 on full dataset</li>
+                                        <li>Implement and test Task 2 (fine-tuning)</li>
+                                        <li>Implement and test Task 3 (zero-shot)</li>
+                                    </ul>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">✓ All approaches producing predictions</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td style="padding: 10px; border: 1px solid #EEEEEE; background: #FFF3E0;"><strong>Week 3</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">
+                                    <ul style="margin: 0; padding-left: 20px;">
+                                        <li>Generate learning curves (Tasks 1 & 2)</li>
+                                        <li>Run experiments with consistent evaluation</li>
+                                        <li>Create visualizations and results tables</li>
+                                    </ul>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">✓ Complete learning curve plot</td>
+                            </tr>
+                            <tr class="fragment">
+                                <td style="padding: 10px; border: 1px solid #EEEEEE; background: #FFEBEE;"><strong>Week 4</strong></td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">
+                                    <ul style="margin: 0; padding-left: 20px;">
+                                        <li>Write first draft of report</li>
+                                        <li>Create final figures and polish visualizations</li>
+                                        <li>Revise and proofread report</li>
+                                        <li>Prepare code for submission</li>
+                                    </ul>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #EEEEEE;">✓ Final submission ready</td>
+                            </tr>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Section 10: Getting Started -->
+            <section>
+                <section>
+                    <h2 class="truncate-title">Getting Started</h2>
+                    <div style="font-size: 0.8em;">
+                        <h4>First Steps</h4>
+                        <div class="fragment mt-md">
+                            <ol style="line-height: 2;">
+                                <li>📚 Read the full project description on Canvas</li>
+                                <li>🎯 Choose your dataset (Week 1!)</li>
+                                <li>💻 Set up your development environment (Colab/Kaggle)</li>
+                                <li>📖 Review ResNet architecture and PyTorch/TensorFlow docs</li>
+                                <li>🚀 Start implementing Task 1 on a small data subset</li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Resources & Support</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="two-column">
+                            <div class="column">
+                                <h4>Documentation</h4>
+                                <ul style="font-size: 0.95em;">
+                                    <li>PyTorch: <code>pytorch.org</code></li>
+                                    <li>TensorFlow: <code>tensorflow.org</code></li>
+                                    <li>HuggingFace: <code>huggingface.co</code></li>
+                                    <li>Dive into Deep Learning book</li>
+                                </ul>
+                            </div>
+                            <div class="column">
+                                <h4>Getting Help</h4>
+                                <ul style="font-size: 0.95em;">
+                                    <li>Office hours</li>
+                                    <li>Course discussion forum</li>
+                                    <li>Email instructor</li>
+                                    <li>Study groups encouraged!</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box mt-lg">
+                            <p><strong>Remember:</strong> This project brings together concepts from the entire course. Start early, ask questions, and enjoy the process!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Final Reminders</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="grid-2x2">
+                            <div class="fragment">
+                                <div style="background: #E3F2FD; padding: 20px; border-radius: 8px; border-left: 4px solid #10099F;">
+                                    <h4 style="color: #10099F;">📊 Document Everything</h4>
+                                    <p style="font-size: 0.9em;">Track hyperparameters, random seeds, and decisions from the start</p>
+                                </div>
+                            </div>
+                            <div class="fragment">
+                                <div style="background: #E8F5E9; padding: 20px; border-radius: 8px; border-left: 4px solid #2DD2C0;">
+                                    <h4 style="color: #2DD2C0;">💾 Save Everything</h4>
+                                    <p style="font-size: 0.9em;">Use version control, save checkpoints, backup your work</p>
+                                </div>
+                            </div>
+                            <div class="fragment">
+                                <div style="background: #FFF3E0; padding: 20px; border-radius: 8px; border-left: 4px solid #FAC55B;">
+                                    <h4 style="color: #FAC55B;">🎯 Focus on Analysis</h4>
+                                    <p style="font-size: 0.9em;">The insights you gain are more valuable than perfect accuracy</p>
+                                </div>
+                            </div>
+                            <div class="fragment">
+                                <div style="background: #FFEBEE; padding: 20px; border-radius: 8px; border-left: 4px solid #FC8484;">
+                                    <h4 style="color: #FC8484;">⏰ Start Early!</h4>
+                                    <p style="font-size: 0.9em;">GPU time and debugging take longer than you think</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="title-slide">
+                    <h1 class="truncate-title">Good Luck!</h1>
+                    <div class="mt-lg" style="font-size: 0.9em;">
+                        <p>This is your opportunity to apply everything you've learned</p>
+                        <p class="mt-md">Questions? Ask early and often!</p>
+                    </div>
+                    <div class="fragment mt-lg emphasis-box">
+                        <p style="font-size: 1.2em;"><strong>Deadline: Before December 1st</strong></p>
+                    </div>
+                </section>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/math/math.js"></script>
+
+    <!-- Shared JavaScript -->
+    <script src="../shared/js/title-handler.js"></script>
+    <script src="../shared/js/source-modal-v2.js"></script>
+    <script src="../shared/js/tooltip-modal.js"></script>
+    <script src="../shared/js/dark-mode.js"></script>
+
+    <script>
+        Reveal.initialize({
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true,
+            transition: 'slide',
+            slideNumber: 'c/t',
+            math: {
+                mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js',
+                config: 'TeX-AMS_HTML-full'
+            },
+            plugins: [ RevealMath, RevealHighlight, RevealNotes ]
+        });
+    </script>
+</body>
+</html>
