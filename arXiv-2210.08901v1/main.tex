@@ -1,0 +1,109 @@
+\documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+\PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2022
+
+
+% ready for submission
+% \usepackage{neurips_2022}
+
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+\usepackage[preprint]{neurips_2022}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+% \usepackage[final]{neurips_2022}
+% \usepackage{natbib}
+
+% to avoid loading the natbib package, add option nonatbib:
+% \usepackage[nonatbib]{neurips_2022}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+% \usepackage{hyperref}       % hyperlinks
+\usepackage[pagebackref,breaklinks,colorlinks]{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{amsmath}
+\usepackage{bbm}
+\usepackage{wrapfig}
+\def\1{\mathbbm{1}}
+\usepackage{multirow}
+\renewcommand{\multirowsetup}{\centering} 
+\usepackage{graphicx}
+\makeatletter
+\newcommand{\thickhline}{%
+    \noalign {\ifnum 0=`}\fi \hrule height 1pt
+    \futurelet \reserved@a \@xhline
+}
+\renewcommand{\multirowsetup}{\centering}
+
+\title{Contrastive Language-Image Pre-Training with Knowledge Graphs}
+
+\author{%
+  Xuran~Pan~
+  Tianzhu~Ye~
+  Dongchen~Han~
+  Shiji Song~
+  \textbf{Gao Huang\thanks{Corresponding author.}~~}  \\ 
+  Department of Automation, BNRist, Tsinghua University, Beijing, China\\
+  \texttt{\{pxr18, ytz20, hdc19\}@mails.tsinghua.edu.cn} \\ \texttt{\{shijis, gaohuang\}@tsinghua.edu.cn}
+}
+
+% \author{%
+%   Xuran Pan \\
+%   Tsinghua University\\
+%   \texttt{pxr18@mails.tsinghua.edu.cn} \\
+%     \And
+%   Tianzhu Ye \\
+%   Tsinghua University\\
+%   \texttt{ytz20@mails.tsinghua.edu.cn} \\
+%     \And
+%   Dongchen Han \\
+%   Tsinghua University\\
+%   \texttt{hdc19@mails.tsinghua.edu.cn} \\
+%      \And
+%   Shiji Song \\
+%   Tsinghua University\\
+%   \texttt{shijis@tsinghua.edu.cn} \\
+%       \And
+%   Gao Huang \thanks{Corresponding Author} \\
+%   Tsinghua University\\
+%   \texttt{gaohuang@tsinghua.edu.cn} \\
+% }
+
+\begin{document}
+
+
+\maketitle
+
+
+\begin{abstract}
+Recent years have witnessed the fast development of large-scale pre-training frameworks that can extract multi-modal representations in a unified form and achieve promising performances when transferred to downstream tasks. Nevertheless, existing approaches mainly focus on pre-training with simple image-text pairs, while neglecting the semantic connections between concepts from different modalities. In this paper, we propose a knowledge-based pre-training framework, dubbed \textit{Knowledge-CLIP}, which injects semantic information into the widely used CLIP model~\cite{clip}. Through introducing knowledge-based objectives in the pre-training process and utilizing different types of knowledge graphs as training data, our model can semantically align the representations in vision and language with higher quality, and enhance the reasoning ability across scenarios and modalities. Extensive experiments on various vision-language downstream tasks demonstrate the effectiveness of Knowledge-CLIP compared with the original CLIP and competitive baselines.
+
+\end{abstract}
+
+
+\input{introduction.tex}
+\input{relatedworks.tex}
+\input{method.tex}
+\input{experiments.tex}
+\input{conclustion.tex}
+
+\bibliographystyle{plain}
+\bibliography{egbib}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}

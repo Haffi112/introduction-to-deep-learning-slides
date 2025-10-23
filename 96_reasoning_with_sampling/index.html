@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reasoning with Sampling - Introduction to Deep Learning</title>
+
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+    <link rel="stylesheet" href="../shared/css/reveal-theme.css">
+    <link rel="stylesheet" href="../shared/css/common.css">
+    <link rel="stylesheet" href="../shared/css/quiz.css">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/monokai.css">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Title Slide -->
+            <section class="title-slide">
+                <img src="../shared/images/uoi_logo_blue.png" alt="University of Iceland Logo" class="ui-logo">
+                <h1 class="truncate-title">Reasoning with Sampling</h1>
+                <p>Your Base Model is Smarter Than You Think</p>
+                <p>Understanding Power Distributions and MCMC for LLM Reasoning</p>
+                <p class="mt-lg">
+                    <small>Instructor: Hafsteinn Einarsson</small><br>
+                    <small>University of Iceland</small><br>
+                    <small style="margin-top: 10px; display: block;">Based on: Karan & Du (2024), Harvard University</small>
+                </p>
+            </section>
+
+            <!-- SECTION 1: INTRODUCTION -->
+            <section>
+                <!-- Course Context -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Course Context: LLM Reasoning and Posttraining</h2>
+                    <div style="font-size: 0.85em;">
+                        <div class="fragment">
+                            <p>We've explored how deep learning models learn and generate:</p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>Transformers</strong>: The backbone of modern LLMs</li>
+                                <li><strong>Attention Mechanisms</strong>: Focusing on relevant context</li>
+                                <li><strong>Autoregressive Generation</strong>: Token-by-token sampling</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px; background: #F5F5FF; border-left: 4px solid #10099F;">
+                            <p style="margin: 0;"><strong>Key Question:</strong> How do we enhance reasoning capabilities in LLMs? The standard answer: <span class="tooltip">RL posttraining<span class="tooltiptext">Reinforcement Learning applied after initial pretraining to improve specific capabilities like reasoning</span></span> (like <span class="tooltip">GRPO<span class="tooltiptext">Group Relative Policy Optimization: A popular RL algorithm for enhancing LLM reasoning on math and coding tasks</span></span>)</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>This paper asks:</strong> Can we achieve similar reasoning gains through <em>better sampling</em> alone, without any training?</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Learning Objectives -->
+                <section>
+                    <h2 class="truncate-title">Learning Objectives</h2>
+                    <div style="font-size: 0.85em;">
+                        <p>By the end of this lecture, you will understand:</p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px;">
+                            <div class="fragment" style="background: #F5F5FF; padding: 20px; border-radius: 8px;">
+                                <h4 style="color: #10099F; margin-top: 0;">📚 Core Concepts</h4>
+                                <ul style="font-size: 0.9em; margin: 0;">
+                                    <li>Distribution sharpening</li>
+                                    <li>Power distributions vs low-temp sampling</li>
+                                    <li>MCMC and Metropolis-Hastings</li>
+                                </ul>
+                            </div>
+                            <div class="fragment" style="background: #F0FFF9; padding: 20px; border-radius: 8px;">
+                                <h4 style="color: #2DD2C0; margin-top: 0;">🧮 Mathematics</h4>
+                                <ul style="font-size: 0.9em; margin: 0;">
+                                    <li>Why p<sup>α</sup> helps reasoning</li>
+                                    <li>Acceptance ratios in MCMC</li>
+                                    <li>Computational cost analysis</li>
+                                </ul>
+                            </div>
+                            <div class="fragment" style="background: #FFFBF0; padding: 20px; border-radius: 8px;">
+                                <h4 style="color: #FAC55B; margin-top: 0;">⚙️ Algorithm</h4>
+                                <ul style="font-size: 0.9em; margin: 0;">
+                                    <li>Autoregressive MCMC sampling</li>
+                                    <li>Block-based progression</li>
+                                    <li>Inference-time scaling</li>
+                                </ul>
+                            </div>
+                            <div class="fragment" style="background: #FFF5F5; padding: 20px; border-radius: 8px;">
+                                <h4 style="color: #FC8484; margin-top: 0;">📊 Results</h4>
+                                <ul style="font-size: 0.9em; margin: 0;">
+                                    <li>Matching RL performance</li>
+                                    <li>Diversity preservation</li>
+                                    <li>Out-of-domain generalization</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Motivation: RL Posttraining Paradigm -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">The RL Posttraining Paradigm</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <p><strong>Standard approach to enhance LLM reasoning:</strong></p>
+                            <div style="background: #F5F5FF; padding: 20px; margin-top: 15px; border-radius: 8px;">
+                                <ol style="margin: 0;">
+                                    <li><strong>Start with a base model</strong> (e.g., Qwen2.5-7B)</li>
+                                    <li><strong>Apply RL posttraining</strong> with verifiable rewards (MATH, coding problems)</li>
+                                    <li><strong>Get improved reasoning</strong> on single-shot tasks</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Recent observations about RL posttraining:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>✅ <strong>Single-shot performance</strong> improves significantly</li>
+                                <li>❌ <strong>Multi-shot (pass@k) performance</strong> degrades for large k</li>
+                                <li>🤔 <strong>Samples concentrate</strong> at high base model likelihoods</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>Question:</strong> Is RL learning <em>new</em> reasoning capabilities, or just <em>sharpening</em> the base model distribution to favor high-likelihood reasoning traces?</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Distribution Sharpening -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Distribution Sharpening: The Core Question</h2>
+                    <div style="font-size: 0.7em;">
+                        <div class="fragment">
+                            <p><strong>What is distribution sharpening?</strong></p>
+                            <div style="background: #F5F5FF; padding: 15px; margin-top: 15px; border-radius: 8px;">
+                                <p style="margin: 0;">A distribution is <strong>sharpened</strong> when high-probability regions get even more probability mass, while low-probability regions get less.</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Evidence that RL does distribution sharpening:</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li><strong>Base models have high pass@k</strong>: Given enough samples, base models solve many problems</li>
+                                <li><strong>RL concentrates at high base likelihoods</strong>: RL samples are typically high-confidence under the base model</li>
+                                <li><strong>RL trades multi-shot for single-shot</strong>: Performance shifts from pass@100 to pass@1</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px; background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                            <p style="margin: 0;"><strong>Key Insight:</strong> If RL is "just" sharpening the base distribution, can we explicitly define a sharpened target distribution and sample from it directly?</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Main Result -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Main Result: Training-Free Reasoning Enhancement</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 15px;">
+                            <p style="margin: 0; font-size: 1.1em;"><strong>This paper shows:</strong> Sampling from a sharpened distribution (<em>power distribution</em>) at inference time can match or exceed RL posttraining performance!</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <img src="images/teaser.png" alt="Main results comparing base, GRPO, and power sampling" style="max-width: 45%; border-radius: 8px;">
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Key advantages of this approach:</strong></p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
+                                <div style="background: #F5F5FF; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0; color: #10099F;"><strong>🎯 Training-Free</strong></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.9em;">No hyperparameter tuning or instabilities</p>
+                                </div>
+                                <div style="background: #FFFBF0; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0; color: #FAC55B;"><strong>📚 Dataset-Free</strong></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.9em;">No need for curated training data</p>
+                                </div>
+                                <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0; color: #2DD2C0;"><strong>🔓 Verifier-Free</strong></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.9em;">Works beyond easily verifiable domains</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Paper Overview -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Paper Overview: Three Key Contributions</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment" style="margin-top: 15px;">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <h4 style="color: #10099F; margin-top: 0;">1️⃣ Power Distribution as Sampling Target</h4>
+                                <p style="margin: 5px 0 0 0;">Introduce p<sup>α</sup> as an explicit, parameter-free target distribution that upweights high-likelihood base model sequences</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <h4 style="color: #2DD2C0; margin-top: 0;">2️⃣ Autoregressive MCMC Algorithm</h4>
+                                <p style="margin: 5px 0 0 0;">Develop a <span class="tooltip">Metropolis-Hastings<span class="tooltiptext">A Markov Chain Monte Carlo algorithm for sampling from unnormalized distributions</span></span> algorithm adapted for autoregressive LLMs using block-based progressive sampling</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #FFFBF0; padding: 20px; border-radius: 8px;">
+                                <h4 style="color: #FAC55B; margin-top: 0;">3️⃣ Empirical Validation</h4>
+                                <p style="margin: 5px 0 0 0;">Demonstrate effectiveness across models (Qwen, Phi) and tasks (MATH500, HumanEval, GPQA, AlpacaEval), showing:</p>
+                                <ul style="margin: 5px 0 0 20px; font-size: 0.95em;">
+                                    <li>Comparable in-domain performance to RL</li>
+                                    <li>Superior out-of-domain performance</li>
+                                    <li>Preserved diversity (pass@k doesn't degrade)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Test Understanding -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the main advantage of the power sampling approach over RL posttraining?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It achieves higher single-shot accuracy on all tasks",
+                                "correct": false,
+                                "explanation": "Power sampling achieves comparable (not always higher) single-shot accuracy, but the advantage is that it does so without training."
+                            },
+                            {
+                                "text": "It requires no training, datasets, or verifiers while matching RL performance",
+                                "correct": true,
+                                "explanation": "Correct! The key advantage is achieving similar reasoning gains through pure inference-time sampling, avoiding the complexity of RL training."
+                            },
+                            {
+                                "text": "It runs faster than standard inference",
+                                "correct": false,
+                                "explanation": "Power sampling actually requires more compute at inference time (about 8-9x tokens). The advantage is no training cost."
+                            },
+                            {
+                                "text": "It only works on mathematical reasoning tasks",
+                                "correct": false,
+                                "explanation": "Power sampling works across multiple domains including math, coding, science questions, and general helpfulness."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+            </section>
+
+            <!-- SECTION 2: BACKGROUND & PRELIMINARIES -->
+            <section>
+                <!-- RL for LLMs -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Reinforcement Learning for LLMs</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="fragment">
+                            <p><strong>RL has become dominant for posttraining LLMs:</strong></p>
+                            <div style="background: #F5F5FF; padding: 20px; margin-top: 15px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;"><strong><span class="tooltip">RLHF<span class="tooltiptext">Reinforcement Learning from Human Feedback: Training LLMs using human preferences as reward signal</span></span> (RL from Human Feedback):</strong></p>
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li>Align LLMs with human preferences</li>
+                                    <li>Uses trained reward model from human comparisons</li>
+                                    <li>Example: ChatGPT's helpful, harmless, honest behavior</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;"><strong><span class="tooltip">RLVR<span class="tooltiptext">Reinforcement Learning with Verifiable Rewards: Using automated verifiers (e.g., test cases for code, answer checking for math) as reward signal</span></span> (RL with Verifiable Rewards):</strong></p>
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li>Use <em>automated verifiers</em> as reward signal</li>
+                                    <li>Domains: mathematics (MATH dataset), coding (HumanEval), science (GPQA)</li>
+                                    <li>Simple end-of-generation reward: correct = +1, incorrect = 0</li>
+                                    <li>Led to massive gains in reasoning capabilities</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>GRPO (Group Relative Policy Optimization)</strong> is the standard algorithm, central to recent reasoning advances (DeepSeek-R1, OpenReasoner, Tulu-3)</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Related Work: MCMC -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Related Work: Autoregressive MCMC</h2>
+                    <div style="font-size: 0.7em;">
+                        <div class="fragment">
+                            <p><strong>Prior work has explored <span class="tooltip">MCMC<span class="tooltiptext">Markov Chain Monte Carlo: A class of algorithms for sampling from complex probability distributions by constructing a Markov chain</span></span> for LLMs:</strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F5F5FF; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 8px 0;"><strong>Tilted distributions (external reward):</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">Many applications (red-teaming, personalized generation) want to sample from base LLM <em>tilted</em> towards external reward function</p>
+                                <ul style="margin: 5px 0 0 20px; font-size: 0.9em;">
+                                    <li><strong><span class="tooltip">SMC<span class="tooltiptext">Sequential Monte Carlo: A sampling method that maintains multiple candidate sequences and updates them based on expected future reward</span></span> approaches</strong>: Maintain multiple candidates, update based on expected future reward</li>
+                                    <li><strong>Metropolis-Hastings</strong>: Iterative resampling with acceptance based on reward</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div class="emphasis-box" style="background: #F0FFF9; border-left: 4px solid #2DD2C0; padding: 15px;">
+                                <p style="margin: 0;"><strong>Key Difference in This Paper:</strong> The target distribution is completely specified by the base LLM itself (p<sup>α</sup>), avoiding need for external reward!</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Connection to diffusion models:</strong></p>
+                            <p style="margin-top: 8px; font-size: 0.95em;">Sampling from p<sup>α</sup> is known as <em>annealed</em> or <em>tempered</em> sampling in physics/diffusion literature, used to avoid mode collapse and sample from multimodal distributions</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- LLM Preliminaries -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">LLM Preliminaries: Token Sequences</h2>
+                    <div style="font-size: 0.5em;">
+                        <div class="fragment">
+                            <p><strong>Notation and setup:</strong></p>
+                            <ul style="margin-top: 15px; font-size: 0.95em;">
+                                <li><strong>$\mathcal{X}$</strong>: Finite vocabulary of tokens</li>
+                                <li><strong>$\mathcal{X}^T$</strong>: Set of sequences $x_{0:T} = (x_0, x_1, \dots, x_T)$</li>
+                                <li><strong>$x_{\le t}$</strong>: Tokens before position $t$, i.e., $(x_0, \dots, x_{t-1})$</li>
+                                <li><strong>$x_{\ge t}$</strong>: Tokens after position $t$, i.e., $(x_{t+1}, \dots, x_T)$</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Autoregressive generation:</strong></p>
+                            <div style="background: #F5F5FF; padding: 20px; margin-top: 15px; border-radius: 8px;">
+                                <p style="margin: 0 0 15px 0;">An LLM defines distribution $p$ over sequences by learning conditional next-token distributions:</p>
+                                <p style="margin: 0; text-align: center; font-size: 1.1em;">
+                                    $$p(x_{0:T}) = \prod_{t=0}^T p(x_t | x_{\le t})$$
+                                </p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                            <p style="margin: 0;"><strong>Standard sampling:</strong> Sample token-by-token using conditional distributions $p(x_t | x_{\le t})$, which directly samples from joint distribution $p(x_{0:T})$</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Low-Temperature Sampling -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Low-Temperature Sampling: A Common Misconception</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>What is low-temperature sampling?</strong></p>
+                            <div style="background: #F5F5FF; padding: 15px; margin-top: 15px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;">Exponentiate the conditional next-token distributions at each step:</p>
+                                <p style="margin: 0; text-align: center; font-size: 1.05em;">
+                                    $$p_{\text{temp}}(x_t | x_{\le t}) = \frac{p(x_t | x_{\le t})^{\alpha}}{\sum_{x_t' \in \mathcal{X}} p(x_t' | x_{\le t})^{\alpha}}$$
+                                </p>
+                                <p style="margin: 10px 0 0 0; font-size: 0.95em;">where temperature $\tau = 1/\alpha$ (lower temperature = higher $\alpha$ = sharper distribution)</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div class="emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484; padding: 15px;">
+                                <p style="margin: 0 0 8px 0;"><strong>Common Misconception:</strong></p>
+                                <p style="margin: 0;">Many believe low-temperature sampling over $T$ tokens samples from $p^{\alpha}$. <strong>This is FALSE!</strong></p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Why are they different?</strong></p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                                <div style="background: #F5F5FF; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #10099F;"><strong>Low-Temperature:</strong></p>
+                                    <p style="margin: 0; text-align: center; font-size: 0.95em;">
+                                        $$p_{\text{temp}}(x_t | x_{\le t}) \propto \left(\sum_{x_{>t}} p(\mathbf{x})\right)^{\alpha}$$
+                                    </p>
+                                    <p style="margin: 10px 0 0 0; font-size: 0.9em;"><strong>Exponent of sums</strong></p>
+                                </div>
+                                <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #2DD2C0;"><strong>Power Distribution:</strong></p>
+                                    <p style="margin: 0; text-align: center; font-size: 0.95em;">
+                                        $$p_{\text{pow}}(x_t | x_{\le t}) \propto \sum_{x_{>t}} p(\mathbf{x})^{\alpha}$$
+                                    </p>
+                                    <p style="margin: 10px 0 0 0; font-size: 0.9em;"><strong>Sum of exponents</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p style="font-size: 0.95em;"><em>We'll see why this difference matters for reasoning in the next section!</em></p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pass@k Problem -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">The Pass@k Diversity Problem with RL</h2>
+                    <div style="font-size: 0.7em;">
+                        <div class="fragment">
+                            <p><strong>What is <span class="tooltip">pass@k<span class="tooltiptext">A metric where we generate k different samples, and count the problem as solved if at least one is correct. Measures both quality and diversity.</span></span>?</strong></p>
+                            <div style="background: #F5F5FF; padding: 15px; margin-top: 15px; border-radius: 8px;">
+                                <p style="margin: 0;">Generate $k$ different samples for a problem. The problem is <strong>solved</strong> if <em>at least one</em> sample is correct.</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Observations about RL posttraining:</strong></p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                                <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 8px 0; color: #2DD2C0;"><strong>✅ Single-shot (pass@1)</strong></p>
+                                    <p style="margin: 0; font-size: 0.95em;">RL-posttrained models excel at pass@1</p>
+                                </div>
+                                <div style="background: #FFF5F5; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 8px 0; color: #FC8484;"><strong>❌ Multi-shot (pass@k, large k)</strong></p>
+                                    <p style="margin: 0; font-size: 0.95em;">Base models often outperform RL at large k</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>Why?</strong> RL sharpens distribution so much that samples lose diversity. RL trades multi-shot performance for single-shot performance.</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Goal of this paper:</strong> Achieve high pass@1 (like RL) while maintaining high pass@k (like base model)</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Test Understanding -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the key difference between low-temperature sampling and sampling from the power distribution p^α?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Low-temperature sampling uses temperature τ = 1/α while power sampling uses α directly",
+                                "correct": false,
+                                "explanation": "This is just a notational difference. The fundamental difference is in how future completions are weighted."
+                            },
+                            {
+                                "text": "Low-temperature samples from (sum of futures)^α while power distribution samples from sum of (futures)^α",
+                                "correct": true,
+                                "explanation": "Correct! Low-temperature averages all future paths then exponentiates (exponent of sums), while power distribution exponentiates each future path then sums (sum of exponents). This makes power distribution account for future path quality."
+                            },
+                            {
+                                "text": "Power distributions can only be used with MCMC while low-temperature can be used autoregressively",
+                                "correct": false,
+                                "explanation": "This is a consequence, not the fundamental difference. The mathematical difference in how futures are weighted is what necessitates MCMC for power distributions."
+                            },
+                            {
+                                "text": "There is no mathematical difference; they produce the same distribution",
+                                "correct": false,
+                                "explanation": "They are mathematically distinct distributions! The paper proves they are different."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+            </section>
+
+            <!-- SECTION 3: POWER DISTRIBUTIONS - THEORY -->
+            <section>
+                <!-- What is Distribution Sharpening? -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">What is Distribution Sharpening?</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <p><strong>Intuition:</strong> We want to bias sampling toward high-likelihood regions</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;"><strong>A distribution is sharpened when:</strong></p>
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li>High-probability regions get <strong>more</strong> probability mass</li>
+                                    <li>Low-probability regions get <strong>less</strong> probability mass</li>
+                                    <li>The gap between high and low probabilities <strong>increases</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Why sharpen for reasoning?</strong></p>
+                            <div style="background: #F0FFF9; padding: 15px; margin-top: 15px; border-radius: 8px;">
+                                <p style="margin: 0; font-size: 0.95em;">Base models already <em>know</em> how to reason (high pass@k), but correct reasoning traces might have only modest probability. Sharpening makes it more likely to sample correct traces on the first try.</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>Question:</strong> How do we mathematically sharpen a distribution p?</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Power Distribution Definition -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Power Distributions: Mathematical Definition</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="fragment">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 15px 0;"><strong>Power Distribution:</strong> For a distribution $p$ and power $\alpha \geq 1$, define:</p>
+                                <p style="margin: 0; text-align: center; font-size: 1.2em;">
+                                    $$p^{\alpha}(\mathbf{x}) \propto p(\mathbf{x})^{\alpha}$$
+                                </p>
+                                <p style="margin: 15px 0 0 0; font-size: 0.9em;">(This is an <em>unnormalized</em> distribution - we'll handle normalization later)</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Why does this sharpen the distribution?</strong></p>
+                            <div style="background: #F0FFF9; padding: 20px; margin-top: 15px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;">For any two sequences $\mathbf{x}$ and $\mathbf{x'}$ where $p(\mathbf{x}) > p(\mathbf{x'})$:</p>
+                                <p style="margin: 0; text-align: center; font-size: 1.1em;">
+                                    $$\frac{p(\mathbf{x})^{\alpha}}{p(\mathbf{x'})^{\alpha}} > \frac{p(\mathbf{x})}{p(\mathbf{x'})} \qquad \text{when } \alpha > 1$$
+                                </p>
+                                <p style="margin: 10px 0 0 0; font-size: 0.95em;">The relative weight on higher-likelihood sequences <strong>increases</strong>!</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Effect of α:</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li><strong>α = 1:</strong> No sharpening (original distribution)</li>
+                                <li><strong>α > 1:</strong> More sharpening as α increases</li>
+                                <li><strong>α → ∞:</strong> Deterministic (mode only)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Toy Example Visualization -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Visualization: Sharpening a Mixture of Gaussians</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <p>Compare original distribution $p$ (blue) with $p^{\alpha}$ for $\alpha = 4.0$ (orange):</p>
+                            <img src="images/toy_sharp.png" alt="Toy example showing distribution sharpening" style="max-width: 80%; margin-top: 20px; border-radius: 8px;">
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Observations:</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li>Modes (peaks) become <strong>taller and narrower</strong></li>
+                                <li>Low-density regions become <strong>even lower</strong></li>
+                                <li>The sharpened distribution strongly prefers high-likelihood regions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Mathematical Comparison -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Power Distribution vs Low-Temperature: The Math</h2>
+                    <div style="font-size: 0.5em;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                            <div class="fragment">
+                                <p><strong>Recall: Low-temperature sampling</strong></p>
+                                <div style="background: #F5F5FF; padding: 15px; margin-top: 10px; border-radius: 8px;">
+                                    <p style="margin: 0; text-align: center; font-size: 1.05em;">
+                                        $$p_{\text{temp}}(x_t | x_{\le t}) = \frac{p(x_t | x_{\le t})^{\alpha}}{\sum_{x_t'} p(x_t' | x_{\le t})^{\alpha}}$$
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="fragment">
+                                <p><strong>For power distribution p<sup>α</sup>:</strong></p>
+                                <div style="background: #FFFBF0; padding: 15px; margin-top: 10px; border-radius: 8px;">
+                                    <p style="margin: 0 0 8px 0;">The conditional for $x_t$ under $p^{\alpha}$ is:</p>
+                                    <p style="margin: 0; text-align: center; font-size: 1.0em;">
+                                        $$p_{\text{pow}}(x_t | x_{\le t}) \propto \sum_{x_{>t}} p(\mathbf{x})^{\alpha}$$
+                                    </p>
+                                    <p style="margin: 8px 0 0 0; text-align: center; color: #2DD2C0;"><strong>Sum of exponents</strong></p>
+                                </div>
+                            </div>
+                            <div class="fragment">
+                                <p><strong>Using Bayes rule to expand:</strong></p>
+                                <div style="background: #F0FFF9; padding: 15px; margin-top: 10px; border-radius: 8px;">
+                                    <p style="margin: 0 0 8px 0;">Since $p(x_t | x_{\le t}) = \frac{p(x_{\leq t})}{p(x_{\le t})} = \frac{\sum_{x_{>t}} p(\mathbf{x})}{\sum_{x_{\geq t}} p(\mathbf{x})}$, we get:</p>
+                                    <p style="margin: 0; text-align: center; font-size: 1.0em;">
+                                        $$p_{\text{temp}}(x_t | x_{\le t}) \propto \left(\sum_{x_{>t}} p(\mathbf{x})\right)^{\alpha}$$
+                                    </p>
+                                    <p style="margin: 8px 0 0 0; text-align: center; color: #10099F;"><strong>Exponent of sums</strong></p>
+                                </div>
+                            </div>
+                            <div class="fragment emphasis-box" style="background: #FFF5F5; border-left: 4px solid #FC8484;">
+                                <p style="margin: 0;"><strong>These are NOT the same!</strong> The order of operations (sum then exponentiate vs exponentiate then sum) produces fundamentally different distributions.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Why the Difference Matters -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Why Does This Difference Matter?</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Key insight about "future paths":</strong></p>
+                            <div style="background: #F5F5FF; padding: 15px; margin-top: 15px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;"><strong>Low-temperature sampling (exponent of sums):</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">Averages all possible future completions, <em>then</em> exponentiates. This <strong>doesn't account</strong> for how sharpening affects individual future paths.</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;"><strong>Power distribution (sum of exponents):</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">Exponentiates <em>each</em> possible future completion, <em>then</em> sums. This <strong>inherently accounts</strong> for future path sharpening.</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>Consequence:</strong> Power distribution upweights tokens with <em>few but high-likelihood future paths</em>, while low-temperature upweights tokens with <em>many but lower-likelihood futures</em>.</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p style="font-size: 0.95em;"><strong>Why is this good for reasoning?</strong> Tokens that lead to many mediocre futures are often <span class="tooltip">pivotal tokens<span class="tooltiptext">Critical decision points where choosing the wrong token traps the model in low-likelihood futures, even if the average looks good</span></span> that trap reasoning. Power distribution avoids this!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Concrete Example -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Concrete Example: Two-Token Sequences</h2>
+                    <div style="font-size: 0.7em;">
+                        <div class="fragment">
+                            <p><strong>Setup:</strong> Vocabulary $\mathcal{X} = \{a, b\}$, sequences of length 2, $\alpha = 2.0$</p>
+                            <div style="background: #F5F5FF; padding: 15px; margin-top: 15px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;"><strong>Probabilities under base model p:</strong></p>
+                                <table style="margin: 0 auto; font-size: 0.95em;">
+                                    <tr>
+                                        <td style="padding: 5px 15px;"><strong>Sequence</strong></td>
+                                        <td style="padding: 5px 15px; text-align: center;">$aa$</td>
+                                        <td style="padding: 5px 15px; text-align: center;">$ab$</td>
+                                        <td style="padding: 5px 15px; text-align: center;">$ba$</td>
+                                        <td style="padding: 5px 15px; text-align: center;">$bb$</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 5px 15px;"><strong>p(sequence)</strong></td>
+                                        <td style="padding: 5px 15px; text-align: center; color: #FC8484;">0.00</td>
+                                        <td style="padding: 5px 15px; text-align: center; color: #2DD2C0;"><strong>0.40</strong></td>
+                                        <td style="padding: 5px 15px; text-align: center;">0.25</td>
+                                        <td style="padding: 5px 15px; text-align: center;">0.25</td>
+                                    </tr>
+                                </table>
+                                <p style="margin: 10px 0 0 0; font-size: 0.9em;">So: $p(x_0 = a) = 0.40$, $p(x_0 = b) = 0.50$</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #2DD2C0;"><strong>Power distribution p<sup>2</sup>:</strong></p>
+                                    <p style="margin: 0; font-size: 0.9em;">$p_{\text{pow}}(x_0=a) \propto 0.00^2 + 0.40^2 = \mathbf{0.16}$</p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.9em;">$p_{\text{pow}}(x_0=b) \propto 0.25^2 + 0.25^2 = 0.125$</p>
+                                    <p style="margin: 10px 0 0 0; font-size: 0.85em;">✅ <strong>Prefers $a$</strong> (one high-likelihood path)</p>
+                                </div>
+                                <div style="background: #FFFBF0; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #FAC55B;"><strong>Low-temperature:</strong></p>
+                                    <p style="margin: 0; font-size: 0.9em;">$p_{\text{temp}}(x_0=a) \propto (0.00 + 0.40)^2 = 0.16$</p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.9em;">$p_{\text{temp}}(x_0=b) \propto (0.25 + 0.25)^2 = \mathbf{0.25}$</p>
+                                    <p style="margin: 10px 0 0 0; font-size: 0.85em;">❌ <strong>Prefers $b$</strong> (two mediocre paths)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #F5F5FF; border-left: 4px solid #10099F;">
+                            <p style="margin: 0;"><strong>Result:</strong> Power distribution samples the highest-likelihood 2-token sequence ($ab$), while low-temperature gets trapped choosing $b$ first (which leads to lower-likelihood completions).</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Test Understanding -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why does the power distribution p^α better account for future completions than low-temperature sampling?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Because it uses a higher value of α",
+                                "correct": false,
+                                "explanation": "Both methods can use the same α value. The difference is in how they mathematically combine future paths."
+                            },
+                            {
+                                "text": "Because it exponentiates each future path before summing, rather than summing then exponentiating",
+                                "correct": true,
+                                "explanation": "Correct! Power distribution computes sum of p(x)^α (sum of exponents), which properly accounts for how sharpening affects each individual future. Low-temp computes (sum of p(x))^α (exponent of sums), which averages futures before sharpening."
+                            },
+                            {
+                                "text": "Because it requires MCMC which searches through more completions",
+                                "correct": false,
+                                "explanation": "MCMC is needed because we cannot directly sample from p^α, but this is a computational consequence, not the reason for better future accounting."
+                            },
+                            {
+                                "text": "Because it always chooses the highest likelihood token",
+                                "correct": false,
+                                "explanation": "Power distribution is still probabilistic and doesn not always choose the highest likelihood token. It upweights tokens that lead to high-likelihood futures."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+            </section>
+
+            <!-- SECTION 4: POWER DISTRIBUTIONS - WHY THEY HELP REASONING -->
+            <section>
+                <!-- Critical Windows and Pivotal Tokens -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}, {"text": "In the Blink of an Eye - Li et al. 2025", "url": "https://arxiv.org/abs/2501.00000"}]'>
+                    <h2 class="truncate-title">Critical Windows and Pivotal Tokens</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Observation from recent research:</strong></p>
+                            <div style="background: #F5F5FF; padding: 15px; margin-top: 15px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;">In LLM reasoning, a few tokens are <strong>highly influential</strong> in determining correctness.</p>
+                                <p style="margin: 0; font-size: 0.95em;">These are called <span class="tooltip">critical windows<span class="tooltiptext">Time periods during generation where the model makes key decisions that strongly affect the final output quality</span></span> or <span class="tooltip">pivotal tokens<span class="tooltiptext">Specific tokens that are decision points: choosing correctly leads to high-quality completions, choosing incorrectly traps in low-quality futures</span></span>.</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Two types of pivotal tokens:</strong></p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                                <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #2DD2C0;"><strong>✅ Positive Pivotal Token</strong></p>
+                                    <p style="margin: 0; font-size: 0.9em;">Has <strong>one (or few) high-likelihood future path(s)</strong></p>
+                                    <p style="margin: 8px 0 0 0; font-size: 0.85em;">Example: Choosing the correct first step in a math proof</p>
+                                </div>
+                                <div style="background: #FFF5F5; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #FC8484;"><strong>❌ Negative Pivotal Token</strong></p>
+                                    <p style="margin: 0; font-size: 0.9em;">Has <strong>many low-likelihood future paths</strong></p>
+                                    <p style="margin: 8px 0 0 0; font-size: 0.85em;">Example: Starting with a plausible but wrong approach that leads nowhere</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>Key Finding:</strong> Sharp critical windows (where wrong tokens trap reasoning) correlate strongly with reasoning failures!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Power Distribution Upweights Positive Pivotal Tokens -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Power Distributions Favor Positive Pivotal Tokens</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <p><strong>Recall the key observation:</strong></p>
+                            <div style="background: #F0FFF9; padding: 15px; margin-top: 15px; border-radius: 8px; border: 2px solid #2DD2C0;">
+                                <p style="margin: 0; font-size: 1.05em;">Power distribution upweights tokens with <strong>few but high-likelihood future paths</strong>, while low-temperature upweights tokens with <strong>many but low-likelihood futures</strong>.</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Why this matters for reasoning:</strong></p>
+                            <div style="background: #F5F5FF; padding: 20px; margin-top: 15px; border-radius: 8px;">
+                                <ol style="margin: 0; font-size: 0.95em;">
+                                    <li style="margin-bottom: 10px;"><strong>Negative pivotal tokens</strong> might have high <em>average</em> likelihood (many mediocre futures), making them attractive to low-temperature sampling</li>
+                                    <li style="margin-bottom: 10px;"><strong>But each individual future</strong> from negative pivotal tokens has low likelihood</li>
+                                    <li style="margin-bottom: 10px;"><strong>Power distribution</strong> exponentiates <em>before</em> summing, so it sees these individual futures as low-quality</li>
+                                    <li style="margin-bottom: 0;"><strong>Positive pivotal tokens</strong> with one great path get upweighted by power distribution!</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                            <p style="margin: 0;"><strong>Embedded in p<sup>α</sup>:</strong> An implicit bias toward planning for future high-likelihood tokens, which helps avoid reasoning traps!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Formal Proposition -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Formal Statement: When Power Distribution Wins</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="fragment">
+                            <p><strong>Setup:</strong> Compare positive vs negative pivotal tokens</p>
+                            <div style="background: #F5F5FF; padding: 15px; margin-top: 15px; border-radius: 8px;">
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li><strong>Positive pivotal token $x_t$:</strong> marginal weight $\varepsilon$, concentrated on <strong>one future</strong> (likelihood $\varepsilon$)</li>
+                                    <li><strong>Negative pivotal token $x_t'$:</strong> marginal weight $\varepsilon'$, spread over <strong>$N$ futures</strong> (each likelihood $\varepsilon'/N$)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px; border: 2px solid #2DD2C0;">
+                                <p style="margin: 0 0 15px 0;"><strong>Proposition:</strong> If the marginal weights satisfy:</p>
+                                <p style="margin: 0; text-align: center; font-size: 1.15em;">
+                                    $$\frac{\varepsilon'}{N^{1 - 1/\alpha}} < \varepsilon < \varepsilon'$$
+                                </p>
+                                <p style="margin: 15px 0 0 0; font-size: 0.95em;">Then:</p>
+                                <ul style="margin: 5px 0 0 20px; font-size: 0.95em;">
+                                    <li>✅ <strong>Power distribution</strong> upweights $x_t$ (positive pivotal)</li>
+                                    <li>❌ <strong>Low-temperature</strong> upweights $x_t'$ (negative pivotal)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Intuition:</strong></p>
+                            <p style="margin-top: 10px; font-size: 0.95em;">Even though $\varepsilon' > \varepsilon$ (negative pivotal has higher total mass), the positive pivotal token has a <strong>higher-quality individual future</strong> ($\varepsilon > \varepsilon'/N$), which power distribution recognizes!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Visual Example of Planning -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Visual Intuition: Planning for the Future</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="fragment">
+                            <p><strong>Scenario:</strong> Choosing next token at a decision point</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div style="background: #FFF5F5; padding: 20px; border-radius: 8px; border: 2px solid #FC8484;">
+                                    <p style="margin: 0 0 15px 0; color: #FC8484;"><strong>❌ Token A (Negative Pivotal)</strong></p>
+                                    <p style="margin: 0 0 10px 0; font-size: 0.9em;"><strong>Marginal weight:</strong> 0.50</p>
+                                    <p style="margin: 0 0 10px 0; font-size: 0.9em;"><strong>Future paths:</strong></p>
+                                    <ul style="margin: 0 0 15px 20px; font-size: 0.85em;">
+                                        <li>Path 1: 0.20</li>
+                                        <li>Path 2: 0.15</li>
+                                        <li>Path 3: 0.15</li>
+                                    </ul>
+                                    <p style="margin: 0; font-size: 0.85em; font-style: italic;">Many mediocre futures!</p>
+                                    <div style="margin-top: 15px; padding: 10px; background: white; border-radius: 5px;">
+                                        <p style="margin: 0; font-size: 0.85em;"><strong>Low-temp:</strong> $(0.50)^2 = \mathbf{0.25}$ ✓</p>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.85em;"><strong>Power:</strong> $0.20^2 + 0.15^2 + 0.15^2 = 0.085$</p>
+                                    </div>
+                                </div>
+                                <div style="background: #F0FFF9; padding: 20px; border-radius: 8px; border: 2px solid #2DD2C0;">
+                                    <p style="margin: 0 0 15px 0; color: #2DD2C0;"><strong>✅ Token B (Positive Pivotal)</strong></p>
+                                    <p style="margin: 0 0 10px 0; font-size: 0.9em;"><strong>Marginal weight:</strong> 0.35</p>
+                                    <p style="margin: 0 0 10px 0; font-size: 0.9em;"><strong>Future paths:</strong></p>
+                                    <ul style="margin: 0 0 15px 20px; font-size: 0.85em;">
+                                        <li>Path 1: 0.35</li>
+                                    </ul>
+                                    <p style="margin: 0; font-size: 0.85em; font-style: italic;">One excellent future!</p>
+                                    <div style="margin-top: 15px; padding: 10px; background: white; border-radius: 5px;">
+                                        <p style="margin: 0; font-size: 0.85em;"><strong>Low-temp:</strong> $(0.35)^2 = 0.1225$</p>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.85em;"><strong>Power:</strong> $0.35^2 = \mathbf{0.1225}$ ✓</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #F5F5FF; border-left: 4px solid #10099F;">
+                            <p style="margin: 0;"><strong>Result:</strong> Power distribution chooses Token B (the one with the best individual future), while low-temperature chooses Token A (high average but poor individual futures).</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Connection to Reasoning -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Why This Helps Mathematical and Coding Reasoning</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="fragment">
+                            <p><strong>Reasoning often involves critical decision points:</strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #FFFBF0; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0; color: #FAC55B;"><strong>🔢 Mathematics Example:</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">Solving a quadratic equation: Should you factor or use the quadratic formula?</p>
+                                <ul style="margin: 10px 0 0 20px; font-size: 0.9em;">
+                                    <li><strong>Wrong approach</strong> might be "plausible" (many ways to try factoring), giving it high average likelihood</li>
+                                    <li><strong>Right approach</strong> (quadratic formula) has one clear, high-likelihood path to solution</li>
+                                    <li><strong>Power distribution</strong> recognizes the single high-quality path!</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0; color: #10099F;"><strong>💻 Coding Example:</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">Implementing a sorting algorithm: Should you use nested loops or recursion?</p>
+                                <ul style="margin: 10px 0 0 20px; font-size: 0.9em;">
+                                    <li><strong>Wrong structure</strong> might have many variations (different loop conditions), appearing diverse</li>
+                                    <li><strong>Correct structure</strong> has one clean implementation path</li>
+                                    <li><strong>Power distribution</strong> prefers the clean, high-likelihood path!</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                            <p style="margin: 0;"><strong>Summary:</strong> Power distributions have an <em>implicit forward-looking bias</em> that helps avoid reasoning dead-ends!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Test Understanding -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is a \"negative pivotal token\" and why is it problematic for reasoning?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "A token with negative probability",
+                                "correct": false,
+                                "explanation": "All tokens have non-negative probabilities. The term \"negative\" refers to its negative impact on reasoning quality."
+                            },
+                            {
+                                "text": "A token that leads to many low-likelihood future completions, but might have high average likelihood",
+                                "correct": true,
+                                "explanation": "Correct! Negative pivotal tokens trap reasoning by leading to multiple mediocre futures. They look good on average but each individual path is low quality. Low-temperature sampling is fooled by the average, but power distributions see through this."
+                            },
+                            {
+                                "text": "A token that the model assigns low probability to",
+                                "correct": false,
+                                "explanation": "Negative pivotal tokens can actually have high marginal probability (high average over futures). The problem is that individual futures are all low quality."
+                            },
+                            {
+                                "text": "A token that appears late in generation and reverses earlier reasoning",
+                                "correct": false,
+                                "explanation": "Pivotal tokens are critical decision points that can occur anywhere. The \"negative\" aspect is about the quality of futures they lead to, not their position."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+            </section>
+
+            <!-- SECTION 5: MCMC & METROPOLIS-HASTINGS ALGORITHM -->
+            <section>
+                <!-- The Sampling Challenge -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">The Challenge: Sampling from p<sup>α</sup></h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="fragment">
+                            <p><strong>We want to sample from the power distribution p<sup>α</sup></strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;"><strong>What we have:</strong></p>
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li>Base LLM $p$ that can compute $p(x_{0:T})$ for any sequence</li>
+                                    <li>Can easily compute $p(x_{0:T})^{\alpha}$ (unnormalized power distribution)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #FFF5F5; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0; color: #FC8484;"><strong>The problem:</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">To sample from the <em>true</em> power distribution, we need the normalization constant:</p>
+                                <p style="margin: 10px 0 0 0; text-align: center; font-size: 1.1em;">
+                                    $$Z = \sum_{\mathbf{x} \in \mathcal{X}^T} p(\mathbf{x})^{\alpha}$$
+                                </p>
+                                <p style="margin: 10px 0 0 0; font-size: 0.9em;">This sum is over <strong>all possible sequences</strong> of length $T$ - computationally intractable!</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>Solution:</strong> Use <span class="tooltip">MCMC<span class="tooltiptext">Markov Chain Monte Carlo: A class of algorithms for sampling from distributions when direct sampling is intractable</span></span> to sample from unnormalized distributions!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- What is MCMC? -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">What is Markov Chain Monte Carlo (MCMC)?</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;"><strong>Core Idea:</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">Construct a <span class="tooltip">Markov chain<span class="tooltiptext">A sequence of random samples where each sample depends only on the previous one, not the entire history</span></span> of samples that, over time, converges to sampling from the target distribution.</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>How it works:</strong></p>
+                            <ol style="margin-top: 15px; font-size: 0.95em;">
+                                <li style="margin-bottom: 10px;"><strong>Start</strong> with an initial sample $\mathbf{x}^0$</li>
+                                <li style="margin-bottom: 10px;"><strong>Iterate</strong>: From current sample $\mathbf{x}^i$, generate a candidate $\mathbf{x}'$ using a proposal distribution $q(\mathbf{x}'|\mathbf{x}^i)$</li>
+                                <li style="margin-bottom: 10px;"><strong>Accept or reject</strong> the candidate based on some acceptance criterion</li>
+                                <li style="margin-bottom: 0;"><strong>Repeat</strong> until the chain has "mixed" (converged to target distribution)</li>
+                            </ol>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #F5F5FF; border-left: 4px solid #10099F;">
+                            <p style="margin: 0;"><strong>Key property:</strong> Under mild conditions, the distribution of samples $\mathbf{x}^n$ converges to the target distribution as $n \to \infty$, even without knowing the normalization constant!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Metropolis-Hastings Algorithm -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Metropolis-Hastings Algorithm</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>A classic MCMC algorithm for sampling from unnormalized distributions</strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 15px 0;"><strong>Algorithm steps:</strong></p>
+                                <ol style="margin: 0; font-size: 0.95em;">
+                                    <li style="margin-bottom: 10px;">Given current state $\mathbf{x}^i$, sample a candidate $\mathbf{x}' \sim q(\cdot | \mathbf{x}^i)$ from proposal distribution</li>
+                                    <li style="margin-bottom: 10px;">Compute the <strong>acceptance ratio</strong>:
+                                        <p style="margin: 8px 0 0 0; text-align: center; font-size: 1.05em;">
+                                            $$A(\mathbf{x}', \mathbf{x}^i) = \min\left\{1, \frac{p^{\alpha}(\mathbf{x}') \cdot q(\mathbf{x}^i | \mathbf{x}')}{p^{\alpha}(\mathbf{x}^i) \cdot q(\mathbf{x}' | \mathbf{x}^i)}\right\}$$
+                                        </p>
+                                    </li>
+                                    <li style="margin-bottom: 10px;">Accept $\mathbf{x}^{i+1} = \mathbf{x}'$ with probability $A(\mathbf{x}', \mathbf{x}^i)$</li>
+                                    <li style="margin-bottom: 0;">Otherwise reject: $\mathbf{x}^{i+1} = \mathbf{x}^i$ (stay at current state)</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                            <p style="margin: 0;"><strong>Crucial insight:</strong> The normalization constants in $p^{\alpha}(\mathbf{x}')$ and $p^{\alpha}(\mathbf{x}^i)$ cancel out in the ratio! We only need unnormalized values.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Understanding the Acceptance Ratio -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Understanding the Acceptance Ratio</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>The acceptance ratio has two components:</strong></p>
+                            <p style="margin: 15px 0; text-align: center; font-size: 1.15em;">
+                                $$A(\mathbf{x}', \mathbf{x}^i) = \min\left\{1, \underbrace{\frac{p^{\alpha}(\mathbf{x}')}{p^{\alpha}(\mathbf{x}^i)}}_{\text{target ratio}} \cdot \underbrace{\frac{q(\mathbf{x}^i | \mathbf{x}')}{q(\mathbf{x}' | \mathbf{x}^i)}}_{\text{proposal ratio}}\right\}$$
+                            </p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #2DD2C0;"><strong>Target ratio:</strong></p>
+                                    <p style="margin: 0; font-size: 0.9em;">$\frac{p^{\alpha}(\mathbf{x}')}{p^{\alpha}(\mathbf{x}^i)}$</p>
+                                    <p style="margin: 10px 0 0 0; font-size: 0.85em;">Favors candidates with higher target density (higher $p^{\alpha}$)</p>
+                                </div>
+                                <div style="background: #FFFBF0; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #FAC55B;"><strong>Proposal ratio:</strong></p>
+                                    <p style="margin: 0; font-size: 0.9em;">$\frac{q(\mathbf{x}^i | \mathbf{x}')}{q(\mathbf{x}' | \mathbf{x}^i)}$</p>
+                                    <p style="margin: 10px 0 0 0; font-size: 0.85em;">Corrects for asymmetry in proposal (ensures detailed balance)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Intuition:</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li>If candidate is <strong>much better</strong> ($p^{\alpha}(\mathbf{x}') \gg p^{\alpha}(\mathbf{x}^i)$): Always accept (ratio > 1, min gives 1)</li>
+                                <li>If candidate is <strong>slightly worse</strong>: Accept with some probability (helps avoid getting stuck)</li>
+                                <li>If candidate is <strong>much worse</strong>: Rarely accept</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Proposal Distribution Requirements -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Requirements for Proposal Distribution</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <p><strong>For Metropolis-Hastings to converge to the target distribution, the proposal $q$ must satisfy:</strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; color: #10099F;"><strong>1️⃣ Irreducibility:</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">For any set $X$ with nonzero mass under $p^{\alpha}$, the proposal has nonzero probability of <em>eventually</em> reaching $X$.</p>
+                                <p style="margin: 10px 0 0 0; font-size: 0.85em; font-style: italic;">In other words: You can get anywhere from anywhere (eventually)</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0; color: #2DD2C0;"><strong>2️⃣ Aperiodicity:</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">The chain doesn't return to the same state after a fixed number of steps.</p>
+                                <p style="margin: 10px 0 0 0; font-size: 0.85em; font-style: italic;">In other words: No deterministic cycles</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>Result:</strong> Under these minimal conditions, the Markov chain converges to sampling from $p^{\alpha}$, regardless of starting point!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Random Resampling Proposal -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Random Resampling Proposal for LLMs</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>The paper uses a "random resampling" proposal distribution:</strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 15px 0;"><strong>Proposal $q(\mathbf{x}' | \mathbf{x}^i)$:</strong></p>
+                                <ol style="margin: 0; font-size: 0.95em;">
+                                    <li style="margin-bottom: 10px;">Select a random index $t \in \{1, \dots, T\}$ uniformly (probability $1/T$)</li>
+                                    <li style="margin-bottom: 10px;">Keep prefix $x_{0:t-1}$ from current sequence</li>
+                                    <li style="margin-bottom: 0;">Resample from position $t$ onward using a proposal LLM $p_{\text{prop}}$:
+                                        <p style="margin: 5px 0 0 0; text-align: center; font-size: 1.0em;">
+                                            $$x_t', x_{t+1}', \dots, x_T' \sim p_{\text{prop}}(x_k | x_{\le k}) \text{ for } k \geq t$$
+                                        </p>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Computing the proposal ratio:</strong></p>
+                            <div style="background: #F0FFF9; padding: 15px; margin-top: 10px; border-radius: 8px;">
+                                <p style="margin: 0; font-size: 0.9em;">By symmetry: we can treat $\mathbf{x}^i$ as a "resampling" of $\mathbf{x}'$, so:</p>
+                                <p style="margin: 8px 0 0 0; text-align: center; font-size: 1.0em;">
+                                    $$\frac{q(\mathbf{x}^i | \mathbf{x}')}{q(\mathbf{x}' | \mathbf{x}^i)} = \frac{p_{\text{prop}}(\mathbf{x}^i \text{ from } t)}{p_{\text{prop}}(\mathbf{x}' \text{ from } t)}$$
+                                </p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 15px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>Why this works:</strong> Since we can resample from any position with nonzero probability, we can reach any sequence from any other sequence → irreducible and aperiodic ✓</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Visualization -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Visualizing Metropolis-Hastings with Random Resampling</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <img src="images/mcmc.png" alt="Metropolis-Hastings illustration" style="max-width: 90%; margin-top: 10px; border-radius: 8px;">
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Process:</strong></p>
+                            <ol style="margin-top: 10px; font-size: 0.95em;">
+                                <li>Start with current sequence</li>
+                                <li>Pick random index $t$</li>
+                                <li>Resample from $t$ onward to get candidate</li>
+                                <li>Compare $p^{\alpha}(\text{candidate})$ vs $p^{\alpha}(\text{current})$</li>
+                                <li>Accept or reject based on acceptance ratio</li>
+                                <li>Repeat!</li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Test Understanding -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why can Metropolis-Hastings sample from p^α without computing the normalization constant?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Because the algorithm uses a proposal distribution instead",
+                                "correct": false,
+                                "explanation": "The proposal distribution is part of how the algorithm works, but this is not why normalization is not needed. The key is the acceptance ratio."
+                            },
+                            {
+                                "text": "Because the normalization constants cancel out in the acceptance ratio",
+                                "correct": true,
+                                "explanation": "Correct! The acceptance ratio computes p^α(x prime)/p^α(x), and any normalization constant Z appears in both numerator and denominator, so it cancels: (p(x prime)^α/Z)/(p(x)^α/Z) = p(x prime)^α/p(x)^α."
+                            },
+                            {
+                                "text": "Because MCMC only approximates the distribution anyway",
+                                "correct": false,
+                                "explanation": "While MCMC produces approximate samples (especially early in the chain), it converges to exact samples from the target distribution. The normalization cancellation is exact, not an approximation."
+                            },
+                            {
+                                "text": "Because we use the base model p instead of p^α",
+                                "correct": false,
+                                "explanation": "We actually do use p^α in the acceptance ratio. The base model p is used only to compute p^α(x) = p(x)^α."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+            </section>
+
+            <!-- SECTION 6: POWER SAMPLING ALGORITHM -->
+            <section>
+                <!-- The Challenge: Exponential Mixing Time -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">The Practical Challenge: Mixing Time</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="fragment">
+                            <p><strong>Direct implementation of Metropolis-Hastings for LLMs:</strong></p>
+                            <div style="background: #FFF5F5; padding: 20px; margin-top: 15px; border-radius: 8px;">
+                                <ol style="margin: 0; font-size: 0.95em;">
+                                    <li style="margin-bottom: 10px;">Initialize with complete sequence of length $T$</li>
+                                    <li style="margin-bottom: 10px;">Run many MCMC iterations, each generating full-length candidates</li>
+                                    <li style="margin-bottom: 0;">Wait for convergence...</li>
+                                </ol>
+                                <p style="margin: 15px 0 0 0; color: #FC8484;"><strong>Problem:</strong> This requires many expensive full-sequence generations!</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>The <span class="tooltip">mixing time<span class="tooltiptext">Number of MCMC iterations required before the chain converges to sampling from the target distribution</span></span> problem:</strong></p>
+                            <div style="background: #FFFBF0; padding: 20px; margin-top: 15px; border-radius: 8px;">
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li>Poor initialization or proposal can lead to <strong>exponentially large</strong> number of samples needed</li>
+                                    <li>High-dimensional spaces (long token sequences) exacerbate this problem</li>
+                                    <li>Bad starting point → stuck for many iterations</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                            <p style="margin: 0;"><strong>Solution:</strong> Leverage autoregressive structure to progressively build up the sequence!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Autoregressive MCMC Idea -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Key Idea: Progressive Block-Based Sampling</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>Instead of sampling the full sequence at once, build it progressively:</strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 15px 0;"><strong>Define intermediate target distributions:</strong></p>
+                                <p style="margin: 0; text-align: center; font-size: 1.05em;">
+                                    $$\emptyset \longrightarrow p(x_{0:B})^{\alpha} \longrightarrow p(x_{0:2B})^{\alpha} \longrightarrow \cdots \longrightarrow p(x_{0:T})^{\alpha}$$
+                                </p>
+                                <p style="margin: 15px 0 0 0; font-size: 0.95em;">where $B$ is the <strong>block size</strong> (hyperparameter)</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Notation:</strong> Let $\pi_k$ denote the power distribution over sequences of length $kB$:</p>
+                            <p style="margin: 10px 0; text-align: center; font-size: 1.1em;">
+                                $$\pi_k(x_{0:kB}) \propto p(x_{0:kB})^{\alpha}$$
+                            </p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;"><strong>Progressive sampling strategy:</strong></p>
+                                <ol style="margin: 0; font-size: 0.95em;">
+                                    <li style="margin-bottom: 10px;">Sample from $\pi_1$ (first block)</li>
+                                    <li style="margin-bottom: 10px;">Given sample from $\pi_k$, use it to initialize sampling from $\pi_{k+1}$ (next block)</li>
+                                    <li style="margin-bottom: 0;">Repeat until full sequence length $T$</li>
+                                </ol>
+                                <p style="margin: 15px 0 0 0; font-style: italic; font-size: 0.9em;">Each transition uses MCMC, but with good initialization from previous block!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Algorithm 1 -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Algorithm 1: Power Sampling for Autoregressive Models</h2>
+                    <div style="font-size: 0.35em;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+                            <!-- Left Column -->
+                            <div style="background: #F5F5FF; padding: 15px; border-radius: 8px; text-align: left;">
+                                <p style="margin: 0 0 8px 0;"><strong>Input:</strong> Base model $p$, proposal $p_{\text{prop}}$, power $\alpha$, length $T$</p>
+                                <p style="margin: 0 0 10px 0;"><strong>Hyperparams:</strong> Block size $B$, MCMC steps $N_{\text{MCMC}}$</p>
+                                <p style="margin: 0 0 12px 0;"><strong>Output:</strong> Sequence $(x_0, \dots, x_T) \sim p^{\alpha}$</p>
+
+                                <div style="background: #E8E8FF; padding: 10px; margin: 8px 0; border-left: 3px solid #10099F;">
+                                    <p style="margin: 0 0 3px 0; font-weight: bold;">Notation:</p>
+                                    <p style="margin: 0;">$\pi_k(x_{0:kB}) \propto p(x_{0:kB})^{\alpha}$ (unnormalized target at stage $k$)</p>
+                                </div>
+
+                                <div style="background: white; padding: 12px; margin: 10px 0; border-radius: 5px;">
+                                    <p style="margin: 0 0 8px 0; font-weight: bold; color: #10099F;">For k = 0 to ⌈T/B⌉ - 1:</p>
+                                    <div style="margin-left: 15px;">
+                                        <p style="margin: 8px 0; font-style: italic; color: #666;">// Given prefix $x_{0:kB}$, sample from $\pi_{k+1}$</p>
+
+                                        <p style="margin: 8px 0;"><strong>1.</strong> Initialize by extending with $p_{\text{prop}}$:</p>
+                                        <div style="margin-left: 15px; background: #F0FFF9; padding: 8px; border-radius: 5px;">
+                                            <p style="margin: 0;">For $t = kB+1$ to $(k+1)B$:</p>
+                                            <p style="margin: 3px 0 0 15px;">$x_t^{(0)} \sim p_{\text{prop}}(x_t | x_{\le t})$</p>
+                                            <p style="margin: 3px 0 0 0;">Set $\mathbf{x} \gets \mathbf{x}^{(0)}$</p>
+                                        </div>
+
+                                        <p style="margin: 12px 0 8px 0;"><strong>2.</strong> Run MCMC for $N_{\text{MCMC}}$ iterations:</p>
+                                        <div style="margin-left: 15px;">
+                                            <p style="margin: 3px 0; font-weight: bold; color: #2DD2C0;">For n = 1 to $N_{\text{MCMC}}$:</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div style="background: #F5F5FF; padding: 15px; border-radius: 8px; text-align: left;">
+                                <div style="background: white; padding: 12px; margin: 0; border-radius: 5px;">
+                                    <div style="margin-left: 30px;">
+                                        <div style="background: #FFFBF0; padding: 8px; border-radius: 5px;">
+                                            <p style="margin: 0 0 6px 0;"><strong>a.</strong> Sample resampling index $m \sim \text{Uniform}\{1, \dots, (k+1)B\}$</p>
+
+                                            <p style="margin: 6px 0;"><strong>b.</strong> Generate candidate by resampling from $m$:</p>
+                                            <div style="margin-left: 12px;">
+                                                <p style="margin: 0;">Keep prefix: $x'_{0:m-1} = x_{0:m-1}$</p>
+                                                <p style="margin: 3px 0;">For $t = m$ to $(k+1)B$:</p>
+                                                <p style="margin: 0 0 0 15px;">$x_t' \sim p_{\text{prop}}(x_t | x_{\le t})$</p>
+                                            </div>
+
+                                            <p style="margin: 8px 0 6px 0;"><strong>c.</strong> Compute acceptance ratio:</p>
+                                            <p style="margin: 0; text-align: center; font-size: 1.1em;">
+                                                $$A(\mathbf{x}', \mathbf{x}) = \min\left\{1, \frac{\pi_k(\mathbf{x}')}{\pi_k(\mathbf{x})} \cdot \frac{p_{\text{prop}}(\mathbf{x}|\mathbf{x}')}{p_{\text{prop}}(\mathbf{x}'|\mathbf{x})}\right\}$$
+                                            </p>
+
+                                            <p style="margin: 8px 0 6px 0;"><strong>d.</strong> Accept or reject:</p>
+                                            <div style="margin-left: 12px;">
+                                                <p style="margin: 0;">Draw $u \sim \text{Uniform}(0, 1)$</p>
+                                                <p style="margin: 3px 0 0 0;"><strong>If</strong> $u \leq A(\mathbf{x}', \mathbf{x})$: Set $\mathbf{x} \gets \mathbf{x}'$ (accept)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-left: 15px; margin-top: 12px;">
+                                        <p style="margin: 0 0 8px 0;"><strong>3.</strong> Fix prefix for next stage:</p>
+                                        <div style="margin-left: 15px; background: #F0FFF9; padding: 8px; border-radius: 5px;">
+                                            <p style="margin: 0;">Set $x_{0:(k+1)B} \gets \mathbf{x}$</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p style="margin: 12px 0 0 0; font-weight: bold; color: #10099F;">Return $x_{0:T}$</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Algorithm Walkthrough -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Algorithm Walkthrough: Step by Step</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>Example: Generating sequence of length T = 3B</strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F5F5FF; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; color: #10099F;"><strong>Stage k=0:</strong> Sample first block $x_{0:B}$</p>
+                                <ol style="margin: 0; font-size: 0.95em;">
+                                    <li>Initialize: Sample $x_0, \dots, x_B$ from $p_{\text{prop}}$</li>
+                                    <li>MCMC: Run $N_{\text{MCMC}}$ iterations of random resampling</li>
+                                    <li>Result: Sample from $\pi_1$ (power distribution over length $B$)</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #F0FFF9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; color: #2DD2C0;"><strong>Stage k=1:</strong> Extend to $x_{0:2B}$</p>
+                                <ol style="margin: 0; font-size: 0.95em;">
+                                    <li><strong>Keep</strong> $x_{0:B}$ from stage 0</li>
+                                    <li>Initialize: Sample $x_{B+1}, \dots, x_{2B}$ from $p_{\text{prop}}$</li>
+                                    <li>MCMC: Run $N_{\text{MCMC}}$ iterations (can resample any position 0 to 2B)</li>
+                                    <li>Result: Sample from $\pi_2$ (power distribution over length $2B$)</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #FFFBF0; padding: 15px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0; color: #FAC55B;"><strong>Stage k=2:</strong> Final extension to $x_{0:3B}$</p>
+                                <ol style="margin: 0; font-size: 0.95em;">
+                                    <li><strong>Keep</strong> $x_{0:2B}$ from stage 1</li>
+                                    <li>Initialize: Sample $x_{2B+1}, \dots, x_{3B}$ from $p_{\text{prop}}$</li>
+                                    <li>MCMC: Run $N_{\text{MCMC}}$ iterations (can resample any position 0 to 3B)</li>
+                                    <li>Result: Sample from $\pi_3 = p^{\alpha}$ (full sequence!)</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Computational Cost -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Computational Cost Analysis</h2>
+                    <div style="font-size: 0.45em;">
+                        <div class="fragment">
+                            <p><strong>How many tokens does the algorithm generate?</strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px; display: flex; gap: 20px;">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px; flex: 1;">
+                                <p style="margin: 0 0 10px 0;">At stage $k$ (sampling from $\pi_k$):</p>
+                                <ul style="margin: 0 0 15px 0; font-size: 0.95em;">
+                                    <li>Sequence has length $kB$</li>
+                                    <li>Each MCMC step resamples from random position</li>
+                                    <li><strong>Average</strong> resample length: $kB/2$ tokens</li>
+                                    <li>Total for stage $k$: $N_{\text{MCMC}} \times kB/2$ tokens</li>
+                                </ul>
+                                <p style="margin: 15px 0 0 0;">Summing over all stages $k = 1$ to $\lceil T/B \rceil$:</p>
+                                <p style="margin: 10px 0 0 0; text-align: center; font-size: 1.15em;">
+                                    $$\mathbb{E}[\text{tokens}] = N_{\text{MCMC}} \sum_{k=1}^{\lceil T/B \rceil} \frac{kB}{2} \approx \frac{N_{\text{MCMC}} T^2}{4B}$$
+                                </p>
+                            </div>
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px; flex: 1;">
+                                <p style="margin: 0 0 15px 0;"><strong>Comparison to standard inference:</strong></p>
+                                <p style="margin: 0 0 15px 0; font-size: 0.95em;">Standard inference generates $T$ tokens. Power sampling generates approximately:</p>
+                                <p style="margin: 0; text-align: center; font-size: 1.1em;">
+                                    $$\frac{N_{\text{MCMC}} T}{4B} \times \text{ more tokens}$$
+                                </p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>Tradeoff:</strong> Larger $B$ requires fewer stages but bigger "jumps" between $\pi_k$ (needs more MCMC steps). Smaller $B$ has more stages but easier transitions.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Inference-Time Scaling -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Inference-Time Scaling: Trading Compute for Quality</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px; border: 2px solid #2DD2C0;">
+                                <p style="margin: 0 0 10px 0;"><strong>Key Insight:</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">Power sampling is <strong>single-shot</strong>: even though multiple inference calls are made, we're sampling <em>one high-quality sequence</em> from $p^{\alpha}$, not multiple independent samples.</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>This is a new axis for inference-time scaling:</strong></p>
+                            <ul style="margin-top: 15px; font-size: 0.95em;">
+                                <li><strong>Traditional scaling:</strong> Generate $k$ independent samples, hope one is good (pass@k)</li>
+                                <li><strong>Power sampling:</strong> Use extra compute to sample a <em>single better</em> sequence</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;"><strong>Hyperparameters control compute-quality tradeoff:</strong></p>
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li><strong>$\alpha$:</strong> How much to sharpen (higher = more aggressive)</li>
+                                    <li><strong>$N_{\text{MCMC}}$:</strong> Convergence quality (higher = better approximation of $p^{\alpha}$)</li>
+                                    <li><strong>$B$:</strong> Block size (affects number of stages and MCMC difficulty)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Test Understanding -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why does the algorithm use progressive block-based sampling instead of generating the full sequence at once?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To reduce memory usage",
+                                "correct": false,
+                                "explanation": "While this might be a side benefit, memory is not the primary motivation. The key issue is convergence speed."
+                            },
+                            {
+                                "text": "To avoid exponential mixing time by providing good initializations at each stage",
+                                "correct": true,
+                                "explanation": "Correct! High-dimensional MCMC (long sequences) can have exponentially slow mixing. By building up progressively, each stage uses the previous stage as a good initialization, dramatically reducing the number of MCMC steps needed."
+                            },
+                            {
+                                "text": "Because the base model can only generate sequences in blocks",
+                                "correct": false,
+                                "explanation": "Base models can generate sequences of any length autoregressively. The block structure is an algorithmic choice, not a model limitation."
+                            },
+                            {
+                                "text": "To allow parallel generation of different blocks",
+                                "correct": false,
+                                "explanation": "The blocks are generated sequentially (each depends on the previous), not in parallel. The benefit is improved convergence, not parallelization."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+            </section>
+
+            <!-- SECTION 7: EXPERIMENTS & RESULTS -->
+            <section>
+                <!-- Experimental Setup -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Experimental Setup</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>Evaluation Benchmarks:</strong></p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                                <div style="background: #F5F5FF; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 8px 0; color: #10099F;"><strong>MATH500</strong></p>
+                                    <p style="margin: 0; font-size: 0.9em;">Competition math problems (geometry, algebra, number theory). Subset of 500 from MATH test set.</p>
+                                </div>
+                                <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 8px 0; color: #2DD2C0;"><strong>HumanEval</strong></p>
+                                    <p style="margin: 0; font-size: 0.9em;">164 programming problems with unit tests. Tests algorithms, reasoning, and language comprehension.</p>
+                                </div>
+                                <div style="background: #FFFBF0; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 8px 0; color: #FAC55B;"><strong>GPQA Diamond</strong></p>
+                                    <p style="margin: 0; font-size: 0.9em;">198 multiple-choice science questions (physics, chemistry, biology) requiring advanced reasoning.</p>
+                                </div>
+                                <div style="background: #FFF5F5; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 8px 0; color: #FC8484;"><strong>AlpacaEval 2.0</strong></p>
+                                    <p style="margin: 0; font-size: 0.9em;">805 prompts for general helpfulness. Scored by GPT-4-turbo judge. Non-verifiable domain.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Models Tested:</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li><strong>Qwen2.5-Math-7B:</strong> Math-specialized base model</li>
+                                <li><strong>Qwen2.5-7B:</strong> General-purpose base model</li>
+                                <li><strong>Phi-3.5-mini-instruct:</strong> Smaller instruction-tuned model</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Baseline: GRPO (Group Relative Policy Optimization)</strong></p>
+                            <p style="margin-top: 10px; font-size: 0.95em;">Standard RL algorithm, posttrained on MATH training split</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Hyperparameters -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Power Sampling Hyperparameters</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 15px 0;"><strong>Configuration:</strong></p>
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li><strong>Max length $T_{\text{max}}$:</strong> 3072 tokens (can terminate earlier with EOS)</li>
+                                    <li><strong>Block size $B$:</strong> 192 tokens ($T_{\text{max}}/16$)</li>
+                                    <li><strong>Power $\alpha$:</strong> 4.0 for reasoning tasks, varies for AlpacaEval</li>
+                                    <li><strong>Proposal LLM:</strong> Base model with temperature $1/\alpha$ for reasoning; $\tau=0.5$ for AlpacaEval</li>
+                                    <li><strong>MCMC steps $N_{\text{MCMC}}$:</strong> 10 (found empirically sufficient)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                            <p style="margin: 0;"><strong>Key finding:</strong> Performance is relatively stable across $\alpha \geq 2.0$, and 10 MCMC steps provide good convergence.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Main Results Table -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Main Results: Power Sampling vs GRPO</h2>
+                    <div style="font-size: 0.55em;">
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                            <thead>
+                                <tr style="background: #10099F; color: white;">
+                                    <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Model / Method</th>
+                                    <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">MATH500</th>
+                                    <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">HumanEval</th>
+                                    <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">GPQA</th>
+                                    <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">AlpacaEval2.0</th>
+                                </tr>
+                            </thead>
+                            <tbody style="font-size: 0.95em;">
+                                <tr style="background: #F5F5FF;">
+                                    <td colspan="5" style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Qwen2.5-Math-7B</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; padding-left: 20px; border: 1px solid #ddd;">Base</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.496</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.329</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.278</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">1.61</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; padding-left: 20px; border: 1px solid #ddd;">Low-temperature</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.690</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.512</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.353</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">2.09</td>
+                                </tr>
+                                <tr style="background: #F0FFF9;">
+                                    <td style="padding: 8px; padding-left: 20px; border: 1px solid #ddd; font-weight: bold;">Power Sampling (Ours)</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold;">0.748</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; color: #2DD2C0;">0.573 ↑</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold;">0.389</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; color: #2DD2C0;">2.88 ↑</td>
+                                </tr>
+                                <tr style="border-top: 2px solid #10099F;">
+                                    <td style="padding: 8px; padding-left: 20px; border: 1px solid #ddd; font-style: italic;">GRPO (MATH)</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">0.785</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">0.537</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">0.399</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">2.38</td>
+                                </tr>
+                                <tr style="background: #F5F5FF;">
+                                    <td colspan="5" style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Qwen2.5-7B</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; padding-left: 20px; border: 1px solid #ddd;">Base</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.498</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.329</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.278</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">7.05</td>
+                                </tr>
+                                <tr style="background: #F0FFF9;">
+                                    <td style="padding: 8px; padding-left: 20px; border: 1px solid #ddd; font-weight: bold;">Power Sampling (Ours)</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold;">0.706</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; color: #2DD2C0;">0.622 ↑</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold;">0.318</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; color: #2DD2C0;">8.59 ↑</td>
+                                </tr>
+                                <tr style="border-top: 2px solid #10099F;">
+                                    <td style="padding: 8px; padding-left: 20px; border: 1px solid #ddd; font-style: italic;">GRPO (MATH)</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">0.740</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">0.561</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">0.354</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">7.62</td>
+                                </tr>
+                                <tr style="background: #F5F5FF;">
+                                    <td colspan="5" style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Phi-3.5-mini-instruct</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; padding-left: 20px; border: 1px solid #ddd;">Base</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.400</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.213</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">0.273</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">14.82</td>
+                                </tr>
+                                <tr style="background: #F0FFF9;">
+                                    <td style="padding: 8px; padding-left: 20px; border: 1px solid #ddd; font-weight: bold;">Power Sampling (Ours)</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; color: #2DD2C0;">0.508 ↑</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; color: #2DD2C0;">0.732 ↑</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; color: #2DD2C0;">0.364 ↑</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; color: #2DD2C0;">17.65 ↑</td>
+                                </tr>
+                                <tr style="border-top: 2px solid #10099F;">
+                                    <td style="padding: 8px; padding-left: 20px; border: 1px solid #ddd; font-style: italic;">GRPO (MATH)</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">0.406</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">0.134</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">0.359</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-style: italic;">16.74</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 15px; font-size: 0.85em; font-style: italic;">↑ indicates power sampling outperforms GRPO on that task</p>
+                    </div>
+                </section>
+
+                <!-- Key Findings -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Key Findings from Results</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="fragment">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; color: #2DD2C0;"><strong>✅ Comparable In-Domain Performance</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">On MATH500 (in-domain for GRPO training), power sampling achieves 74.8% vs GRPO's 78.5% for Qwen2.5-Math - nearly matching RL without any training!</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #FFFBF0; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; color: #FAC55B;"><strong>🚀 Superior Out-of-Domain Performance</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">On HumanEval and AlpacaEval (out-of-domain for MATH-trained GRPO), power sampling <strong>consistently outperforms</strong> RL across all models!</p>
+                                <ul style="margin: 10px 0 0 20px; font-size: 0.9em;">
+                                    <li>HumanEval: +3.6% to +59.8% improvement over GRPO</li>
+                                    <li>AlpacaEval: Consistently higher win rates</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0; color: #10099F;"><strong>💪 Massive Gains Over Base Models</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">Power sampling provides substantial boosts across all tasks:</p>
+                                <ul style="margin: 10px 0 0 20px; font-size: 0.9em;">
+                                    <li>MATH500: +10.8% to +25.2%</li>
+                                    <li>HumanEval: +24.4% to +51.9%</li>
+                                    <li>GPQA: Up to +9.1%</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Test Understanding -->
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "On which types of tasks does power sampling show the most advantage over GRPO?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Tasks where GRPO was trained (in-domain like MATH500)",
+                                "correct": false,
+                                "explanation": "Power sampling performs comparably to GRPO on in-domain tasks, but the advantage is most clear on out-of-domain tasks."
+                            },
+                            {
+                                "text": "Out-of-domain tasks like HumanEval and AlpacaEval where GRPO was not trained",
+                                "correct": true,
+                                "explanation": "Correct! Power sampling consistently outperforms GRPO on out-of-domain tasks, showing better generalization. GRPO tends to overfit to its training domain (MATH), while power sampling works broadly."
+                            },
+                            {
+                                "text": "Only on coding tasks",
+                                "correct": false,
+                                "explanation": "While power sampling excels on HumanEval (coding), it also outperforms on AlpacaEval (general helpfulness) and performs well across diverse reasoning tasks."
+                            },
+                            {
+                                "text": "Power sampling never outperforms GRPO",
+                                "correct": false,
+                                "explanation": "This is incorrect. Power sampling outperforms GRPO on multiple out-of-domain tasks and nearly matches it on in-domain tasks."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+            </section>
+
+            <!-- SECTION 8: ANALYSIS & CONCLUSION -->
+            <section>
+                <!-- Likelihood and Confidence Analysis -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Analysis: Likelihood and Confidence Distributions</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>Where do samples come from in the base model distribution?</strong></p>
+                            <img src="images/combined_hists.png" alt="Likelihood and confidence histograms" style="max-width: 55%; margin-top: 15px; border-radius: 8px;">
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div style="background: #F5F5FF; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #10099F;"><strong>Log-Likelihoods</strong></p>
+                                    <ul style="margin: 0; font-size: 0.9em;">
+                                        <li>GRPO: Highly concentrated peak (low diversity)</li>
+                                        <li>Power sampling: Shifted toward high likelihood but with spread</li>
+                                        <li>Base: Wide distribution</li>
+                                    </ul>
+                                </div>
+                                <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #2DD2C0;"><strong>Confidences</strong></p>
+                                    <ul style="margin: 0; font-size: 0.9em;">
+                                        <li>Both power sampling and GRPO sample from high-confidence regions</li>
+                                        <li>Confirms: high base model confidence correlates with correct reasoning</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>Insight:</strong> Power sampling achieves similar high-likelihood/high-confidence sampling as GRPO, but maintains more diversity!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pass@k Analysis -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Diversity Preserved: Pass@k Performance</h2>
+                    <div style="font-size: 0.5em;">
+                        <div class="fragment">
+                            <p><strong>MATH500 pass@k: Quality AND diversity!</strong></p>
+                            <img src="images/math500_passatk_comparison.png" alt="Pass@k on MATH500" style="max-width: 75%; margin-top: 15px; border-radius: 8px;">
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Key observations:</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li><strong>Power sampling (green)</strong> is strictly better than both base and GRPO for k > 1</li>
+                                <li><strong>GRPO (red)</strong> plateaus early - diversity collapse!</li>
+                                <li><strong>Base model (blue)</strong> has good pass@k at large k, but poor pass@1</li>
+                                <li><strong>Power sampling</strong> achieves best of both worlds: good pass@1 AND pass@k</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #F0FFF9; border-left: 4px solid #2DD2C0;">
+                            <p style="margin: 0;"><strong>Conclusion:</strong> Unlike RL, power sampling doesn't trade multi-shot for single-shot performance!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Hyperparameter Effects -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Hyperparameter Effects: α and N<sub>MCMC</sub></h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <img src="images/combined_figure.png" alt="Hyperparameter effects" style="max-width: 95%; margin-top: 10px; border-radius: 8px;">
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div style="background: #F5F5FF; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #10099F;"><strong>Effect of α (power)</strong></p>
+                                    <ul style="margin: 0; font-size: 0.9em;">
+                                        <li>α = 1.0: No sharpening (base model)</li>
+                                        <li>α = 4.0: Optimal for reasoning</li>
+                                        <li>α → ∞: Too greedy, may overfit</li>
+                                        <li><strong>Stable</strong> for α ∈ [2, 6]</li>
+                                    </ul>
+                                </div>
+                                <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0 0 10px 0; color: #2DD2C0;"><strong>Effect of N<sub>MCMC</sub></strong></p>
+                                    <ul style="margin: 0; font-size: 0.9em;">
+                                        <li>N = 0: Just proposal sampling</li>
+                                        <li>N = 2: Already significant improvement</li>
+                                        <li>N = 10: Converged performance</li>
+                                        <li>Beyond 10: Diminishing returns</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Computational Cost -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Computational Cost: Power Sampling vs GRPO Training</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>Token generation multiplier for power sampling:</strong></p>
+                            <div style="background: #F5F5FF; padding: 20px; margin-top: 15px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0;">With $N_{\text{MCMC}} = 10$, $T = 679$ (avg. output length), $B = 192$:</p>
+                                <p style="margin: 0; text-align: center; font-size: 1.2em;">
+                                    $$\text{Multiplier} = \frac{N_{\text{MCMC}} T}{4B} = \frac{10 \times 679}{4 \times 192} \approx \mathbf{8.84\times}$$
+                                </p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Comparison to GRPO training:</strong></p>
+                            <div style="background: #F0FFF9; padding: 15px; margin-top: 10px; border-radius: 8px;">
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li>GRPO generates ~8-16 rollouts per training example</li>
+                                    <li>One epoch of GRPO ≈ similar or more cost than power sampling</li>
+                                    <li>But GRPO requires multiple epochs, hyperparameter tuning, curated dataset</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; background: #FFFBF0; border-left: 4px solid #FAC55B;">
+                            <p style="margin: 0;"><strong>Conclusion:</strong> Roughly same inference cost as one GRPO epoch, but with no training overhead!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Summary and Implications -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Summary: Key Takeaways</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px; border: 2px solid #2DD2C0; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; font-size: 1.1em; color: #2DD2C0;"><strong>🎯 Main Result</strong></p>
+                                <p style="margin: 0; font-size: 0.95em;">Base models are much more capable at single-shot reasoning than current sampling methods reveal. Pure inference-time sampling can match or exceed RL posttraining!</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; font-size: 1.05em; color: #10099F;"><strong>💡 Key Insights</strong></p>
+                                <ol style="margin: 0; font-size: 0.95em;">
+                                    <li style="margin-bottom: 8px;"><strong>Distribution sharpening</strong> is achievable without training via power distributions p<sup>α</sup></li>
+                                    <li style="margin-bottom: 8px;"><strong>Power distributions account for future paths</strong>, avoiding reasoning traps better than low-temperature sampling</li>
+                                    <li style="margin-bottom: 8px;"><strong>Autoregressive MCMC</strong> makes sampling from p<sup>α</sup> practical despite intractability</li>
+                                    <li style="margin-bottom: 0;"><strong>Diversity is preserved</strong> - no pass@k degradation unlike RL</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #FFFBF0; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0; font-size: 1.05em; color: #FAC55B;"><strong>🚀 Implications</strong></p>
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li style="margin-bottom: 8px;">Inference-time scaling: Trade compute for quality without training</li>
+                                    <li style="margin-bottom: 8px;">Works beyond verifiable domains (no reward signal needed)</li>
+                                    <li style="margin-bottom: 8px;">Better generalization: Outperforms RL out-of-domain</li>
+                                    <li style="margin-bottom: 0;">Suggests base models have latent capabilities we can unlock with better sampling</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Future Directions -->
+                <section data-sources='[{"text": "Reasoning with Sampling - Karan & Du 2024", "url": "https://arxiv.org/abs/2510.14901"}]'>
+                    <h2 class="truncate-title">Future Directions and Open Questions</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>Potential extensions and research directions:</strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; color: #10099F;"><strong>🔬 Algorithmic Improvements</strong></p>
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li>Better proposal distributions (learned proposals?)</li>
+                                    <li>Adaptive α selection based on problem difficulty</li>
+                                    <li>Faster convergence through improved block size scheduling</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; color: #2DD2C0;"><strong>🌍 Broader Applications</strong></p>
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li>Combining power sampling with RL (best of both?)</li>
+                                    <li>Application to other modalities (vision, multimodal)</li>
+                                    <li>Long-form reasoning and multi-turn dialogue</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #FFFBF0; padding: 20px; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0; color: #FAC55B;"><strong>🤔 Theoretical Understanding</strong></p>
+                                <ul style="margin: 0; font-size: 0.95em;">
+                                    <li>What exactly are the capabilities present in base models?</li>
+                                    <li>Can we characterize when sharpening helps vs hurts?</li>
+                                    <li>Connection to meta-learning and in-context learning?</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Final Test -->
+                <section>
+                    <h2 class="truncate-title">Final Test: Overall Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the fundamental reason power sampling can match RL performance without any training?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It uses more computational power at inference time",
+                                "correct": false,
+                                "explanation": "While power sampling does use more compute, this is not the fundamental reason. The key is that base models already contain the reasoning capabilities."
+                            },
+                            {
+                                "text": "Base models already have the reasoning capabilities; we just need better sampling to extract them",
+                                "correct": true,
+                                "explanation": "Correct! The paper shows that base models have high pass@k (with enough samples, they solve problems), proving the capability exists. RL and power sampling both sharpen the distribution to access these capabilities in single-shot, but power sampling does it without training by explicitly targeting p^α."
+                            },
+                            {
+                                "text": "Power distributions are mathematically equivalent to RL-trained distributions",
+                                "correct": false,
+                                "explanation": "While both sharpen distributions, they are not equivalent. Power sampling preserves more diversity and generalizes better out-of-domain."
+                            },
+                            {
+                                "text": "MCMC provides better gradient estimates than RL",
+                                "correct": false,
+                                "explanation": "MCMC is not computing gradients - it is a sampling algorithm. There is no training involved in power sampling."
+                            }
+                        ]
+                    }'></div>
+                </section>
+
+                <!-- Thank You Slide -->
+                <section class="title-slide">
+                    <h2 class="truncate-title">Thank You!</h2>
+                    <div style="margin-top: 40px; font-size: 0.8em;">
+                        <p><strong>Paper:</strong> Reasoning with Sampling: Your Base Model is Smarter Than You Think</p>
+                        <p style="margin-top: 10px;"><strong>Authors:</strong> Aayush Karan & Yilun Du (Harvard University)</p>
+                        <p style="margin-top: 30px; font-size: 0.9em;">Key Message: Base models have remarkable latent reasoning capabilities that can be unlocked through better sampling strategies!</p>
+                    </div>
+                </section>
+
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js and plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/math/math.js"></script>
+
+    <!-- Shared utilities -->
+    <script src="../shared/js/title-handler.js"></script>
+    <script src="../shared/js/source-modal-v2.js"></script>
+    <script src="../shared/js/tooltip-modal.js"></script>
+    <script src="../shared/js/multiple-choice.js"></script>
+
+    <script>
+        Reveal.initialize({
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true,
+            transition: 'slide',
+            slideNumber: 'c/t',
+            math: {
+                mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js',
+                config: 'TeX-AMS_SVG-full',
+                TeX: {
+                    Macros: {
+                        R: '\\mathbb{R}',
+                        E: '\\mathbb{E}',
+                        Z: '\\mathbb{Z}',
+                        set: ['\\left\\{#1\\right\\}', 1]
+                    }
+                }
+            },
+            plugins: [ RevealMath, RevealHighlight, RevealNotes ]
+        });
+    </script>
+</body>
+</html>

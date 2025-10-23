@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek-OCR: Context Optical Compression - Introduction to Deep Learning</title>
+
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+    <link rel="stylesheet" href="../shared/css/reveal-theme.css">
+    <link rel="stylesheet" href="../shared/css/common.css">
+    <link rel="stylesheet" href="../shared/css/quiz.css">
+    <link rel="stylesheet" href="css/deepseek-ocr-custom.css">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/monokai.css">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Title Slide -->
+            <section class="title-slide">
+                <img src="../shared/images/uoi_logo_blue.png" alt="University of Iceland Logo" class="ui-logo">
+                <h1 class="truncate-title">DeepSeek-OCR: Context Optical Compression</h1>
+                <p>Exploring Vision-Text Compression for Long Context Processing</p>
+                <p>Based on "DeepSeek-OCR: Contexts Optical Compression" by Wei et al.</p>
+                <p class="mt-lg">
+                    <small>Instructor: Hafsteinn Einarsson</small><br>
+                    <small>University of Iceland</small>
+                </p>
+            </section>
+
+            <!-- Section 1: Introduction & Motivation (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper (arXiv 2510.18234)", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">The Challenge: Long Contexts in LLMs</h2>
+                    <div class="fragment">
+                        <p style="font-size: 0.8em;">Current Large Language Models face significant challenges with long contexts:</p>
+                        <div class="component-box" style="margin: 20px 0;">
+                            <h4>⚠️ The Quadratic Scaling Problem</h4>
+                            <p style="font-size: 0.9em;">Computational cost scales <strong>quadratically</strong> with sequence length</p>
+                            <p style="font-size: 0.85em; margin-top: 15px;">Memory requirements grow dramatically as context increases</p>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box" style="margin-top: 30px;">
+                        <p><strong>Key Question:</strong> Can we compress textual information more efficiently?</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">A Novel Insight: Vision as Compression Medium</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="fragment">
+                            <div class="key-finding">
+                                <h4>💡 Core Idea</h4>
+                                <p>A single image containing document text can represent rich information using <strong>substantially fewer tokens</strong> than equivalent digital text</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 30px;">
+                            <h4>The Paradigm Shift</h4>
+                            <p>Instead of vision-centric VLMs (focused on natural image VQA), rethink from an <strong>LLM-centric perspective</strong>:</p>
+                            <ul style="font-size: 0.85em; margin-top: 15px;">
+                                <li>How can vision encoders enhance LLM efficiency?</li>
+                                <li>Can we use visual modality for textual compression?</li>
+                                <li>What compression ratios are achievable?</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; font-size: 0.9em;">
+                            <p>OCR tasks provide an ideal testbed: they bridge vision and language with quantitative evaluation metrics</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">DeepSeek-OCR: Performance Overview</h2>
+                    <div class="performance-grid" style="font-size: 0.5em;">
+                        <div class="performance-card fragment">
+                            <div class="feature-icon">📊</div>
+                            <div class="metric">97%+</div>
+                            <div class="label">Precision at 10× Compression</div>
+                            <p style="font-size: 0.85em; margin-top: 8px; color: #666;">Fox benchmark: 97%+ character recognition when compressing 700-1000 text tokens into 100 vision tokens</p>
+                        </div>
+                        <div class="performance-card fragment">
+                            <div class="feature-icon">🎯</div>
+                            <div class="metric">60%</div>
+                            <div class="label">Accuracy at 20× Compression</div>
+                            <p style="font-size: 0.85em; margin-top: 8px; color: #666;">Fox benchmark: Maintains 60% accuracy at extreme compression (1200-1300 text tokens → 64 vision tokens)</p>
+                        </div>
+                        <div class="performance-card fragment">
+                            <div class="feature-icon">🚀</div>
+                            <div class="metric">100</div>
+                            <div class="label">Vision Tokens (beats GOT-OCR2.0)</div>
+                            <p style="font-size: 0.85em; margin-top: 8px; color: #666;">OmniDocBench: Outperforms GOT-OCR2.0 (256 tokens) using only 100 vision tokens per page</p>
+                        </div>
+                        <div class="performance-card fragment">
+                            <div class="feature-icon">⚡</div>
+                            <div class="metric">200k+</div>
+                            <div class="label">Pages/Day (Production)</div>
+                            <p style="font-size: 0.85em; margin-top: 8px; color: #666;">Single A100-40G GPU throughput for generating LLM/VLM training data at scale</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Key Contributions</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="parsing-capability fragment">
+                            <h5>1. Quantitative Analysis of Vision-Text Compression</h5>
+                            <p>Comprehensive study showing compression ratios of 7-20× with varying precision levels on Fox benchmarks</p>
+                        </div>
+                        <div class="parsing-capability fragment">
+                            <h5>2. DeepEncoder Architecture</h5>
+                            <p>Novel vision encoder maintaining low activation memory with minimal tokens even at high resolution</p>
+                        </div>
+                        <div class="parsing-capability fragment">
+                            <h5>3. DeepSeek-OCR System</h5>
+                            <p>End-to-end VLM achieving state-of-the-art on OmniDocBench with fewest vision tokens among end-to-end models</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the primary motivation for DeepSeek-OCR from an LLM perspective?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To improve natural image classification accuracy",
+                                "correct": false,
+                                "explanation": "DeepSeek-OCR focuses on text compression, not general image classification. The goal is to help LLMs handle long contexts more efficiently."
+                            },
+                            {
+                                "text": "To compress textual contexts using visual modality for more efficient processing",
+                                "correct": true,
+                                "explanation": "Correct! The core insight is using vision tokens to represent text more compactly, addressing the quadratic scaling problem in LLMs."
+                            },
+                            {
+                                "text": "To replace all text with images in LLMs",
+                                "correct": false,
+                                "explanation": "The goal is not to replace text entirely, but to provide an efficient compression mechanism for historical or long contexts."
+                            },
+                            {
+                                "text": "To make OCR models faster at processing documents",
+                                "correct": false,
+                                "explanation": "While DeepSeek-OCR is fast, the primary motivation is exploring vision-text compression ratios for LLM context efficiency."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 2: Related Work - Vision Encoders (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 2.1", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Typical Vision Encoders in VLMs</h2>
+                    <div style="font-size: 0.75em;">
+                        <p>Current open-source VLMs employ three main types of vision encoders, each with trade-offs:</p>
+                        <div class="architecture-diagram" style="margin: 30px 0;">
+                            <img src="images/3.png" alt="Three types of vision encoders">
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "Vary Paper - Wei et al.", "url": "https://arxiv.org/abs/2312.06109"}, {"text": "InternVL2.0", "url": "https://arxiv.org/abs/2404.16821"}]'>
+                    <h2 class="truncate-title">Encoder Type 1: Dual-Tower Architecture</h2>
+                    <div class="encoder-card" style="font-size: 0.7em;">
+                        <h5>Example: Vary</h5>
+                        <p><strong>Design:</strong> Parallel <span class="tooltip">SAM<span class="tooltiptext">Segment Anything Model - Uses window attention for efficient processing of high-resolution images</span></span> encoder with increased visual vocabulary</p>
+                        <div style="margin: 20px 0;">
+                            <p class="encoder-pros">✅ Pros:</p>
+                            <ul style="font-size: 0.9em;">
+                                <li>Controllable parameters and activation memory</li>
+                                <li>Good for high-resolution images</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="encoder-cons">❌ Cons:</p>
+                            <ul style="font-size: 0.9em;">
+                                <li>Requires dual image preprocessing (complex deployment)</li>
+                                <li>Challenges with encoder pipeline parallelism during training</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "InternVL2.0", "url": "https://arxiv.org/abs/2404.16821"}]'>
+                    <h2 class="truncate-title">Encoder Type 2: Tile-Based Method</h2>
+                    <div class="encoder-card" style="font-size: 0.7em;">
+                        <h5>Example: InternVL2.0</h5>
+                        <p><strong>Design:</strong> Divide images into small tiles for parallel computation</p>
+                        <div style="margin: 20px 0;">
+                            <p class="encoder-pros">✅ Pros:</p>
+                            <ul style="font-size: 0.9em;">
+                                <li>Reduces activation memory at high resolutions</li>
+                                <li>Can handle extremely high resolutions</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="encoder-cons">❌ Cons:</p>
+                            <ul style="font-size: 0.9em;">
+                                <li>Low native encoder resolution (&lt; 512×512)</li>
+                                <li>Large images become excessively fragmented</li>
+                                <li>Results in numerous vision tokens</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "Qwen2-VL", "url": "https://arxiv.org/abs/2409.12191"}, {"text": "NaViT", "url": "https://arxiv.org/abs/2307.06304"}]'>
+                    <h2 class="truncate-title">Encoder Type 3: Adaptive Resolution</h2>
+                    <div class="encoder-card" style="font-size: 0.7em;">
+                        <h5>Example: Qwen2-VL</h5>
+                        <p><strong>Design:</strong> <span class="tooltip">NaViT<span class="tooltiptext">Native Resolution ViT - Processes images at their native resolution through patch-based segmentation</span></span> paradigm with patch-based segmentation</p>
+                        <div style="margin: 20px 0;">
+                            <p class="encoder-pros">✅ Pros:</p>
+                            <ul style="font-size: 0.9em;">
+                                <li>Flexible handling of diverse resolutions</li>
+                                <li>No tile fragmentation</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="encoder-cons">❌ Cons:</p>
+                            <ul style="font-size: 0.9em;">
+                                <li>Massive activation memory consumption for large images</li>
+                                <li>Can cause GPU memory overflow</li>
+                                <li>Requires extremely long sequence lengths for training</li>
+                                <li>Long vision tokens slow down inference (both prefill and generation)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the primary limitation of tile-based vision encoders like InternVL2.0?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "They cannot process high-resolution images",
+                                "correct": false,
+                                "explanation": "Tile-based methods can actually handle extremely high resolutions. The issue is not capability but efficiency."
+                            },
+                            {
+                                "text": "They have low native resolution causing excessive fragmentation and numerous tokens",
+                                "correct": true,
+                                "explanation": "Correct! The native encoder resolution is typically below 512×512, which causes large images to be fragmented into many tiles, resulting in too many vision tokens."
+                            },
+                            {
+                                "text": "They require dual image preprocessing",
+                                "correct": false,
+                                "explanation": "Dual preprocessing is a limitation of dual-tower architectures like Vary, not tile-based methods."
+                            },
+                            {
+                                "text": "They cause GPU memory overflow",
+                                "correct": false,
+                                "explanation": "Memory overflow is more of an issue for adaptive resolution encoders like Qwen2-VL, not tile-based methods which actually reduce activation memory."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 3: DeepSeek-OCR Architecture Overview (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 3", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">DeepSeek-OCR Architecture Overview</h2>
+                    <div style="font-size: 0.75em;">
+                        <p>A unified end-to-end VLM with two main components:</p>
+                        <div class="architecture-diagram">
+                            <img src="images/1.png" alt="DeepSeek-OCR Architecture">
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Two Main Components</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="component-box fragment" style="margin: 20px 0;">
+                            <h4>🔍 DeepEncoder (~380M parameters)</h4>
+                            <p>Vision encoder for extracting, tokenizing, and compressing visual representations</p>
+                            <ul style="font-size: 0.9em; margin-top: 10px;">
+                                <li><strong>80M</strong> SAM-base (window attention)</li>
+                                <li><strong>300M</strong> CLIP-large (global attention)</li>
+                                <li><strong>16× compressor</strong> between them</li>
+                            </ul>
+                        </div>
+                        <div class="component-box fragment" style="margin: 20px 0;">
+                            <h4>🧠 Decoder (~3B MoE)</h4>
+                            <p>DeepSeek-3B-MoE for generating text from vision tokens</p>
+                            <ul style="font-size: 0.9em; margin-top: 10px;">
+                                <li><strong>570M</strong> activated parameters (6/64 routed + 2 shared experts)</li>
+                                <li>Efficient inference with 3B expressiveness</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Why This Design?</h2>
+                    <div style="font-size: 0.7em;">
+                        <div class="key-finding fragment">
+                            <h4>Design Goals</h4>
+                            <ul>
+                                <li>✅ Process high resolutions efficiently</li>
+                                <li>✅ Low activation memory at high resolutions</li>
+                                <li>✅ Minimal vision tokens output</li>
+                                <li>✅ Support multiple resolution inputs</li>
+                                <li>✅ Moderate parameter count</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p><strong>Key Innovation:</strong> Serial connection of window attention (SAM) and global attention (CLIP) with 16× compression between them</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the purpose of the 16× compressor in DeepEncoder?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To reduce image resolution before processing",
+                                "correct": false,
+                                "explanation": "The compressor works on tokens, not on the original image. It reduces the number of vision tokens between the two encoder components."
+                            },
+                            {
+                                "text": "To reduce vision tokens before they enter the global attention component",
+                                "correct": true,
+                                "explanation": "Correct! The compressor reduces 4096 tokens to 256 tokens, allowing window attention to process many tokens while keeping global attention computationally manageable."
+                            },
+                            {
+                                "text": "To compress text tokens for the decoder",
+                                "correct": false,
+                                "explanation": "The compressor works on vision tokens in the encoder, not text tokens in the decoder."
+                            },
+                            {
+                                "text": "To convert CLIP features to SAM features",
+                                "correct": false,
+                                "explanation": "The compressor comes between SAM and CLIP, converting SAM output to CLIP input, not the other way around."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 4: DeepEncoder Deep Dive (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 3.2", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">DeepEncoder: Serial Architecture Design</h2>
+                    <div style="font-size: 0.5em;">
+                        <div class="parsing-capability fragment">
+                            <h5>Component 1: SAM-base (Window Attention)</h5>
+                            <p><strong>Role:</strong> Visual perception feature extraction</p>
+                            <p><strong>Size:</strong> 80M parameters, patch size 16</p>
+                            <p><strong>Processing:</strong> 1024×1024 image → 4096 patch tokens (64×64)</p>
+                        </div>
+                        <div class="parsing-capability fragment">
+                            <h5>Component 2: 16× Convolutional Compressor</h5>
+                            <p><strong>Design:</strong> 2-layer convolution (kernel=3, stride=2, padding=1)</p>
+                            <p><strong>Channels:</strong> 256 → 1024</p>
+                            <p><strong>Compression:</strong> 4096 tokens → 256 tokens</p>
+                        </div>
+                        <div class="parsing-capability fragment">
+                            <h5>Component 3: CLIP-large (Global Attention)</h5>
+                            <p><strong>Role:</strong> Visual knowledge feature extraction</p>
+                            <p><strong>Size:</strong> 300M parameters (first patch embedding removed)</p>
+                            <p><strong>Input:</strong> 256 compressed tokens from previous stage</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Why Window + Global Attention?</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="key-finding">
+                            <h4>The Memory Management Strategy</h4>
+                            <p style="font-size: 0.95em;"><strong>Window Attention (SAM):</strong></p>
+                            <ul style="font-size: 0.9em;">
+                                <li>Processes large number of tokens (4096) efficiently</li>
+                                <li>Only 80M parameters keeps memory manageable</li>
+                                <li>Local perception for fine details</li>
+                            </ul>
+                            <p style="font-size: 0.95em; margin-top: 15px;"><strong>Global Attention (CLIP):</strong></p>
+                            <ul style="font-size: 0.9em;">
+                                <li>Dense attention over all tokens</li>
+                                <li>But only processes 256 tokens (after compression)</li>
+                                <li>Leverage pre-trained knowledge</li>
+                            </ul>
+                        </div>
+                        <div class="emphasis-box fragment" style="margin-top: 20px;">
+                            <p><strong>Result:</strong> Benefits from both SAM's perception and CLIP's knowledge while keeping activation memory low!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Multi-Resolution Support</h2>
+                    <div style="font-size: 0.7em;">
+                        <div class="architecture-diagram">
+                            <img src="images/2.png" alt="Multi-resolution modes">
+                        </div>
+                        <p class="fragment" style="margin-top: 20px;"><strong>Key technique:</strong> Positional encoding interpolation enables direct support for multiple input resolutions</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Native Resolution Modes</h2>
+                    <table class="resolution-table">
+                        <thead>
+                            <tr>
+                                <th>Mode</th>
+                                <th>Resolution</th>
+                                <th>Tokens</th>
+                                <th>Processing</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Tiny</strong></td>
+                                <td>512×512</td>
+                                <td><span class="token-viz vision">64</span></td>
+                                <td>Resize</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Small</strong></td>
+                                <td>640×640</td>
+                                <td><span class="token-viz vision">100</span></td>
+                                <td>Resize</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Base</strong></td>
+                                <td>1024×1024</td>
+                                <td><span class="token-viz vision">256</span></td>
+                                <td>Padding</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Large</strong></td>
+                                <td>1280×1280</td>
+                                <td><span class="token-viz vision">400</span></td>
+                                <td>Padding</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="fragment emphasis-box" style="margin-top: 20px; font-size: 0.85em;">
+                        <p><strong>Note:</strong> Tiny/Small use resize to avoid wasting tokens. Base/Large use padding to preserve aspect ratio.</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Valid Tokens After Padding</h2>
+                    <div style="font-size: 0.75em;">
+                        <p>For padded modes (Base/Large), actual number of valid tokens is less than total:</p>
+                        <div class="key-finding" style="margin: 30px 0;">
+                            <h4>Formula for Valid Tokens</h4>
+                            <p style="font-size: 1.2em; font-family: monospace; text-align: center; margin: 20px 0;">
+                                $$N_{valid} = \lceil N_{actual} \times [1 - \frac{max(w, h) - min(w, h)}{max(w, h)}] \rceil$$
+                            </p>
+                            <p style="font-size: 0.9em; margin-top: 15px;">where <em>w</em> and <em>h</em> are width and height of original image</p>
+                        </div>
+                        <div class="fragment">
+                            <p><strong>Example:</strong> Base mode (1024×1024) with 800×600 image:</p>
+                            <ul style="font-size: 0.9em;">
+                                <li>Actual tokens: 256</li>
+                                <li>Valid tokens: ~182 (accounting for padding)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Dynamic Resolution Modes</h2>
+                    <div style="font-size: 0.5em;">
+                        <div class="component-box">
+                            <h4>Gundam Mode</h4>
+                            <p>Combines tiling with global view for ultra-high resolution</p>
+                            <p style="margin: 15px 0;"><strong>Composition:</strong></p>
+                            <ul>
+                                <li><span class="token-viz vision">n×100</span> tokens: n tiles at 640×640 (local views)</li>
+                                <li><span class="token-viz vision">+256</span> tokens: 1 global view at 1024×1024</li>
+                                <li><strong>Total:</strong> <span class="token-viz vision">n×100 + 256</span> tokens</li>
+                            </ul>
+                        </div>
+                        <div class="component-box fragment" style="margin-top: 20px;">
+                            <h4>Gundam-Master Mode</h4>
+                            <p>Higher resolution variant (obtained via continued training)</p>
+                            <ul>
+                                <li><span class="token-viz vision">n×256</span> tokens: n tiles at 1024×1024</li>
+                                <li><span class="token-viz vision">+400</span> tokens: global view at 1280×1280</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p><strong>Smart design:</strong> Tiling is secondary window attention - further reduces activation memory for ultra-high res!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why does DeepEncoder use padding for Base and Large modes instead of resizing?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Padding is faster than resizing",
+                                "correct": false,
+                                "explanation": "Speed is not the primary consideration here. The choice relates to image quality and aspect ratio."
+                            },
+                            {
+                                "text": "To preserve the original image aspect ratio and avoid distortion",
+                                "correct": true,
+                                "explanation": "Correct! Padding preserves aspect ratio, which is important for larger images where distortion from resizing would affect OCR quality."
+                            },
+                            {
+                                "text": "To increase the number of vision tokens",
+                                "correct": false,
+                                "explanation": "Padding actually results in some wasted tokens. The goal is not to increase tokens but to maintain image quality."
+                            },
+                            {
+                                "text": "Because SAM requires square images",
+                                "correct": false,
+                                "explanation": "While the model processes square inputs, the choice of padding vs. resizing is about preserving quality, not a technical requirement."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 5: MoE Decoder (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 3.3", "url": "https://arxiv.org/abs/2510.18234"}, {"text": "DeepSeekMoE Paper", "url": "https://arxiv.org/abs/2401.06066"}]'>
+                    <h2 class="truncate-title">The MoE Decoder: DeepSeek-3B-MoE</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="component-box">
+                            <h4>Mixture of Experts Architecture</h4>
+                            <p><strong>Total size:</strong> 3B parameters</p>
+                            <p><strong>Activated:</strong> ~570M parameters per forward pass</p>
+                            <div style="margin: 20px 0;">
+                                <p><strong>Expert routing:</strong></p>
+                                <ul style="font-size: 0.9em;">
+                                    <li><span class="token-viz">6/64</span> routed experts (selected dynamically)</li>
+                                    <li><span class="token-viz">2</span> shared experts (always active)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p><strong>Why MoE?</strong> Expressive capability of 3B model with inference efficiency of 570M model - perfect for domain-specific (OCR) VLM!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">The Compression-Decompression Mapping</h2>
+                    <div style="font-size: 0.7em;">
+                        <p>The decoder learns to reconstruct text from compressed vision tokens:</p>
+                        <div class="key-finding" style="margin: 30px 0;">
+                            <h4>Mathematical Formulation</h4>
+                            <p style="font-size: 1.1em; font-family: monospace; text-align: center; margin: 20px 0;">
+                                $$f_{dec}: \mathbb{R}^{n \times d_{latent}} \rightarrow \mathbb{R}^{N \times d_{text}}$$
+                            </p>
+                            <p style="font-size: 1.1em; font-family: monospace; text-align: center; margin: 10px 0;">
+                                $$\hat{\mathbf{X}} = f_{dec}(\mathbf{Z}) \quad \text{where } n \leq N$$
+                            </p>
+                            <p style="font-size: 0.9em; margin-top: 20px;">
+                                <strong>$\mathbf{Z}$</strong>: compressed latent (vision) tokens from DeepEncoder<br>
+                                <strong>$\hat{\mathbf{X}}$</strong>: reconstructed text representation<br>
+                                <strong>$n$</strong>: number of vision tokens<br>
+                                <strong>$N$</strong>: number of text tokens
+                            </p>
+                        </div>
+                        <div class="fragment emphasis-box">
+                            <p>This mapping can be effectively learned by compact language models through OCR training!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the main advantage of using a Mixture of Experts (MoE) decoder in DeepSeek-OCR?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It reduces the total model size to 570M parameters",
+                                "correct": false,
+                                "explanation": "The total model size is 3B parameters. Only 570M are activated per forward pass, but the model can leverage the full 3B capacity."
+                            },
+                            {
+                                "text": "It provides 3B model expressiveness with 570M model inference efficiency",
+                                "correct": true,
+                                "explanation": "Correct! MoE gives you the best of both worlds - high capacity for learning (3B) with fast inference (570M activated)."
+                            },
+                            {
+                                "text": "It eliminates the need for a vision encoder",
+                                "correct": false,
+                                "explanation": "MoE is about the decoder architecture. The vision encoder (DeepEncoder) is still necessary."
+                            },
+                            {
+                                "text": "It compresses vision tokens more effectively",
+                                "correct": false,
+                                "explanation": "Token compression happens in DeepEncoder, not in the MoE decoder. The job of the decoder is to generate text from the compressed tokens."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!--  Section 6: Data Engineering (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 3.4", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Data Engineering: Three Types of Data</h2>
+                    <div class="data-composition">
+                        <div class="data-item fragment">
+                            <div class="percentage">70%</div>
+                            <div class="category">OCR Data (1.0 + 2.0)</div>
+                        </div>
+                        <div class="data-item fragment">
+                            <div class="percentage">20%</div>
+                            <div class="category">General Vision</div>
+                        </div>
+                        <div class="data-item fragment">
+                            <div class="percentage">10%</div>
+                            <div class="category">Text-Only</div>
+                        </div>
+                    </div>
+                    <div class="fragment emphasis-box" style="margin-top: 30px; font-size: 0.85em;">
+                        <p>Balanced data composition ensures OCR excellence while preserving general vision and language capabilities</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">OCR 1.0 Data: Documents and Scene Text</h2>
+                    <div style="font-size: 0.7em;">
+                        <div class="parsing-capability">
+                            <h5>📄 Document Data (30M pages)</h5>
+                            <ul style="font-size: 0.9em;">
+                                <li><strong>Chinese & English:</strong> 25M pages</li>
+                                <li><strong>Other languages:</strong> 5M pages (~100 languages total)</li>
+                                <li><strong>Two annotation types:</strong> Coarse (fitz extraction) and Fine (layout + OCR models)</li>
+                            </ul>
+                        </div>
+                        <div class="parsing-capability fragment">
+                            <h5>🏙️ Scene Text Data (20M images)</h5>
+                            <ul style="font-size: 0.9em;">
+                                <li><strong>Sources:</strong> LAION (English) and Wukong (Chinese)</li>
+                                <li><strong>Labeling:</strong> PaddleOCR</li>
+                                <li><strong>10M images each</strong> for Chinese and English</li>
+                            </ul>
+                        </div>
+                        <div class="parsing-capability fragment">
+                            <h5>📝 Word Documents (3M)</h5>
+                            <ul style="font-size: 0.9em;">
+                                <li>High-quality pairs without layout</li>
+                                <li>Benefits formulas and HTML tables</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title" style="margin-bottom: 0px;">Fine Annotations: Layout + OCR</h2>
+                    <div class="ocr-example-grid" style="padding: 5px; margin: 0px;">
+                        <div class="ocr-example" style="padding: 5px;">
+                            <h5 style="text-align: center; margin-bottom: 5px;">Ground Truth Image</h5>
+                            <img src="images/demo1.jpg" alt="Ground truth document" style="max-width: 75%; height: auto;">
+                        </div>
+                        <div class="ocr-example" style="padding: 5px;">
+                            <h5 style="text-align: center; margin-bottom: 5px;">Fine Annotations</h5>
+                            <img src="images/demo2.jpg" alt="Annotated document with layout" style="max-width: 75%; height: auto;">
+                        </div>
+                    </div>
+                    <div style="font-size: 0.5em; margin-top: 0px; padding: 5px;">
+                        <p style="margin: 5px;"><strong>Format:</strong> Interleaved layout and text - each paragraph preceded by coordinates and label</p>
+                        <p style="margin: 0;"><strong>Coordinates:</strong> Normalized into 1000 bins</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">OCR 2.0 Data: Beyond Plain Text</h2>
+                    <div style="font-size: 0.4em;">
+                        <div class="emphasis-box" style="margin-bottom: 10px; font-size: 0.9em;">
+                            <p><strong>Purpose:</strong> This is <strong>training data</strong> used to teach DeepSeek-OCR advanced parsing capabilities beyond simple text recognition</p>
+                        </div>
+                        <div class="performance-grid">
+                            <div class="performance-card fragment">
+                                <div class="metric">📊 10M</div>
+                                <div class="label">Chart Parsing Images</div>
+                                <p style="font-size: 0.8em; margin-top: 2px; margin-bottom: 2px;"><strong>Task:</strong> Image → HTML table conversion</p>
+                                <p style="font-size: 0.8em; margin-bottom: 2px;"><strong>Generation:</strong> <span class="tooltip">pyecharts<span class="tooltiptext">Python library for creating interactive charts that can be rendered to images for training</span></span> + <span class="tooltip">matplotlib<span class="tooltiptext">Python plotting library used to generate synthetic chart images with known ground truth</span></span></p>
+                                <p style="font-size: 0.8em; margin-bottom: 2px;"><strong>Types:</strong> Line, bar, pie, composite charts</p>
+                                <p style="font-size: 0.75em; margin-top: 2px; color: #666;"><em>Use case: Extract structured data from financial reports and scientific papers</em></p>
+                            </div>
+                            <div class="performance-card fragment">
+                                <div class="metric">🧪 5M</div>
+                                <div class="label">Chemical Formula Images</div>
+                                <p style="font-size: 0.8em; margin-top: 2px; margin-bottom: 2px;"><strong>Format:</strong> <span class="tooltip">SMILES<span class="tooltiptext">Simplified Molecular Input Line Entry System - a text notation for representing chemical structures</span></span> from <span class="tooltip">PubChem<span class="tooltiptext">Public database of chemical molecules and their properties maintained by NIH</span></span></p>
+                                <p style="font-size: 0.8em; margin-bottom: 2px;"><strong>Rendering:</strong> <span class="tooltip">RDKit<span class="tooltiptext">Open-source cheminformatics toolkit used to render SMILES strings into 2D molecular structure images</span></span></p>
+                                <p style="font-size: 0.75em; margin-top: 2px; color: #666;"><em>Use case: Convert chemical structure images back to SMILES format for chemistry applications</em></p>
+                            </div>
+                            <div class="performance-card fragment">
+                                <div class="metric">📐 1M</div>
+                                <div class="label">Plane Geometry Images</div>
+                                <p style="font-size: 0.8em; margin-top: 2px; margin-bottom: 2px;"><strong>Method:</strong> <span class="tooltip">Slow Perception<span class="tooltiptext">A geometric encoding method where each line segment is modeled using a perception-ruler of size 4, capturing the relationships between geometric elements in a structured format</span></span> (perception-ruler size = 4)</p>
+                                <p style="font-size: 0.8em; margin-bottom: 2px;"><strong>Innovation:</strong> Translation-invariant data augmentation</p>
+                                <p style="font-size: 0.75em; margin-top: 2px; color: #666;"><em>Use case: Parse geometric diagrams in textbooks and exams (challenging due to interdependencies between line segments)</em></p>
+                            </div>
+                            <div class="performance-card fragment">
+                                <div class="metric">🎯 16M</div>
+                                <div class="label">Total OCR 2.0 Images</div>
+                                <p style="font-size: 0.8em; margin-top: 2px; margin-bottom: 2px;"><strong>Combined:</strong> Charts + Chemistry + Geometry</p>
+                                <p style="font-size: 0.8em; margin-bottom: 2px;"><strong>Goal:</strong> Advanced structured parsing beyond plain text</p>
+                                <p style="font-size: 0.75em; margin-top: 2px; color: #666;"><em>Enables DeepSeek-OCR to handle complex visual-to-structured-text tasks across multiple domains</em></p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Chart and Geometry Ground Truth Examples</h2>
+                    <div class="ocr-example-grid">
+                        <div class="ocr-example">
+                            <h5 style="text-align: center;">Chart → HTML Table</h5>
+                            <img src="images/chart_gt.jpg" alt="Chart ground truth">
+                            <p style="font-size: 0.65em; margin-top: 10px;">HTML table format saves tokens compared to dictionary format</p>
+                        </div>
+                        <div class="ocr-example">
+                            <h5 style="text-align: center;">Geometry → Dictionary Format</h5>
+                            <img src="images/geo_gt.jpg" alt="Geometry ground truth">
+                            <p style="font-size: 0.65em; margin-top: 10px;">Line segments encoded with Slow Perception method</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What are the two types of annotations used for document OCR data in DeepSeek-OCR?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Manual annotations and automatic annotations",
+                                "correct": false,
+                                "explanation": "The distinction is not about manual vs. automatic, but about the level of detail in the annotations."
+                            },
+                            {
+                                "text": "Coarse annotations (direct extraction) and fine annotations (layout + OCR models)",
+                                "correct": true,
+                                "explanation": "Correct! Coarse annotations use fitz for direct extraction, while fine annotations use layout models and OCR models for detailed interleaved data with coordinates."
+                            },
+                            {
+                                "text": "Text annotations and image annotations",
+                                "correct": false,
+                                "explanation": "Both types are for text extraction from images. The difference is in the level of detail and structural information."
+                            },
+                            {
+                                "text": "Training annotations and validation annotations",
+                                "correct": false,
+                                "explanation": "These annotation types are not distinguished by their use in training vs. validation, but by their methodology and detail level."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 7: Training Pipeline (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 3.5", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Training Pipeline Overview</h2>
+                    <div style="font-size: 0.5em; display: flex; gap: 20px;">
+                        <div style="flex: 1.5;">
+                            <div class="pipeline-stage fragment">
+                                <h4>Stage 1: Training DeepEncoder</h4>
+                                <ul style="font-size: 0.9em; padding-left: 0; list-style: none;">
+                                    <li><strong>Method:</strong> Use compact LM with next token prediction</li>
+                                    <li><strong>Data:</strong> All OCR 1.0 + 2.0 data + 100M general images from LAION</li>
+                                    <li><strong>Training:</strong> 2 epochs, batch size 1280</li>
+                                    <li><strong>Optimizer:</strong> AdamW, cosine annealing, lr=5e-5</li>
+                                    <li><strong>Sequence length:</strong> 4096</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div style="flex: 1.5;">
+                            <div class="pipeline-stage fragment">
+                                <h4>Stage 2: Training DeepSeek-OCR</h4>
+                                <ul style="font-size: 0.9em; padding-left: 0; list-style: none;">
+                                    <li><strong>Platform:</strong> HAI-LLM (20 nodes, 8×A100-40G each)</li>
+                                    <li><strong>Parallelism:</strong> Pipeline (PP=4), Data (DP=40)</li>
+                                    <li><strong>Batch size:</strong> Global 640</li>
+                                    <li><strong>Optimizer:</strong> AdamW, step-based scheduler, lr=3e-5</li>
+                                    <li><strong>Sequence length:</strong> 8192</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div style="flex: 1.5;">
+                            <div class="fragment emphasis-box">
+                                <h4>Why Two Stages?</h4>
+                                <p style="font-size: 0.9em;"><strong>Stage 1 rationale:</strong> Establish vision tokenization capability by training DeepEncoder separately with a compact LM before integrating with the full MoE decoder</p>
+                                <p style="font-size: 0.9em; margin-top: 10px;"><strong>Stage 2 rationale:</strong> SAM + compressor are frozen (vision tokenizer), similar to how text tokenizers are frozen. Only CLIP + decoder train for efficiency and to avoid destabilizing the learned tokenization</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Pipeline Parallelism Setup</h2>
+                    <div style="font-size: 0.7em;">
+                        <div class="key-finding">
+                            <h4>4-Stage Pipeline</h4>
+                            <table style="width: 100%; margin: 20px 0; color: white;">
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.3);"><strong>PP0</strong></td>
+                                    <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.3);">SAM + Compressor (frozen)</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.3);"><strong>PP1</strong></td>
+                                    <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.3);">CLIP (trainable, treated as input embedding)</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.3);"><strong>PP2</strong></td>
+                                    <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.3);">DeepSeek MoE layers 1-6</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.3);"><strong>PP3</strong></td>
+                                    <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.3);">DeepSeek MoE layers 7-12</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="fragment">
+                            <p><strong>Training speed:</strong></p>
+                            <ul>
+                                <li>Text-only: 90B tokens/day</li>
+                                <li>Multimodal: 70B tokens/day</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why are the SAM and compressor components frozen during Stage 2 training?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To save computational resources",
+                                "correct": false,
+                                "explanation": "While freezing does save some computation, the primary reason is architectural - they serve as the vision tokenizer and were already trained in Stage 1."
+                            },
+                            {
+                                "text": "They are treated as the vision tokenizer and were already trained in Stage 1",
+                                "correct": true,
+                                "explanation": "Correct! SAM and the compressor function as the vision tokenizer, similar to how text tokenizers are typically frozen. They were pre-trained in Stage 1."
+                            },
+                            {
+                                "text": "SAM and compressor cannot be trained with the MoE decoder",
+                                "correct": false,
+                                "explanation": "There is no technical limitation preventing joint training. The choice is architectural and efficiency-based."
+                            },
+                            {
+                                "text": "To prevent overfitting",
+                                "correct": false,
+                                "explanation": "While freezing layers can help with overfitting, the primary reason here is that these components serve as the vision tokenizer that was already trained."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 8: Compression Results (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 4.1", "url": "https://arxiv.org/abs/2510.18234"}, {"text": "Fox Benchmark", "url": "https://arxiv.org/abs/2407.13833"}]'>
+                    <h2 class="truncate-title">Vision-Text Compression Study: Fox Benchmark</h2>
+                    <div class="compression-chart">
+                        <img src="images/precision_compression_chart.png" alt="Compression ratio vs precision chart" style="max-width: 50%; height: auto;">
+                    </div>
+                    <p style="font-size: 0.75em; margin-top: 20px;">Testing on English documents with 600-1300 tokens from Fox benchmark</p>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Detailed Compression Results</h2>
+                    <div style="font-size: 0.65em;">
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>Text Tokens</th>
+                                    <th colspan="2">64 Vision Tokens</th>
+                                    <th colspan="2">100 Vision Tokens</th>
+                                    <th>Pages</th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <th>Precision</th>
+                                    <th>Compression</th>
+                                    <th>Precision</th>
+                                    <th>Compression</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>600-700</td>
+                                    <td>96.5%</td>
+                                    <td>10.5×</td>
+                                    <td class="best">98.5%</td>
+                                    <td>6.7×</td>
+                                    <td>7</td>
+                                </tr>
+                                <tr>
+                                    <td>700-800</td>
+                                    <td>93.8%</td>
+                                    <td>11.8×</td>
+                                    <td class="best">97.3%</td>
+                                    <td>7.5×</td>
+                                    <td>28</td>
+                                </tr>
+                                <tr>
+                                    <td>800-900</td>
+                                    <td>83.8%</td>
+                                    <td>13.2×</td>
+                                    <td class="best">96.8%</td>
+                                    <td>8.5×</td>
+                                    <td>28</td>
+                                </tr>
+                                <tr>
+                                    <td>900-1000</td>
+                                    <td>85.9%</td>
+                                    <td>15.1×</td>
+                                    <td class="best">96.8%</td>
+                                    <td>9.7×</td>
+                                    <td>14</td>
+                                </tr>
+                                <tr>
+                                    <td>1000-1100</td>
+                                    <td>79.3%</td>
+                                    <td>16.5×</td>
+                                    <td>91.5%</td>
+                                    <td>10.6×</td>
+                                    <td>11</td>
+                                </tr>
+                                <tr>
+                                    <td>1100-1200</td>
+                                    <td>76.4%</td>
+                                    <td>17.7×</td>
+                                    <td>89.8%</td>
+                                    <td>11.3×</td>
+                                    <td>8</td>
+                                </tr>
+                                <tr>
+                                    <td>1200-1300</td>
+                                    <td>59.1%</td>
+                                    <td>19.7×</td>
+                                    <td>87.1%</td>
+                                    <td>12.6×</td>
+                                    <td>4</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Key Findings from Compression Study</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="key-finding fragment">
+                            <h4>✅ High Precision at ~10× Compression</h4>
+                            <p>With 100 vision tokens, the model achieves <strong>96-97%+ precision</strong> up to 10× compression ratio</p>
+                        </div>
+                        <div class="key-finding fragment" style="margin-top: 20px;">
+                            <h4>⚠️ Degradation Beyond 10×</h4>
+                            <p>Performance begins to decline at compression ratios above 10×, potentially due to:
+</p>
+                            <ul style="font-size: 0.9em;">
+                                <li>More complex layouts in longer documents</li>
+                                <li>Text becoming blurred at lower resolutions</li>
+                            </ul>
+                        </div>
+                        <div class="key-finding fragment" style="margin-top: 20px;">
+                            <h4>🎯 60% at 20× Compression</h4>
+                            <p>Even at extreme compression (~20×), model maintains ~60% accuracy</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "According to the Fox benchmark results, what is the practical compression ratio for near-lossless OCR?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Around 5× compression",
+                                "correct": false,
+                                "explanation": "The model achieves excellent results (98%+) even at higher compression ratios. 5× is overly conservative."
+                            },
+                            {
+                                "text": "Around 10× compression with 97%+ precision",
+                                "correct": true,
+                                "explanation": "Correct! The results show 96-97%+ precision is achievable within 10× compression ratio, making this the sweet spot for near-lossless compression."
+                            },
+                            {
+                                "text": "Around 20× compression",
+                                "correct": false,
+                                "explanation": "At 20× compression, accuracy drops to around 60%, which is not near-lossless. This extreme ratio shows feasibility but with significant quality loss."
+                            },
+                            {
+                                "text": "Compression ratio does not affect precision",
+                                "correct": false,
+                                "explanation": "The data clearly shows precision decreases as compression ratio increases, especially beyond 10×."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 9: OmniDocBench Performance (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 4.2", "url": "https://arxiv.org/abs/2510.18234"}, {"text": "OmniDocBench", "url": "https://arxiv.org/abs/2410.04951"}]'>
+                    <h2 class="truncate-title">OmniDocBench: Practical OCR Performance</h2>
+                    <div class="compression-chart">
+                        <img src="images/ocr_model_performance_comparison_final2.png" alt="OmniDocBench performance comparison" style="max-width: 50%; height: auto;">
+                    </div>
+                    <p style="font-size: 0.7em; margin-top: 20px;"><strong>Metric:</strong> Edit distance (lower is better) | DeepSeek-OCR achieves SOTA among end-to-end models with fewest tokens!</p>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Token Efficiency Comparison</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="performance-grid">
+                            <div class="performance-card fragment">
+                                <div class="metric">100</div>
+                                <div class="label">DeepSeek-OCR (Small)</div>
+                                <p style="font-size: 0.8em; margin-top: 10px;">Beats GOT-OCR2.0 (256 tokens)</p>
+                            </div>
+                            <div class="performance-card fragment">
+                                <div class="metric">256</div>
+                                <div class="label">DeepSeek-OCR (Base)</div>
+                                <p style="font-size: 0.8em; margin-top: 10px;">Strong performance, low tokens</p>
+                            </div>
+                            <div class="performance-card fragment">
+                                <div class="metric">795</div>
+                                <div class="label">DeepSeek-OCR (Gundam)</div>
+                                <p style="font-size: 0.8em; margin-top: 10px;">Beats MinerU2.0 (6790+ tokens)</p>
+                            </div>
+                            <div class="performance-card fragment">
+                                <div class="metric">1853</div>
+                                <div class="label">Gundam-M (200dpi)</div>
+                                <p style="font-size: 0.8em; margin-top: 10px;">Best end-to-end performance</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Performance by Document Category</h2>
+                    <div style="font-size: 0.6em;">
+                        <p>Different document types require different token counts (edit distance, lower is better):</p>
+                        <table class="comparison-table" style="margin-top: 20px;">
+                            <thead>
+                                <tr>
+                                    <th>Mode</th>
+                                    <th>Book</th>
+                                    <th>Slides</th>
+                                    <th>Financial</th>
+                                    <th>Textbook</th>
+                                    <th>Exam</th>
+                                    <th>Magazine</th>
+                                    <th>Academic</th>
+                                    <th>Notes</th>
+                                    <th>News</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Tiny (64)</strong></td>
+                                    <td>0.147</td>
+                                    <td class="best">0.116</td>
+                                    <td>0.207</td>
+                                    <td>0.173</td>
+                                    <td>0.294</td>
+                                    <td>0.201</td>
+                                    <td>0.395</td>
+                                    <td>0.297</td>
+                                    <td>0.940</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Small (100)</strong></td>
+                                    <td class="best">0.085</td>
+                                    <td>0.111</td>
+                                    <td class="best">0.079</td>
+                                    <td>0.147</td>
+                                    <td>0.171</td>
+                                    <td class="best">0.107</td>
+                                    <td>0.131</td>
+                                    <td>0.187</td>
+                                    <td>0.744</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Gundam (795)</strong></td>
+                                    <td>0.035</td>
+                                    <td>0.085</td>
+                                    <td>0.289</td>
+                                    <td>0.095</td>
+                                    <td>0.094</td>
+                                    <td>0.059</td>
+                                    <td class="best">0.039</td>
+                                    <td>0.153</td>
+                                    <td class="best">0.122</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="fragment emphasis-box" style="margin-top: 20px; font-size: 1.1em;">
+                            <p><strong>Insight:</strong> Slides need only 64 tokens! Newspapers need Gundam mode (4-5k text tokens → require >10× compression)</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why do newspapers require Gundam mode while slides work well with just Tiny mode?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Newspapers have more colorful images",
+                                "correct": false,
+                                "explanation": "The difference is not about visual complexity or colors, but about the amount of text content."
+                            },
+                            {
+                                "text": "Newspapers contain 4-5k text tokens far exceeding 10× compression of other modes",
+                                "correct": true,
+                                "explanation": "Correct! Newspapers have much more text (4-5k tokens) compared to slides. This exceeds the 10× compression sweet spot of smaller modes, requiring Gundam mode for adequate token allocation."
+                            },
+                            {
+                                "text": "Slides have simpler layouts",
+                                "correct": false,
+                                "explanation": "While layout matters, the primary factor is the total amount of text content, not layout complexity."
+                            },
+                            {
+                                "text": "Gundam mode is always better regardless of document type",
+                                "correct": false,
+                                "explanation": "The results show Tiny/Small modes actually perform better for documents with less text. Using more tokens than necessary is not efficient."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 10: Deep Parsing Capabilities (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 4.3", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Deep Parsing: OCR 1.0 + 2.0 Combined</h2>
+                    <div style="font-size: 0.75em;">
+                        <p>DeepSeek-OCR can perform "deep parsing" - secondary model calls to further parse images within documents:</p>
+                        <div class="parsing-capability fragment">
+                            <h5>What is Deep Parsing?</h5>
+                            <p>Use layout detection to identify special elements (charts, formulas, geometry, images), then parse each with a unified prompt</p>
+                        </div>
+                        <div class="emphasis-box fragment" style="margin-top: 25px;">
+                            <p><strong>Key advantage:</strong> Single unified prompt for all parsing tasks!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Chart Deep Parsing</h2>
+                    <div style="font-size: 0.7em; display: flex; align-items: center; gap: 30px;">
+                        <div style="flex: 1;">
+                            <img src="images/5.png" alt="Chart parsing example" style="max-width: 100%; height: auto;">
+                        </div>
+                        <div style="flex: 1;">
+                            <p><strong>Application:</strong> Financial research reports - extract structured data from charts</p>
+                            <p><strong>Output format:</strong> HTML tables for efficient token usage</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Natural Image Captioning</h2>
+                    <div style="font-size: 0.7em; display: flex; align-items: center; gap: 30px;">
+                        <div style="flex: 1;">
+                            <img src="images/6.png" alt="Natural image captioning" style="max-width: 100%; height: auto;">
+                        </div>
+                        <div style="flex: 1;">
+                            <p style="font-size: 0.8em;"><strong>Application:</strong> Books and articles - generate dense captions for images</p>
+                            <p style="font-size: 0.8em;"><strong>Automation:</strong> Model automatically identifies image type and outputs appropriate results</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Chemical Formula Parsing</h2>
+                    <div style="font-size: 0.7em; display: flex; align-items: center; gap: 30px;">
+                        <div style="flex: 1;">
+                            <img src="images/8.png" alt="Chemical formula parsing" style="max-width: 100%; height: auto;">
+                        </div>
+                        <div style="flex: 1;">
+                            <p><strong>Application:</strong> Chemical documents - convert to SMILES format</p>
+                            <p><strong>Future potential:</strong> OCR 1.0+2.0 technology for STEM field VLM/LLM development</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Geometry Parsing</h2>
+                    <div style="font-size: 0.7em; display: flex; align-items: center; gap: 30px;">
+                        <div style="flex: 1;">
+                            <img src="images/7.png" alt="Geometry parsing" style="max-width: 100%; height: auto;">
+                        </div>
+                        <div style="flex: 1;">
+                            <p style="font-size: 0.8em;"><strong>Challenge:</strong> Intricate interdependencies among line segments make this extremely difficult</p>
+                            <p style="font-size: 0.8em;"><strong>Current status:</strong> Capability exists but has a long way to go</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the main advantage of DeepSeek-OCRs deep parsing capability?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It can process images faster than other methods",
+                                "correct": false,
+                                "explanation": "Speed is not the main advantage. The key benefit is the unified approach to different parsing tasks."
+                            },
+                            {
+                                "text": "It uses a single unified prompt for all types of special elements (charts, formulas, geometry)",
+                                "correct": true,
+                                "explanation": "Correct! The model can automatically identify element types and apply appropriate parsing with a unified prompt, simplifying the pipeline significantly."
+                            },
+                            {
+                                "text": "It only works with chemical formulas",
+                                "correct": false,
+                                "explanation": "Deep parsing works with multiple types: charts, chemical formulas, geometry, and natural images."
+                            },
+                            {
+                                "text": "It eliminates the need for layout detection",
+                                "correct": false,
+                                "explanation": "Layout detection is still used to identify special elements. Deep parsing then processes those identified elements."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 11: Multilingual & General Vision (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 4.3.2", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Multilingual Recognition: ~100 Languages</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="architecture-diagram">
+                            <img src="images/9.png" alt="Multilingual support" style="max-width: 35%; height: auto;">
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px;">
+                            <span class="language-badge">Chinese</span>
+                            <span class="language-badge">English</span>
+                            <span class="language-badge">Arabic</span>
+                            <span class="language-badge">Sinhala</span>
+                            <span class="language-badge">+96 more...</span>
+                        </div>
+                        <p style="margin-top: 20px;"><strong>Format support:</strong> Both layout and non-layout outputs via different prompts</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 4.3.3", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">General Vision Understanding</h2>
+                    <div style="font-size: 0.7em;">
+                        <div style="display: flex; align-items: flex-start; gap: 30px;">
+                            <div class="architecture-diagram" style="flex: 0 0 auto;">
+                                <img src="images/10.png" alt="General vision capabilities" style="max-width: 500px; height: auto;">
+                            </div>
+                            <div style="flex: 1;">
+                                <p style="margin-top: 0;">DeepSeek-OCR retains general visual understanding capabilities:</p>
+                                <ul style="font-size: 0.9em;">
+                                    <li>Image description</li>
+                                    <li>Object detection</li>
+                                    <li>Grounding</li>
+                                    <li>Language capabilities (text-only data)</li>
+                                </ul>
+                                <p style="margin-top: 15px;"><strong>Note:</strong> No SFT stage - model is not a chatbot, some capabilities need completion prompts</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "Why does DeepSeek-OCR include 20% general vision data and 10% text-only data in training?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To make it better at OCR tasks",
+                                "correct": false,
+                                "explanation": "OCR performance comes primarily from the 70% OCR-specific data. The additional data serves a different purpose."
+                            },
+                            {
+                                "text": "To preserve general vision interface and language capabilities for future research",
+                                "correct": true,
+                                "explanation": "Correct! While DeepSeek-OCR is OCR-focused, including these data types preserves general vision and language capabilities, making it easier for researchers to extend the model for other tasks."
+                            },
+                            {
+                                "text": "Because the model cannot be trained with only OCR data",
+                                "correct": false,
+                                "explanation": "The model could be trained with only OCR data. The additional data types are a deliberate design choice for flexibility."
+                            },
+                            {
+                                "text": "To reduce the amount of OCR training data needed",
+                                "correct": false,
+                                "explanation": "The goal is not to reduce OCR data but to maintain a broader capability profile alongside OCR specialization."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 12: Forgetting Mechanisms (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 5 (Discussion)", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Memory and Forgetting Mechanisms</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="architecture-diagram">
+                            <img src="images/4.png" alt="Forgetting mechanism visualization">
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Progressive Context Compression</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="key-finding">
+                            <h4>Multi-Level Compression Strategy</h4>
+                            <p>Historical contexts can be progressively compressed as they age:</p>
+                        </div>
+                        <div class="forgetting-timeline fragment">
+                            <div class="context-level recent">
+                                <span>Recent Context (Round k)</span>
+                                <span class="tokens">Digital Text</span>
+                            </div>
+                            <div class="context-level recent">
+                                <span>Medium History (Round k-1 to k-5)</span>
+                                <span class="tokens">1280×1280 (400 tokens)</span>
+                            </div>
+                            <div class="context-level medium">
+                                <span>Older History (Round k-6 to k-10)</span>
+                                <span class="tokens">1024×1024 (256 tokens)</span>
+                            </div>
+                            <div class="context-level medium">
+                                <span>Distant History (Round k-11 to k-15)</span>
+                                <span class="tokens">640×640 (100 tokens)</span>
+                            </div>
+                            <div class="context-level old">
+                                <span>Very Old History (Round k-16+)</span>
+                                <span class="tokens">512×512 (64 tokens)</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Biological Memory Analogy</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="key-finding">
+                            <h4>Natural Parallel with Human Memory</h4>
+                            <p>Vision-text compression mirrors biological memory patterns:</p>
+                            <ul style="font-size: 0.9em; margin-top: 15px;">
+                                <li><strong>Human Memory:</strong> Recent memories are vivid, distant memories fade</li>
+                                <li><strong>Visual Perception:</strong> Nearby objects are sharp, distant objects blur</li>
+                                <li><strong>Context Compression:</strong> Recent contexts stay high-res, old contexts compress more</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p><strong>Result:</strong> A natural forgetting mechanism where information fades with time, balancing retention with computational constraints</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Future Applications</h2>
+                    <div style="font-size: 0.65em;">
+                        <div class="parsing-capability fragment">
+                            <h5>Multi-Turn Conversations</h5>
+                            <p>For dialogue beyond k rounds, apply 10× optical compression to older history</p>
+                        </div>
+                        <div class="parsing-capability fragment">
+                            <h5>Ultra-Long Context Processing</h5>
+                            <p>Theoretically unlimited context by progressively downsizing older rendered images</p>
+                        </div>
+                        <div class="parsing-capability fragment">
+                            <h5>Adaptive Resource Allocation</h5>
+                            <p>Recent info maintains high fidelity, distant memories consume fewer resources</p>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p><strong>Caution:</strong> This is early-stage work requiring further investigation!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding</h2>
+                    <div data-mcq='{
+                        "question": "How does context optical compression mimic biological memory forgetting?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "By randomly deleting old information",
+                                "correct": false,
+                                "explanation": "The forgetting is not random - it is progressive compression that maintains some information while reducing detail."
+                            },
+                            {
+                                "text": "By progressively reducing resolution of older contexts, similar to how memories fade over time",
+                                "correct": true,
+                                "explanation": "Correct! Just as human memories and visual perception degrade with distance/time, older contexts are rendered at progressively lower resolutions, naturally reducing detail while preserving essential information."
+                            },
+                            {
+                                "text": "By keeping all contexts at the same resolution",
+                                "correct": false,
+                                "explanation": "The key innovation is differential resolution - recent contexts stay high-res while older ones compress more."
+                            },
+                            {
+                                "text": "By storing everything in text format",
+                                "correct": false,
+                                "explanation": "The method uses visual compression (images) not text, which enables the progressive compression mechanism."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Section 13: Conclusion and Discussion (Vertical) -->
+            <section>
+                <section data-sources='[{"text": "DeepSeek-OCR Paper - Section 5 & 6", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Key Research Findings</h2>
+                    <div style="font-size: 0.5em;">
+                        <div class="key-finding fragment">
+                            <h4>1. Vision-Text Compression is Feasible</h4>
+                            <p>Near-lossless (97%+) compression at 10× ratio, 60% accuracy at 20× ratio</p>
+                        </div>
+                        <div class="key-finding fragment">
+                            <h4>2. Compact LMs Can Learn the Mapping</h4>
+                            <p>DeepSeek-3B-MoE (570M active) effectively learns vision-to-text decompression</p>
+                        </div>
+                        <div class="key-finding fragment">
+                            <h4>3. Token Efficiency Matters</h4>
+                            <p>Achieves SOTA performance with significantly fewer tokens than competitors</p>
+                        </div>
+                        <div class="key-finding fragment">
+                            <h4>4. Progressive Compression Shows Promise</h4>
+                            <p>Natural forgetting mechanism for ultra-long contexts</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Practical Impact</h2>
+                    <div style="font-size: 0.35em;">
+                        <div class="performance-grid">
+                            <div class="performance-card fragment">
+                                <div class="feature-icon">🏭</div>
+                                <div class="metric">33M</div>
+                                <div class="label">Pages per day (20 nodes)</div>
+                                <p style="font-size: 0.85em; margin-top: 8px; color: #666;">Full cluster capacity: 33 million pages/day across 160 GPUs (20 nodes × 8 A100-40G each) for massive-scale data generation</p>
+                            </div>
+                            <div class="performance-card fragment">
+                                <div class="feature-icon">💾</div>
+                                <div class="metric">200k+</div>
+                                <div class="label">Pages/day on single A100-40G</div>
+                                <p style="font-size: 0.85em; margin-top: 8px; color: #666;">Individual GPU throughput: Over 200,000 pages per day per GPU - highly efficient for practical deployment</p>
+                            </div>
+                            <div class="performance-card fragment">
+                                <div class="feature-icon">🌐</div>
+                                <div class="metric">~100</div>
+                                <div class="label">Languages supported</div>
+                                <p style="font-size: 0.85em; margin-top: 8px; color: #666;">Multilingual OCR covering approximately 100 languages for global document processing and diverse PDF data</p>
+                            </div>
+                            <div class="performance-card fragment">
+                                <div class="feature-icon">🔓</div>
+                                <div class="metric">Open</div>
+                                <div class="label">Code & weights on GitHub</div>
+                                <p style="font-size: 0.85em; margin-top: 8px; color: #666;">Fully open-source: Model weights, code, and training recipes publicly available for research and commercial use</p>
+                            </div>
+                        </div>
+                        <div class="emphasis-box fragment" style="margin-top: 30px; font-size: 1.1em;">
+                            <p><strong>Production ready:</strong> DeepSeek-OCR can generate high-quality training data for LLMs/VLMs at unprecedented scale, making it practical for building next-generation language models!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Future Research Directions</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="parsing-capability fragment">
+                            <h5>📚 Digital-Optical Interleaved Pretraining</h5>
+                            <p>Mix text tokens and vision tokens during LLM pretraining</p>
+                        </div>
+                        <div class="parsing-capability fragment">
+                            <h5>🔍 Needle-in-Haystack Testing</h5>
+                            <p>Evaluate information retrieval from compressed contexts</p>
+                        </div>
+                        <div class="parsing-capability fragment">
+                            <h5>🎯 Optimizing 10× Boundary</h5>
+                            <p>Explore methods to push beyond 10× while maintaining precision</p>
+                        </div>
+                        <div class="parsing-capability fragment">
+                            <h5>🧠 Agent Systems Integration</h5>
+                            <p>Use optical compression in long-horizon agent tasks</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "DeepSeek-OCR Paper", "url": "https://arxiv.org/abs/2510.18234"}]'>
+                    <h2 class="truncate-title">Limitations and Open Questions</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="emphasis-box">
+                            <p><strong>Current limitations:</strong></p>
+                            <ul style="font-size: 0.9em; text-align: left;">
+                                <li>Performance degrades beyond 10× compression</li>
+                                <li>OCR alone doesn't fully validate context compression</li>
+                                <li>Need more research on actual LLM integration</li>
+                                <li>Geometry parsing still challenging</li>
+                            </ul>
+                        </div>
+                        <div class="emphasis-box fragment" style="margin-top: 20px;">
+                            <p><strong>Important note:</strong> This is preliminary exploration - more work needed to realize full potential!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Final Test: Overall Understanding</h2>
+                    <div data-mcq='{
+                        "question": "What is the most significant contribution of DeepSeek-OCR to the field?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Achieving the best OCR accuracy on all benchmarks",
+                                "correct": false,
+                                "explanation": "While DeepSeek-OCR performs well, the main contribution is not just accuracy but the exploration of vision-text compression ratios."
+                            },
+                            {
+                                "text": "Demonstrating feasibility of context optical compression with quantified ratios for LLMs",
+                                "correct": true,
+                                "explanation": "Correct! The main contribution of the paper is showing that vision-text compression is viable (97%+ at 10×, 60% at 20×), providing empirical evidence for using visual modality to compress textual contexts in LLMs."
+                            },
+                            {
+                                "text": "Creating the fastest OCR model",
+                                "correct": false,
+                                "explanation": "Speed is a benefit, but the core contribution is about compression ratios and their implications for long-context processing."
+                            },
+                            {
+                                "text": "Supporting 100 languages",
+                                "correct": false,
+                                "explanation": "Multilingual support is useful but not the primary research contribution. The key insight is about optical compression feasibility."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- Final Summary Slide -->
+            <section class="title-slide">
+                <h2 class="truncate-title">Summary: DeepSeek-OCR</h2>
+                <div style="font-size: 0.75em; text-align: left; max-width: 800px; margin: 0 auto;">
+                    <div class="key-finding">
+                        <h4>Core Innovation</h4>
+                        <p>Vision as a compression medium for textual information in LLMs</p>
+                    </div>
+                    <div class="key-finding" style="margin-top: 20px;">
+                        <h4>Key Results</h4>
+                        <ul>
+                            <li>97%+ precision at 10× compression</li>
+                            <li>SOTA performance with fewest tokens</li>
+                            <li>Production-ready: 200k+ pages/day per GPU</li>
+                        </ul>
+                    </div>
+                    <div class="key-finding" style="margin-top: 20px;">
+                        <h4>Future Impact</h4>
+                        <p>Opens new possibilities for ultra-long context processing and memory-efficient LLMs</p>
+                    </div>
+                    <p style="margin-top: 30px; text-align: center;"><strong>GitHub:</strong> github.com/deepseek-ai/DeepSeek-OCR</p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js Core -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/math/math.js"></script>
+
+    <!-- Shared JavaScript -->
+    <script src="../shared/js/title-handler.js"></script>
+    <script src="../shared/js/source-modal-v2.js"></script>
+    <script src="../shared/js/tooltip-modal.js"></script>
+    <script src="../shared/js/multiple-choice.js"></script>
+
+    <script>
+        Reveal.initialize({
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true,
+            transition: 'slide',
+            slideNumber: 'c/t',
+            showSlideNumber: 'all',
+            math: {
+                mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js',
+                config: 'TeX-AMS_SVG-full'
+            },
+            plugins: [ RevealMath, RevealHighlight, RevealNotes ]
+        });
+
+        // Initialize MCQ system after Reveal.js loads
+        Reveal.on('ready', () => {
+            if (window.initializeMultipleChoice) {
+                window.initializeMultipleChoice();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLIP: Learning Transferable Visual Models From Natural Language Supervision</title>
+
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+    <link rel="stylesheet" href="../shared/css/reveal-theme.css">
+    <link rel="stylesheet" href="../shared/css/common.css">
+    <link rel="stylesheet" href="../shared/css/quiz.css">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/monokai.css">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Title Slide -->
+            <section class="title-slide">
+                <img src="../shared/images/uoi_logo_blue.png" alt="University of Iceland Logo" class="ui-logo">
+                <h1 class="truncate-title">CLIP: Contrastive Language-Image Pre-training</h1>
+                <p>Learning Transferable Visual Models From Natural Language Supervision</p>
+                <p>Radford et al., OpenAI (2021)</p>
+                <p class="mt-lg">
+                    <small>Instructor: Hafsteinn Einarsson</small><br>
+                    <small>University of Iceland</small>
+                </p>
+            </section>
+
+            <!-- CHUNK 1: Introduction & Motivation -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Radford et al. 2021", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">The Problem: Limited Supervision in Computer Vision</h2>
+                    <div style="font-size: 0.8em;">
+                        <div class="fragment">
+                            <p><strong>Traditional computer vision systems:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>Trained to predict a fixed set of predetermined object categories</li>
+                                <li>ImageNet: 1000 classes, carefully curated and labeled</li>
+                                <li>Need additional labeled data to specify any other visual concept</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div class="emphasis-box">
+                                <p><strong>The Limitation:</strong> This restricted form of supervision limits generality and usability</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>The Opportunity:</strong> Learning directly from raw text about images leverages a much broader source of supervision</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">The NLP Revolution: Task-Agnostic Pre-training</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Natural Language Processing has been revolutionized by:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><span class="tooltip">Autoregressive language modeling<span class="tooltiptext">Predicting the next word in a sequence, as in GPT models</span></span> (GPT family)</li>
+                                <li><span class="tooltip">Masked language modeling<span class="tooltiptext">Predicting masked tokens, as in BERT</span></span> (BERT family)</li>
+                                <li>Training on web-scale text collections</li>
+                                <li>Zero-shot task transfer via natural language prompts</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div class="key-finding">
+                                <h4>GPT-3 Example</h4>
+                                <p>Competitive across many tasks with bespoke models while requiring little to no dataset-specific training data</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p><strong>Key Question:</strong> Could scalable pre-training methods which learn directly from web text result in a similar breakthrough in computer vision?</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">CLIP's Main Contribution</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <div class="key-finding">
+                                <h4>The Simple Pre-training Task</h4>
+                                <p style="font-size: 1.1em;">Predict <strong>which caption goes with which image</strong></p>
+                                <p style="margin-top: 15px;">This is an efficient and scalable way to learn state-of-the-art image representations from scratch</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>After pre-training:</strong></p>
+                            <ul>
+                                <li>Natural language is used to reference learned visual concepts</li>
+                                <li>Natural language can describe <em>new</em> ones</li>
+                                <li>This enables <strong>zero-shot transfer</strong> to downstream tasks</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p><strong>Key Result:</strong> Match ResNet-50 accuracy on ImageNet <em>zero-shot</em> without using any of the 1.28M training examples!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">The CLIP Approach: High-Level Overview</h2>
+                    <div style="text-align: center;">
+                        <img src="images/main-diagrams.png" alt="CLIP approach diagram" style="max-width: 95%; height: auto;">
+                        <p style="font-size: 0.7em; margin-top: 15px;"><strong>Standard approach:</strong> Train image extractor + linear classifier to predict labels<br>
+                        <strong>CLIP approach:</strong> Train image encoder + text encoder to predict correct (image, text) pairings</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Motivation</h2>
+                    <div data-mcq='{
+                        "question": "What is the key advantage of natural language supervision over traditional ImageNet-style supervision?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Natural language models are always more accurate",
+                                "correct": false,
+                                "explanation": "Accuracy is not the primary advantage. The key benefit is flexibility and the ability to leverage broader supervision."
+                            },
+                            {
+                                "text": "It can learn from vastly more data and express much wider set of visual concepts through generality",
+                                "correct": true,
+                                "explanation": "Correct! Natural language is abundant on the internet and can express virtually any visual concept, not just a fixed set of 1000 classes."
+                            },
+                            {
+                                "text": "It requires less computational resources to train",
+                                "correct": false,
+                                "explanation": "CLIP actually requires substantial compute (trained on 592 V100 GPUs). The advantage is flexibility, not efficiency."
+                            },
+                            {
+                                "text": "It eliminates the need for any form of supervision",
+                                "correct": false,
+                                "explanation": "CLIP still uses supervision - it just comes from natural language paired with images rather than fixed class labels."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 1 continued: Creating the Dataset -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 2.2", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">The Dataset Challenge</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Existing datasets were too small:</strong></p>
+                            <table style="width: 100%; margin-top: 15px; font-size: 0.9em;">
+                                <thead>
+                                    <tr style="background: #10099F; color: white;">
+                                        <th style="padding: 10px;">Dataset</th>
+                                        <th style="padding: 10px;">Size</th>
+                                        <th style="padding: 10px;">Issue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">MS-COCO</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">~100K images</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Too small</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Visual Genome</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">~100K images</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Too small</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">YFCC100M</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">100M images</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Sparse, low-quality metadata</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>YFCC100M after filtering:</strong> Only 15M images with natural language captions (similar to ImageNet size!)</p>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p><strong>Motivation:</strong> Large quantities of (image, text) data are publicly available on the internet - existing datasets don't reflect this!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">WIT: WebImageText Dataset</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <div class="key-finding">
+                                <h4>Dataset Construction</h4>
+                                <p style="font-size: 1.2em; margin: 15px 0;"><strong>400 million</strong> (image, text) pairs</p>
+                                <p>Collected from publicly available sources on the internet</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Collection Strategy:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li><strong>Query set:</strong> 500,000 queries constructed from:
+                                    <ul style="font-size: 0.95em; margin-top: 8px;">
+                                        <li>All words occurring ≥100 times in English Wikipedia</li>
+                                        <li>Bi-grams with high pointwise mutual information</li>
+                                        <li>Names of Wikipedia articles above certain search volume</li>
+                                        <li>All WordNet synsets</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-top: 10px;"><strong>Class balancing:</strong> Up to 20,000 (image, text) pairs per query</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>Similar total word count as WebText dataset used to train GPT-2</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Scale Matters: Closing the Gap</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Previous natural language supervision attempts were weak:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>Li et al. (2017): Only 11.5% accuracy on ImageNet zero-shot</li>
+                                <li>Well below 88.4% SOTA and even 50% of classic CV approaches</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>The crucial difference: SCALE</strong></p>
+                            <table style="width: 100%; margin-top: 15px; font-size: 0.85em;">
+                                <thead>
+                                    <tr style="background: #10099F; color: white;">
+                                        <th style="padding: 8px;">Approach</th>
+                                        <th style="padding: 8px;">Dataset Size</th>
+                                        <th style="padding: 8px;">Training Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">VirTex, ICMLM, ConVIRT</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">100K-200K images</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Accelerator days</td>
+                                    </tr>
+                                    <tr style="background: #F5F5FF;">
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;"><strong>CLIP</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;"><strong>400M images</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;"><strong>Accelerator years</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>CLIP closes the gap by studying natural language supervision at <strong>large scale</strong></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Dataset Construction</h2>
+                    <div data-mcq='{
+                        "question": "How did CLIP ensure broad coverage of visual concepts in the WIT dataset?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "By manually curating 400 million image-text pairs",
+                                "correct": false,
+                                "explanation": "Manual curation at this scale would be impossible. CLIP uses an automated query-based collection strategy."
+                            },
+                            {
+                                "text": "By searching for (image, text) pairs using 500,000 queries and class-balancing with up to 20K pairs per query",
+                                "correct": true,
+                                "explanation": "Correct! The 500K queries (from Wikipedia words, bi-grams, article names, and WordNet) ensure broad concept coverage, while the 20K limit per query provides class balance."
+                            },
+                            {
+                                "text": "By using all images from YFCC100M dataset",
+                                "correct": false,
+                                "explanation": "YFCC100M was considered but only yielded 15M usable images after filtering. CLIP built a new 400M dataset from scratch."
+                            },
+                            {
+                                "text": "By translating ImageNet labels into natural language descriptions",
+                                "correct": false,
+                                "explanation": "CLIP does not use ImageNet for training. It collects (image, text) pairs from the internet based on queries."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 2: Method - Contrastive Learning -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 2.3", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Selecting an Efficient Pre-Training Method</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Challenge:</strong> State-of-the-art computer vision requires massive compute</p>
+                            <ul style="margin-top: 15px; font-size: 0.95em;">
+                                <li>ResNeXt101-32x48d: 19 GPU years</li>
+                                <li>Noisy Student EfficientNet-L2: 33 TPUv3 core-years</li>
+                                <li>Both trained to predict only 1000 ImageNet classes!</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p><strong>Key insight:</strong> Training efficiency was crucial to successfully scaling natural language supervision</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Initial Approach: Image Captioning</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Similar to VirTex:</strong> Jointly train image CNN and text transformer to predict the caption</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div style="text-align: center;">
+                                <img src="images/efficiency-ablation.png" alt="Efficiency comparison" style="max-width: 85%; height: auto;">
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p><strong>Problem:</strong> Transformer language model (63M params) learns to recognize ImageNet classes <strong>3× slower</strong> than a bag-of-words baseline!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">The Key Insight: Predict Pairings, Not Exact Words</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>The problem with prediction:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>Trying to predict the <em>exact</em> words of text is difficult</li>
+                                <li>Wide variety of descriptions, comments, and related text co-occur with images</li>
+                                <li>Generative models require 10× more compute than contrastive models for same performance</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div class="key-finding">
+                                <h4>The Contrastive Solution</h4>
+                                <p>Instead of predicting exact words, predict which text <em>as a whole</em> is paired with which image</p>
+                                <p style="margin-top: 15px;"><strong>Result:</strong> 4× efficiency improvement over bag-of-words!</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>Total speedup: <strong>12× faster</strong> than image captioning baseline</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">CLIP's Training Objective</h2>
+                    <div style="font-size: 0.7em;">
+                        <div class="fragment">
+                            <p><strong>Given a batch of N (image, text) pairs:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>There are N×N possible (image, text) pairings</li>
+                                <li>Only N of these are correct</li>
+                                <li>CLIP learns to identify the correct pairings</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>How:</strong></p>
+                            <ol style="margin-top: 10px;">
+                                <li>Jointly train image encoder and text encoder</li>
+                                <li><strong>Maximize</strong> cosine similarity of embeddings for the N real pairs</li>
+                                <li><strong>Minimize</strong> cosine similarity for the N² - N incorrect pairings</li>
+                                <li>Optimize symmetric cross-entropy loss over similarity scores</li>
+                            </ol>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p style="font-size: 0.9em;"><strong>Related work:</strong> Multi-class N-pair loss (Sohn et al.), InfoNCE (van den Oord et al.), ConVIRT (Zhang et al.)</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">CLIP Pseudocode</h2>
+                    <div style="text-align: center;">
+                        <img src="images/pseudocode.png" alt="CLIP pseudocode" style="max-width: 70%; height: auto;">
+                        <p style="font-size: 0.65em; margin-top: 15px;">Core implementation showing the symmetric contrastive loss</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Simplified Design Choices</h2>
+                    <div style="font-size: 0.75em;">
+                        <p><strong>CLIP simplifies ConVIRT's implementation:</strong></p>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div style="background: #FFF5F5; padding: 15px; border-radius: 8px;">
+                                    <h4 style="color: #FC8484; margin-top: 0;">❌ Removed</h4>
+                                    <ul style="font-size: 0.9em;">
+                                        <li>Non-linear projection</li>
+                                        <li>Text transformation function</li>
+                                        <li>Complex data augmentation</li>
+                                        <li>Pre-trained weights</li>
+                                    </ul>
+                                </div>
+                                <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                    <h4 style="color: #2DD2C0; margin-top: 0;">✅ Kept/Added</h4>
+                                    <ul style="font-size: 0.9em;">
+                                        <li>Linear projection only</li>
+                                        <li>Train from scratch</li>
+                                        <li>Random square crop only</li>
+                                        <li>Learnable temperature τ</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p>Due to large dataset size, over-fitting is not a concern - simplicity is preferred!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Contrastive Learning</h2>
+                    <div data-mcq='{
+                        "question": "Why is the contrastive objective of CLIP more efficient than predicting exact caption words?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It uses smaller neural networks",
+                                "correct": false,
+                                "explanation": "The network sizes are similar. The efficiency gain comes from the training objective, not the architecture."
+                            },
+                            {
+                                "text": "It only needs to determine which text goes with which image, not generate exact word sequences",
+                                "correct": true,
+                                "explanation": "Correct! Predicting which caption pairs with which image is a simpler task than predicting every word in the caption, resulting in 4× faster learning."
+                            },
+                            {
+                                "text": "It uses less training data",
+                                "correct": false,
+                                "explanation": "CLIP uses the same amount of data. The efficiency is in how it learns from that data."
+                            },
+                            {
+                                "text": "It does not require a text encoder",
+                                "correct": false,
+                                "explanation": "CLIP still uses both an image encoder and a text encoder. The difference is in the training objective."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 2 continued: Architecture -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 2.4", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Model Architecture: Image Encoder Options</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                                <h4 style="color: #10099F; margin-top: 0;">Option 1: Modified ResNet-50</h4>
+                                <p><strong>Base:</strong> ResNet-50 (widespread adoption, proven performance)</p>
+                                <p style="margin-top: 10px;"><strong>Modifications:</strong></p>
+                                <ul style="font-size: 0.95em;">
+                                    <li>ResNet-D improvements (He et al.)</li>
+                                    <li>Antialiased rect-2 blur pooling (Zhang et al.)</li>
+                                    <li><strong>Attention pooling</strong> instead of global average pooling</li>
+                                </ul>
+                                <p style="margin-top: 10px; font-size: 0.9em;"><em>Attention pooling: Single layer of transformer-style QKV attention where query is conditioned on global average-pooled representation</em></p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px;">
+                                <h4 style="color: #2DD2C0; margin-top: 0;">Option 2: Vision Transformer (ViT)</h4>
+                                <p><strong>Base:</strong> Recently introduced Vision Transformer (Dosovitskiy et al.)</p>
+                                <p style="margin-top: 10px;"><strong>Minor modifications:</strong></p>
+                                <ul style="font-size: 0.95em;">
+                                    <li>Additional layer normalization before transformer</li>
+                                    <li>Slightly different initialization scheme</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Model Architecture: Text Encoder</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <div class="key-finding">
+                                <h4>Transformer Architecture</h4>
+                                <p><strong>Base size:</strong> 63M parameters, 12 layers, 512-width, 8 attention heads</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Key details:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li><strong>Tokenization:</strong> Byte Pair Encoding (BPE)
+                                    <ul style="font-size: 0.95em; margin-top: 5px;">
+                                        <li>Lower-cased text</li>
+                                        <li>49,152 vocab size</li>
+                                        <li>Max sequence length: 76 tokens</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-top: 10px;"><strong>Special tokens:</strong> [SOS] and [EOS] bracket the text</li>
+                                <li><strong>Feature extraction:</strong> Activations at [EOS] token from highest layer
+                                    <ul style="font-size: 0.95em; margin-top: 5px;">
+                                        <li>Layer normalized</li>
+                                        <li>Linearly projected into multi-modal embedding space</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-top: 10px;"><strong>Attention:</strong> Masked self-attention (preserves ability to initialize with pre-trained LM)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Model Scaling Strategy</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>ResNet scaling:</strong> Adapted from EfficientNet approach</p>
+                            <ul style="margin-top: 10px;">
+                                <li>Allocate additional compute <strong>equally</strong> across width, depth, and resolution</li>
+                                <li>Better than scaling only one dimension</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Text encoder scaling:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>Only scale <strong>width</strong> proportionally to ResNet width increase</li>
+                                <li>Do not scale depth</li>
+                                <li><em>Reason:</em> CLIP performance less sensitive to text encoder capacity</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p><strong>Observation:</strong> Vision Transformers are ~3× more compute efficient than ResNets when trained on sufficiently large datasets</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Models Trained</h2>
+                    <div style="font-size: 0.7em;">
+                        <p style="margin-bottom: 20px;"><strong>5 ResNets + 3 Vision Transformers spanning almost 2 orders of magnitude of compute:</strong></p>
+                        <table style="width: 100%; font-size: 0.9em;">
+                            <thead>
+                                <tr style="background: #10099F; color: white;">
+                                    <th style="padding: 8px;">Model Type</th>
+                                    <th style="padding: 8px;">Models</th>
+                                    <th style="padding: 8px;">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #EEEEEE;" rowspan="2">ResNet</td>
+                                    <td style="padding: 8px; border: 1px solid #EEEEEE;">RN50, RN101</td>
+                                    <td style="padding: 8px; border: 1px solid #EEEEEE;">Standard sizes</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #EEEEEE;">RN50x4, RN50x16, RN50x64</td>
+                                    <td style="padding: 8px; border: 1px solid #EEEEEE;">EfficientNet-style scaling: 4×, 16×, 64× compute</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #EEEEEE;">Vision Transformer</td>
+                                    <td style="padding: 8px; border: 1px solid #EEEEEE;">ViT-B/32, ViT-B/16, ViT-L/14</td>
+                                    <td style="padding: 8px; border: 1px solid #EEEEEE;">Base and Large, different patch sizes</td>
+                                </tr>
+                                <tr style="background: #F5F5FF;">
+                                    <td style="padding: 8px; border: 1px solid #EEEEEE;"><strong>Best Model</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #EEEEEE;"><strong>ViT-L/14@336px</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #EEEEEE;">Fine-tuned at higher 336px resolution for 1 epoch</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Architecture</h2>
+                    <div data-mcq='{
+                        "question": "What is the purpose of using the [EOS] token activations from the text encoder?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To mark the end of the text sequence during tokenization",
+                                "correct": false,
+                                "explanation": "While [EOS] does mark the end of the sequence, the question asks about using its activations, not its role as a marker."
+                            },
+                            {
+                                "text": "To extract a fixed-size feature representation of the entire text sequence for comparison with image embeddings",
+                                "correct": true,
+                                "explanation": "Correct! The activations at [EOS] from the final layer provide a single vector representation of the entire text, which is then projected to the multimodal embedding space for comparison with image embeddings."
+                            },
+                            {
+                                "text": "To determine the length of the input text",
+                                "correct": false,
+                                "explanation": "Text length is determined during tokenization, not from [EOS] activations."
+                            },
+                            {
+                                "text": "To improve the vocabulary coverage of the model",
+                                "correct": false,
+                                "explanation": "Vocabulary coverage is determined by BPE tokenization, not by the use of [EOS] activations."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 3: Training Details -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 2.5", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Training Configuration</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>Training setup:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>Epochs:</strong> 32 epochs for all models</li>
+                                <li><strong>Optimizer:</strong> Adam with decoupled weight decay (applied to all weights except gains/biases)</li>
+                                <li><strong>Learning rate schedule:</strong> Cosine decay</li>
+                                <li><strong>Batch size:</strong> 32,768 (!)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Efficiency techniques:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>Mixed-precision training (accelerate + save memory)</li>
+                                <li><span class="tooltip">Gradient checkpointing<span class="tooltiptext">Trade computation for memory by recomputing intermediate activations during backward pass</span></span></li>
+                                <li>Half-precision Adam statistics</li>
+                                <li>Half-precision stochastically rounded text encoder weights</li>
+                                <li>Sharded embedding similarity calculations across GPUs</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p><strong>Temperature parameter τ:</strong> Directly optimized during training (log-parameterized multiplicative scalar, clipped to prevent scaling logits by >100)</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Training Compute Requirements</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <table style="width: 100%; margin-top: 20px; font-size: 0.9em;">
+                                <thead>
+                                    <tr style="background: #10099F; color: white;">
+                                        <th style="padding: 10px;">Model</th>
+                                        <th style="padding: 10px;">GPUs</th>
+                                        <th style="padding: 10px;">Training Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;">RN50x64 (Largest ResNet)</td>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;">592 V100</td>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;">18 days</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;">ViT-L/14 (Largest ViT)</td>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;">256 V100</td>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;">12 days</td>
+                                    </tr>
+                                    <tr style="background: #F5F5FF;">
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>ViT-L/14@336px</strong></td>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;" colspan="2"><strong>Additional 1 epoch at 336px resolution (similar to FixRes)</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div class="key-finding">
+                                <h4>Scale of Training</h4>
+                                <p>If every image was presented at 1 per second, it would take <strong>405 years</strong> to iterate through all 12.8 billion images seen over 32 epochs!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Hyperparameter Selection</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Initial tuning approach:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>Grid searches, random search, and manual tuning on baseline ResNet-50</li>
+                                <li>Tuning done when training for 1 epoch (for speed)</li>
+                                <li>Then adapted heuristically for larger models (computational constraints)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Key hyperparameters:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li><strong>Temperature initialization:</strong> τ = 0.07 (from Wu et al.)</li>
+                                <li><strong>Data augmentation:</strong> Only random square crop from resized images</li>
+                                <li><strong>Weight decay:</strong> Applied to all weights except gains/biases</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>Simplicity over complexity: No complex augmentation, no pre-training, train from scratch</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Training</h2>
+                    <div data-mcq='{
+                        "question": "Why does CLIP use such a large batch size of 32,768?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "To reduce training time by using fewer iterations",
+                                "correct": false,
+                                "explanation": "While large batches can reduce wall-clock time with enough GPUs, the main reason relates to the contrastive objective."
+                            },
+                            {
+                                "text": "To create many negative pairs (N²-N incorrect pairings) for the contrastive learning objective",
+                                "correct": true,
+                                "explanation": "Correct! With a batch of N=32,768, there are N×N possible pairings. Having many negative examples in each batch improves contrastive learning by providing rich comparison signals."
+                            },
+                            {
+                                "text": "To reduce memory usage during training",
+                                "correct": false,
+                                "explanation": "Large batch sizes actually increase memory requirements, not reduce them. CLIP uses various memory optimization techniques to handle this."
+                            },
+                            {
+                                "text": "Because the Adam optimizer requires large batches",
+                                "correct": false,
+                                "explanation": "Adam works with various batch sizes. The large batch is specifically beneficial for contrastive learning, not an Adam requirement."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 3 continued: Zero-Shot Transfer -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 3.1", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">What is Zero-Shot Transfer?</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Traditional zero-shot learning:</strong> Generalizing to unseen object categories</p>
+                            <p style="margin-top: 15px;"><strong>CLIP's broader interpretation:</strong> Generalizing to <em>unseen datasets</em></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div class="key-finding">
+                                <h4>Zero-Shot as Task-Learning Measurement</h4>
+                                <p>A dataset evaluates performance on a task on a specific distribution</p>
+                                <p style="margin-top: 15px;">Zero-shot transfer measures <strong>task-learning</strong> capabilities, not just representation learning</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Inspiration from NLP:</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li>GPT-1: Zero-shot performance improved during pre-training</li>
+                                <li>GPT-2: Focused exclusively on zero-shot task-learning</li>
+                                <li>GPT-3: Competitive with specialized models without task-specific training</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">How CLIP Performs Zero-Shot Classification</h2>
+                    <div style="font-size: 0.7em;">
+                        <div class="fragment">
+                            <p><strong>CLIP is pre-trained to predict if an image and text snippet are paired</strong></p>
+                            <p style="margin-top: 15px;">To perform zero-shot classification, we reuse this capability:</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <ol style="font-size: 0.95em;">
+                                <li><strong>Step 1:</strong> Use names of all classes in the dataset as potential text pairings
+                                    <ul style="margin-top: 8px;">
+                                        <li>E.g., for ImageNet: "plane", "car", "bird", "cat", ..., "toaster"</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-top: 15px;"><strong>Step 2:</strong> Compute feature embeddings
+                                    <ul style="margin-top: 8px;">
+                                        <li>Image embedding via image encoder</li>
+                                        <li>Text embeddings for all class names via text encoder</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-top: 15px;"><strong>Step 3:</strong> Calculate cosine similarity
+                                    <ul style="margin-top: 8px;">
+                                        <li>Between image embedding and each text embedding</li>
+                                        <li>Scale by temperature τ</li>
+                                        <li>Normalize via softmax → probability distribution</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-top: 15px;"><strong>Step 4:</strong> Predict the class with highest probability</li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Zero-Shot Classifier Interpretation</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <div class="key-finding">
+                                <h4>Alternative View: Linear Classifier</h4>
+                                <p>The zero-shot prediction layer is a <strong>multinomial logistic regression classifier</strong> with:</p>
+                                <ul style="margin-top: 15px; font-size: 0.95em;">
+                                    <li>L2-normalized inputs (image embeddings)</li>
+                                    <li>L2-normalized weights (text embeddings)</li>
+                                    <li>No bias term</li>
+                                    <li>Temperature scaling</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>In this interpretation:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li><strong>Image encoder:</strong> Computer vision backbone computing image features</li>
+                                <li><strong>Text encoder:</strong> <span class="tooltip">Hypernetwork<span class="tooltiptext">A network that generates weights for another network</span></span> generating classifier weights based on natural language class descriptions</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>Every step of CLIP pre-training optimizes performance on a randomly created proxy dataset with 32,768 classes defined via natural language!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Initial Zero-Shot Results vs. Visual N-Grams</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p style="margin-bottom: 20px;"><strong>Comparison to prior zero-shot work (Li et al. 2017):</strong></p>
+                            <table style="width: 100%; font-size: 0.9em;">
+                                <thead>
+                                    <tr style="background: #10099F; color: white;">
+                                        <th style="padding: 10px;">Method</th>
+                                        <th style="padding: 10px;">ImageNet</th>
+                                        <th style="padding: 10px;">aYahoo</th>
+                                        <th style="padding: 10px;">SUN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;">Visual N-Grams</td>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;">11.5%</td>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;">72.4%</td>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;">23.0%</td>
+                                    </tr>
+                                    <tr style="background: #F5F5FF;">
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>CLIP</strong></td>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>76.2%</strong></td>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>98.4%</strong></td>
+                                        <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>58.5%</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div class="emphasis-box">
+                                <p><strong>Key achievement on ImageNet:</strong> 76.2% accuracy matches original ResNet-50 <em>without using any of the 1.28M training examples!</em></p>
+                                <p style="margin-top: 10px;">Top-5 accuracy: 95% (matches Inception-V4)</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <p style="font-size: 0.85em;"><em>Note: This is not a fair comparison due to differences in dataset size (10×), compute (1000×), and architecture (ViT didn't exist in 2017)</em></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Zero-Shot Performance Across Many Tasks</h2>
+                    <div style="text-align: center;">
+                        <img src="images/final_zero_shot_prediction_vis.png" alt="Zero-shot predictions on diverse tasks" style="max-width: 95%; height: auto;">
+                        <p style="font-size: 0.65em; margin-top: 15px;">CLIP learns to perform a wide variety of tasks during pre-training: OCR, action recognition, geo-localization, and many types of object classification</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Zero-Shot Transfer</h2>
+                    <div data-mcq='{
+                        "question": "How does CLIP perform zero-shot classification on a new dataset without any training on that dataset?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "By fine-tuning the image encoder on a few examples from the dataset",
+                                "correct": false,
+                                "explanation": "Zero-shot means no training examples from the target dataset are used. Fine-tuning would make it few-shot learning."
+                            },
+                            {
+                                "text": "By computing similarity between the image embedding and text embeddings of all class names, then predicting the most similar",
+                                "correct": true,
+                                "explanation": "Correct! CLIP computes cosine similarity between the image embedding and text embeddings for each class name, applies temperature scaling and softmax, then predicts the highest probability class."
+                            },
+                            {
+                                "text": "By generating captions for the image and matching them to class names",
+                                "correct": false,
+                                "explanation": "CLIP uses contrastive learning, not caption generation. It directly compares image and text embeddings in a shared space."
+                            },
+                            {
+                                "text": "By using ImageNet pre-trained weights as initialization",
+                                "correct": false,
+                                "explanation": "CLIP is trained from scratch on its own dataset of 400M image-text pairs, not initialized from ImageNet."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 4: Results - Zero-Shot Performance Analysis -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 3.1.3", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Zero-Shot CLIP vs. Supervised ResNet-50</h2>
+                    <div style="text-align: center;">
+                        <img src="images/zs-clip-vs-rn50.png" alt="Zero-shot CLIP vs supervised baseline" style="max-width: 90%; height: auto;">
+                        <p style="font-size: 0.7em; margin-top: 15px;">Across 27 datasets, zero-shot CLIP outperforms a fully supervised linear classifier on ResNet-50 features on <strong>16 datasets</strong>, including ImageNet</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Where Zero-Shot CLIP Excels</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>Strong performance on:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>General object classification:</strong> ImageNet, CIFAR10/100, STL10 (99.3%!), PascalVOC</li>
+                                <li><strong>Action recognition:</strong> Kinetics700 (+14.5%), UCF101 (+7.7%)</li>
+                                <li><strong>Fine-grained (selective):</strong> Stanford Cars (+20%), Food101 (+20%)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Weaker performance on:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>Specialized tasks:</strong> Satellite imagery (EuroSAT, RESISC45)</li>
+                                <li><strong>Complex/abstract:</strong> Tumor detection (PatchCamelyon), object counting (CLEVRCounts)</li>
+                                <li><strong>Fine-grained (some):</strong> Flowers102 (-10%), FGVCAircraft (-10%)</li>
+                                <li><strong>Specific domains:</strong> German traffic signs (GTSRB), distance estimation (KITTI)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>Hypothesis for action recognition: Natural language provides wider supervision for verbs vs. ImageNet's noun-centric supervision</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Zero-Shot vs. Few-Shot Learning</h2>
+                    <div style="text-align: center;">
+                        <img src="images/zs-clip-vs-fewshot.png" alt="Zero-shot vs few-shot comparison" style="max-width: 90%; height: auto;">
+                        <p style="font-size: 0.7em; margin-top: 15px;">Zero-shot CLIP matches 4-shot logistic regression and nearly matches 16-shot performance!</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Why Zero-Shot Can Match Few-Shot</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <div class="key-finding">
+                                <h4>Natural Language as Direct Communication</h4>
+                                <p>Zero-shot allows visual concepts to be directly specified ("communicated") via natural language</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Few-shot learning challenge:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>Must infer concepts indirectly from examples</li>
+                                <li>Many hypotheses can be consistent with the data (especially 1-shot)</li>
+                                <li>A single image contains many different visual concepts</li>
+                                <li>No guarantee the intended concept is what the model learns</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Attempted solution:</strong> Use zero-shot classifier as prior for few-shot weights (via L2 penalty)</p>
+                            <p style="margin-top: 10px; font-size: 0.9em;"><em>Result: Regularizer often selected so large that few-shot = zero-shot. Better integration needed!</em></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Data Efficiency of Zero-Shot Transfer</h2>
+                    <div style="text-align: center;">
+                        <img src="images/zs-clip-data-efficiency.png" alt="Data efficiency analysis" style="max-width: 90%; height: auto;">
+                        <p style="font-size: 0.7em; margin-top: 15px;">Estimated labeled examples per class needed to match zero-shot performance (via log-linear interpolation)</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Data Efficiency: Key Statistics</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Effectiveness varies widely across datasets:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>Median:</strong> 5.4 labeled examples per class</li>
+                                <li><strong>Mean:</strong> 20.8 examples per class</li>
+                                <li><strong>Range:</strong> Less than 1 example to 184 examples</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Specific examples:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li><strong>Very efficient:</strong> Half of datasets need <5 examples per class</li>
+                                <li><strong>ImageNet:</strong> Matches 16-shot linear classifier</li>
+                                <li><strong>Birdsnap:</strong> 184 examples per class needed (largest)</li>
+                                <li><strong>Flowers102, EuroSAT:</strong> Still underperform 1-shot models</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>Why such variation? Task-specific supervision in WIT vs. ImageNet varies by dataset</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Zero-Shot vs. Fully Supervised Performance</h2>
+                    <div style="text-align: center;">
+                        <img src="images/zs-vs-linear-clip.png" alt="Zero-shot vs linear probe" style="max-width: 85%; height: auto;">
+                        <p style="font-size: 0.7em; margin-top: 15px;">Strong correlation (r=0.82) but zero-shot still 10-25% below fully supervised on most datasets</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Predictable Scaling with Compute</h2>
+                    <div style="text-align: center;">
+                        <img src="images/zs-scaling.png" alt="Scaling behavior" style="max-width: 90%; height: auto;">
+                        <p style="font-size: 0.7em; margin-top: 15px;">Average zero-shot error follows log-log linear trend across 44× range of compute (39 evals on 36 datasets)</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Zero-Shot Results</h2>
+                    <div data-mcq='{
+                        "question": "Why does zero-shot CLIP sometimes match or exceed few-shot learning performance?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "Zero-shot models are always better than few-shot models",
+                                "correct": false,
+                                "explanation": "This is not universally true. Zero-shot can match few-shot on some tasks, but there is still a performance gap on many datasets."
+                            },
+                            {
+                                "text": "Natural language allows direct specification of concepts, while few-shot must infer from ambiguous examples",
+                                "correct": true,
+                                "explanation": "Correct! With zero-shot, you can directly communicate the visual concept via natural language. Few-shot must infer the concept from examples, where many hypotheses could fit the data, especially with just 1-4 examples."
+                            },
+                            {
+                                "text": "Few-shot learning uses less training data",
+                                "correct": false,
+                                "explanation": "Few-shot uses more task-specific data (1-16 examples) than zero-shot (0 examples). The advantage is about concept communication, not data quantity."
+                            },
+                            {
+                                "text": "Zero-shot CLIP has been specifically optimized for this comparison",
+                                "correct": false,
+                                "explanation": "CLIP is not specifically optimized for this comparison. The result emerges naturally from how natural language can communicate concepts."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 4 continued: Linear Probe Results -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 3.2", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Representation Learning: Linear Probe Evaluation</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Why linear probes?</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>Common approach to evaluate representation quality</li>
+                                <li>Fit linear classifier on frozen features, measure performance</li>
+                                <li>More limited than fine-tuning, but highlights representation quality</li>
+                                <li>Enables fair comparison across many models and datasets</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Why not fine-tuning?</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>Can compensate for poor pre-training representations</li>
+                                <li>Opens huge hyperparameter space (difficult to fairly compare)</li>
+                                <li>Would require 1782 tuning runs (66 models × 27 datasets)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>Focus on task-agnostic pre-training quality, not task-specific adaptation</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Linear Probe: Comparison to State-of-the-Art</h2>
+                    <div style="text-align: center;">
+                        <img src="images/linear-probes.png" alt="Linear probe comparison" style="max-width: 95%; height: auto;">
+                        <p style="font-size: 0.65em; margin-top: 15px;">CLIP ViT-L/14@336px outperforms best existing model (Noisy Student EfficientNet-L2) on both 12-dataset and 27-dataset suites</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Key Findings: 12-Dataset Suite</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>From Kornblith et al. standardized evaluation:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>Small CLIP models (RN50, RN101):</strong> Outperform ImageNet-1K ResNets (BiT-S, originals)</li>
+                                <li><strong>But:</strong> Underperform ImageNet-21K ResNets (BiT-M)</li>
+                                <li><strong>Also:</strong> Underperform EfficientNet family</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>However, CLIP scales very well:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li><strong>RN50x64:</strong> Slightly outperforms Noisy Student EfficientNet-L2</li>
+                                <li><strong>Vision Transformers:</strong> ~3× more compute efficient than ResNets</li>
+                                <li><strong>ViT-L/14@336px:</strong> Outperforms best existing model by 2.6% on average</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>Qualitatively replicates findings that ViTs are more compute efficient on large datasets</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">27-Dataset Suite: Broader Task Coverage</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Why expand beyond 12 datasets?</strong></p>
+                            <p style="margin-top: 10px;">CLIP learns tasks not in Kornblith suite:</p>
+                            <ul style="margin-top: 10px;">
+                                <li>Geo-localization</li>
+                                <li>Optical character recognition (OCR)</li>
+                                <li>Facial emotion recognition</li>
+                                <li>Action recognition</li>
+                                <li>Traffic sign recognition (GTSRB)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Results on broader evaluation:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li><strong>All CLIP models</strong> outperform all other systems in compute efficiency</li>
+                                <li>Improvement over previous best: 5% (vs. 2.6% on 12-dataset suite)</li>
+                                <li>Self-supervised methods (SimCLRv2) do better on broader suite</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>Suggests need for continued expansion of task diversity in evaluation!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Per-Dataset Performance vs. EfficientNet</h2>
+                    <div style="text-align: center;">
+                        <img src="images/linear-probe-clip-vs-enet.png" alt="CLIP vs EfficientNet per dataset" style="max-width: 90%; height: auto;">
+                        <p style="font-size: 0.7em; margin-top: 15px;">CLIP outperforms Noisy Student EfficientNet-L2 on 21 of 27 datasets</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Where CLIP Excels Most (Linear Probe)</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Largest improvements over EfficientNet:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>OCR tasks:</strong> SST2, HatefulMemes</li>
+                                <li><strong>Geo-localization & scenes:</strong> Country211, SUN397</li>
+                                <li><strong>Activity recognition:</strong> Kinetics700, UCF101</li>
+                                <li><strong>Fine-grained:</strong> Stanford Cars, GTSRB (+14.7%!)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>GTSRB insight (traffic signs):</strong></p>
+                            <div class="key-finding" style="margin-top: 15px;">
+                                <h4>Potential ImageNet Supervision Issue</h4>
+                                <p>ImageNet has only <strong>one label</strong> for all traffic/street signs</p>
+                                <p style="margin-top: 10px;">This may encourage collapsing intra-class details, hurting fine-grained downstream tasks</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Where EfficientNet Still Wins</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>EfficientNet performs better on:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>ImageNet itself</strong> (unsurprising - trained on it!)</li>
+                                <li><strong>Low-resolution datasets:</strong> CIFAR10, CIFAR100
+                                    <ul style="margin-top: 8px; font-size: 0.95em;">
+                                        <li>Hypothesis: CLIP lacks scale-based data augmentation</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Specialized tasks:</strong> PatchCamelyon, CLEVRCounts
+                                    <ul style="margin-top: 8px; font-size: 0.95em;">
+                                        <li>Both still have low overall performance</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Linear Probe Results</h2>
+                    <div data-mcq='{
+                        "question": "Why does CLIP show a larger improvement (5%) on the 27-dataset suite compared to the 12-dataset suite (2.6%)?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "The 27-dataset suite is easier than the 12-dataset suite",
+                                "correct": false,
+                                "explanation": "Dataset difficulty is not the reason. The difference is in the types of tasks covered."
+                            },
+                            {
+                                "text": "The 27-dataset suite includes diverse tasks (OCR, geo-localization, action recognition) that CLIP learns but are not in the 12-dataset suite",
+                                "correct": true,
+                                "explanation": "Correct! The 12-dataset suite from Kornblith et al. may have selection bias toward ImageNet-like tasks. The broader 27-dataset suite includes tasks like OCR and action recognition where CLIP excels, better showcasing its capabilities."
+                            },
+                            {
+                                "text": "CLIP was specifically trained on the 27-dataset suite",
+                                "correct": false,
+                                "explanation": "CLIP was not trained on any of these evaluation datasets. It was trained on 400M internet image-text pairs."
+                            },
+                            {
+                                "text": "The 27-dataset suite uses different evaluation metrics",
+                                "correct": false,
+                                "explanation": "Both suites use the same linear probe evaluation methodology. The difference is in task coverage."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 5: Robustness to Distribution Shift -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 3.3", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">The Robustness Problem in Computer Vision</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>2015:</strong> Deep learning exceeds human performance on ImageNet test set</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>However, subsequent research found:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>Models make many simple mistakes</li>
+                                <li>Performance drops significantly on new benchmarks</li>
+                                <li>Often perform below both ImageNet accuracy and human accuracy</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div class="key-finding">
+                                <h4>Common Explanation</h4>
+                                <p>Deep learning models excel at finding correlations and patterns in their training dataset</p>
+                                <p style="margin-top: 15px;">Many of these correlations are <strong>spurious</strong> and don't hold for other distributions → large performance drops</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p><strong>Key Question:</strong> Are these failures due to deep learning, ImageNet, or both?</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Natural Distribution Shift: The Test Setup</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Following Taori et al. (2020):</strong> Test on 7 <em>natural</em> distribution shifts</p>
+                            <ul style="margin-top: 15px; font-size: 0.95em;">
+                                <li><strong>ImageNetV2</strong> - New test set following ImageNet creation process</li>
+                                <li><strong>ImageNet Sketch</strong> - Sketches of ImageNet classes</li>
+                                <li><strong>YouTube-BB & ImageNet-Vid</strong> - Video frames</li>
+                                <li><strong>ObjectNet</strong> - Novel viewpoints and backgrounds</li>
+                                <li><strong>ImageNet Adversarial</strong> - Naturally adversarial examples</li>
+                                <li><strong>ImageNet Rendition</strong> - Artistic renditions</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Why "natural" shifts?</strong></p>
+                            <p style="margin-top: 10px;">Distinguished from <em>synthetic</em> shifts (ImageNet-C, adversarial attacks, stylized images) which are created by perturbing existing images</p>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>Techniques that improve synthetic robustness often fail on natural distribution shifts!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Effective vs. Relative Robustness</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Key finding from Taori et al.:</strong> Performance under distribution shift is predictable</p>
+                            <p style="margin-top: 10px;">Out-of-distribution accuracy modeled as linear function of <em>logit-transformed</em> ImageNet accuracy</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div style="background: #F5F5FF; padding: 15px; border-radius: 8px;">
+                                    <h4 style="color: #10099F; margin-top: 0;">Relative Robustness</h4>
+                                    <p style="font-size: 0.95em;">Any improvement in out-of-distribution accuracy</p>
+                                </div>
+                                <div style="background: #F0FFF9; padding: 15px; border-radius: 8px;">
+                                    <h4 style="color: #2DD2C0; margin-top: 0;">Effective Robustness</h4>
+                                    <p style="font-size: 0.95em;">Improvement beyond what's predicted by the in-distribution/out-of-distribution relationship</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p><strong>Example:</strong> ResNet-101 makes <strong>5× more mistakes</strong> on distribution shifts compared to ImageNet validation set!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Zero-Shot CLIP: Dramatic Robustness Improvement</h2>
+                    <div style="text-align: center;">
+                        <img src="images/zs-clip-vs-imagenet-robustness-datasets.png" alt="CLIP robustness on distribution shifts" style="max-width: 90%; height: auto;">
+                        <p style="font-size: 0.65em; margin-top: 15px;"><strong>Left:</strong> Zero-shot CLIP reduces robustness gap by up to 75%<br>
+                        <strong>Right:</strong> Visualizing distribution shift for "bananas" across 5 datasets</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Why Is Zero-Shot CLIP More Robust?</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <div class="key-finding">
+                                <h4>The Zero-Shot Advantage</h4>
+                                <p>A zero-shot model should not be able to exploit spurious correlations or patterns that hold only on a specific distribution</p>
+                                <p style="margin-top: 15px;"><em>Reason:</em> It's not trained on that distribution!</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Caveat:</strong> Zero-shot models can still exploit spurious correlations <em>shared</em> between pre-training and evaluation distributions</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Results:</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>All zero-shot CLIP models have much higher effective robustness</li>
+                                <li>Reduce the robustness gap between ImageNet and distribution shift datasets by <strong>up to 75%</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Adapting to ImageNet: A Surprising Result</h2>
+                    <div style="text-align: center;">
+                        <img src="images/robustness-interventions.png" alt="Robustness interventions" style="max-width: 95%; height: auto;">
+                        <p style="font-size: 0.65em; margin-top: 15px;">Supervised adaptation increases ImageNet accuracy by 9.2% but <em>slightly reduces</em> average robustness!</p>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">The ImageNet Adaptation Paradox</h2>
+                    <div style="font-size: 0.5em;">
+                        <div class="fragment">
+                            <p><strong>Experiment:</strong> Fit L2-regularized logistic regression on CLIP features using ImageNet training set</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Results:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>ImageNet accuracy:</strong> Increases from 76.2% → 85.4% (+9.2%)</li>
+                                <li>Ties 2018 SOTA (Mahajan et al.) ≈ <strong>3 years of progress!</strong></li>
+                                <li><strong>Average distribution shift accuracy:</strong> Slightly <em>decreases</em></li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Per-dataset breakdown:</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li>ImageNetV2: Significant increase (follows ImageNet creation process)</li>
+                                <li>ImageNet-R: <strong>-4.7%</strong></li>
+                                <li>ObjectNet: <strong>-3.8%</strong></li>
+                                <li>ImageNet Sketch: <strong>-2.8%</strong></li>
+                                <li>ImageNet-A: <strong>-1.9%</strong></li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>9.2% accuracy gain concentrated around ImageNet distribution, with performance decreasing on true distribution shifts!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Few-Shot Robustness Analysis</h2>
+                    <div style="text-align: center;">
+                        <img src="images/fs-clip-vs-imagenet-robustness-plot.png" alt="Few-shot robustness" style="max-width: 85%; height: auto;">
+                        <p style="font-size: 0.7em; margin-top: 15px;">Effective robustness fades as training data increases. Zero-shot is more robust than few-shot with equivalent ImageNet performance.</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Robustness</h2>
+                    <div data-mcq='{
+                        "question": "What does it mean that adapting CLIP to ImageNet increases accuracy by 9.2% but decreases average robustness?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "The model becomes less accurate overall",
+                                "correct": false,
+                                "explanation": "Accuracy on ImageNet increases substantially. The issue is that this gain does not transfer to other distributions."
+                            },
+                            {
+                                "text": "The accuracy gain is concentrated on the ImageNet distribution and does not generalize to distribution shifts",
+                                "correct": true,
+                                "explanation": "Correct! The 9.2% gain (equivalent to 3 years of SOTA progress) is tightly coupled to the ImageNet distribution. Performance actually decreases on several distribution shift datasets, showing the model is exploiting ImageNet-specific patterns."
+                            },
+                            {
+                                "text": "CLIP was not designed for supervised learning",
+                                "correct": false,
+                                "explanation": "CLIP features can be used for supervised learning. The finding is about how supervised adaptation affects robustness."
+                            },
+                            {
+                                "text": "The logistic regression classifier is too simple",
+                                "correct": false,
+                                "explanation": "The classifier achieves 85.4% accuracy, matching 2018 SOTA. The issue is about where the performance improvements are concentrated, not the classifier capacity."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 5 continued: Prompt Engineering -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 3.1.4", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">The Importance of Prompt Engineering</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Initial approach:</strong> Use class names directly as text</p>
+                            <p style="margin-top: 10px;">E.g., "plane", "car", "dog", "cat"</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div class="key-finding">
+                                <h4>The Problem: Polysemy</h4>
+                                <p>Word "boxer" can refer to:</p>
+                                <ul style="margin-top: 10px;">
+                                    <li>A dog breed</li>
+                                    <li>A person who boxes</li>
+                                    <li>Boxer shorts</li>
+                                </ul>
+                                <p style="margin-top: 15px;">Using only the word provides no context!</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p><strong>Discovery:</strong> Simple prompt engineering provides significant performance improvements</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Basic Prompt Template</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <div class="key-finding">
+                                <h4>Template: "A photo of a {label}"</h4>
+                                <p style="margin-top: 15px;">This simple change improves ImageNet accuracy from 72.2% → 76.2% (<strong>+4%</strong>!)</p>
+                            </div>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Why does this help?</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>Provides context about what kind of text to expect</li>
+                                <li>Similar to prompts seen during pre-training on image captions</li>
+                                <li>More specific than just the class name alone</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Other variations tested:</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li>"A photo of a big {label}"</li>
+                                <li>"A photo of a small {label}"</li>
+                                <li>"A blurry photo of a {label}"</li>
+                                <li>"A black and white photo of a {label}"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Context-Specific Prompt Engineering</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Dataset-specific prompts can help even more:</strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <table style="width: 100%; font-size: 0.9em;">
+                                <thead>
+                                    <tr style="background: #10099F; color: white;">
+                                        <th style="padding: 8px;">Dataset</th>
+                                        <th style="padding: 8px;">Prompt Template</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Oxford Pets</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">"A photo of a {label}, a type of pet"</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Food101</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">"A photo of {label}, a type of food"</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">FGVC Aircraft</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">"A photo of a {label}, a type of aircraft"</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">Stanford Cars</td>
+                                        <td style="padding: 8px; border: 1px solid #EEEEEE;">"A photo of a {label}, a type of car"</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Oxford Pets example:</strong> Disambiguates "boxer" (dog breed vs. person)</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Prompt Ensembling</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Idea:</strong> Use multiple prompts for each class and average their embeddings</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div class="key-finding">
+                                <h4>ImageNet: 80 Different Prompts</h4>
+                                <p>Examples:</p>
+                                <ul style="margin-top: 10px; font-size: 0.95em;">
+                                    <li>"a bad photo of a {label}"</li>
+                                    <li>"a photo of the large {label}"</li>
+                                    <li>"a {label} in a video game"</li>
+                                    <li>"art of the {label}"</li>
+                                    <li>"a photo of the small {label}"</li>
+                                </ul>
+                                <p style="margin-top: 15px;"><strong>Result:</strong> Improves accuracy by another ~3.5 percentage points on ImageNet!</p>
+                            </div>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p>This is similar to test-time augmentation in computer vision</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Prompt Engineering Impact Across Datasets</h2>
+                    <div style="text-align: center;">
+                        <img src="images/prompt-engineering.png" alt="Prompt engineering results" style="max-width: 90%; height: auto;">
+                        <p style="font-size: 0.7em; margin-top: 15px;">Prompt engineering and ensembling consistently improve performance across all datasets</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Prompt Engineering</h2>
+                    <div data-mcq='{
+                        "question": "Why does using the prompt template \"A photo of a {label}\" improve performance over just using the label alone?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It makes the text longer, which gives more information to the model",
+                                "correct": false,
+                                "explanation": "Length alone is not the benefit. The prompt provides context and structure similar to what CLIP saw during pre-training."
+                            },
+                            {
+                                "text": "It provides context and matches the structure of captions CLIP saw during pre-training",
+                                "correct": true,
+                                "explanation": "Correct! During pre-training, CLIP saw full sentences describing images, not isolated words. The prompt template provides context (e.g., disambiguating \"boxer\") and matches the distribution of text CLIP was trained on."
+                            },
+                            {
+                                "text": "It activates special pre-trained prompt tokens in the model",
+                                "correct": false,
+                                "explanation": "CLIP does not have special prompt tokens. The benefit comes from matching the text distribution seen during training."
+                            },
+                            {
+                                "text": "It was specifically required by the CLIP training objective",
+                                "correct": false,
+                                "explanation": "CLIP was trained on natural image captions without any specific prompt format requirement. Prompts help because they resemble natural captions."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 6: Human Performance Comparison -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 4", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Comparing CLIP to Human Performance</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Research question:</strong> How does CLIP compare to human learning and performance?</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Experiment setup:</strong> Oxford IIT Pets dataset (37 cat/dog breeds)</p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>5 humans</strong> labeled each of 3,669 test images</li>
+                                <li>Could select "I don't know" if uncertain</li>
+                                <li>Three conditions:
+                                    <ul style="margin-top: 8px; font-size: 0.95em;">
+                                        <li><strong>Zero-shot:</strong> No example images shown</li>
+                                        <li><strong>One-shot:</strong> One sample image per breed</li>
+                                        <li><strong>Two-shot:</strong> Two sample images per breed</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Human vs. CLIP Performance Results</h2>
+                    <div style="font-size: 0.7em;">
+                        <table style="width: 100%; margin-top: 20px; font-size: 0.95em;">
+                            <thead>
+                                <tr style="background: #10099F; color: white;">
+                                    <th style="padding: 10px;">Condition</th>
+                                    <th style="padding: 10px;">Accuracy</th>
+                                    <th style="padding: 10px;">Majority Vote</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">Zero-shot Human</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">53.7%</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">57.0%</td>
+                                </tr>
+                                <tr style="background: #F5F5FF;">
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>Zero-shot CLIP</strong></td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>93.5%</strong></td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;"><strong>93.5%</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">One-shot Human</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">75.7%</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">80.3%</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">Two-shot Human</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">75.7%</td>
+                                    <td style="padding: 10px; border: 1px solid #EEEEEE;">85.0%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p>CLIP vastly outperforms human zero-shot performance, but humans show remarkable sample efficiency: 54% → 76% with just ONE example!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Human Sample Efficiency: "Knowing What They Don't Know"</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Key finding:</strong> The gain from 0-shot to 1-shot is almost entirely on images humans were uncertain about</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Accuracy on images where humans guessed (not "I don't know"):</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>Zero-shot: 69.7%</li>
+                                <li>One-shot: 78.5%</li>
+                                <li>Two-shot: 79.2%</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <div class="key-finding">
+                                <h4>Metacognitive Awareness</h4>
+                                <p>Humans "know what they don't know" and efficiently update priors on uncertain images with just one example</p>
+                                <p style="margin-top: 15px;">Minimal gain from 1-shot to 2-shot suggests humans extract maximal information from single examples</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Difficulty Correlation: CLIP vs. Humans</h2>
+                    <div style="text-align: center;">
+                        <img src="images/clip_human_difficulty.png" alt="CLIP vs human difficulty correlation" style="max-width: 85%; height: auto;">
+                        <p style="font-size: 0.7em; margin-top: 15px;">The hardest problems for CLIP also tend to be hardest for humans - likely due to dataset noise and out-of-distribution images</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Human Comparison</h2>
+                    <div data-mcq='{
+                        "question": "What does the human vs. CLIP comparison reveal about the gap between machine and human learning?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "CLIP has achieved human-level sample efficiency",
+                                "correct": false,
+                                "explanation": "While CLIP has strong zero-shot performance, humans show much greater sample efficiency, jumping from 54% to 76% with just one example per class."
+                            },
+                            {
+                                "text": "There is a large gap in sample efficiency - humans efficiently learn from 1-2 examples while CLIP few-shot methods cannot match this",
+                                "correct": true,
+                                "explanation": "Correct! Humans demonstrate remarkable sample efficiency and metacognition, gaining 22 percentage points from zero to one-shot. The few-shot methods of CLIP (linear classifiers) do not show comparable gains, suggesting algorithmic improvements are needed."
+                            },
+                            {
+                                "text": "Humans cannot match the zero-shot performance of CLIP even with training examples",
+                                "correct": false,
+                                "explanation": "With 1-2 examples, humans reach 75-85% accuracy, approaching the zero-shot performance of CLIP (93.5%). The key difference is sample efficiency, not maximum performance."
+                            },
+                            {
+                                "text": "CLIP and humans learn in exactly the same way",
+                                "correct": false,
+                                "explanation": "The comparison shows fundamental differences: CLIP excels at zero-shot but struggles with few-shot, while humans show opposite pattern with efficient one-shot learning."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 6 continued: Limitations -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 6", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">CLIP's Limitations</h2>
+                    <div style="font-size: 0.55em;">
+                        <div class="fragment">
+                            <p><strong>1. Still below state-of-the-art on many tasks</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>Zero-shot competitive with simple supervised baseline (linear on ResNet-50)</li>
+                                <li>Task-specific SOTA models still significantly better</li>
+                                <li>Estimated <strong>~1000× compute increase</strong> needed to match overall SOTA</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>2. Weak on several task types</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li><strong>Fine-grained classification:</strong> Car models, flower species, aircraft variants</li>
+                                <li><strong>Abstract/systematic tasks:</strong> Counting objects in images</li>
+                                <li><strong>Novel tasks:</strong> "Distance to nearest car" (near random!)</li>
+                                <li><strong>Out-of-distribution:</strong> MNIST handwritten digits (88% vs. logistic regression on pixels)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>There are still many, many tasks where CLIP's zero-shot performance is near chance level</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">More Limitations</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>3. Poor true out-of-distribution generalization</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>CLIP doesn't address brittleness of deep learning</li>
+                                <li>Just tries to make everything "in-distribution" via massive dataset</li>
+                                <li>Fails on data truly absent from pre-training (e.g., MNIST)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>4. Limited to fixed set of concepts</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>Can only choose from given classifier concepts</li>
+                                <li>Not as flexible as image captioning (which generates novel outputs)</li>
+                                <li>Image caption models too inefficient (10× more compute)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>5. Poor data efficiency</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>Compensates with 400M image-text pairs (405 years at 1/sec!)</li>
+                                <li>Doesn't improve deep learning's data hunger</li>
+                                <li>Future: Combine with self-supervision and self-training</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Methodological Limitations</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>6. Evaluation methodology concerns</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>Despite "zero-shot" focus, repeatedly queried full validation sets during development</li>
+                                <li>Thousands of examples used for guidance (unrealistic for true zero-shot)</li>
+                                <li>27-dataset collection somewhat haphazardly assembled</li>
+                                <li>Co-adapted with CLIP development and capabilities</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Need:</strong> New benchmark explicitly designed for zero-shot transfer evaluation</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>7. Natural language interface limitations</strong></p>
+                            <ul style="margin-top: 10px;">
+                                <li>Many complex tasks/concepts difficult to specify via text alone</li>
+                                <li>Actual training examples are undeniably useful</li>
+                                <li>CLIP doesn't optimize for few-shot performance directly</li>
+                                <li>Counter-intuitive performance <em>drop</em> from zero-shot to few-shot!</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper - Section 7 (Broader Impacts)", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Social Biases and Broader Impacts</h2>
+                    <div style="font-size: 0.5em;">
+                        <div class="fragment">
+                            <p><strong>CLIP learns biases from internet data:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>Trained on unfiltered, uncurated image-text pairs</li>
+                                <li>Similar to issues in image caption models</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Tested on FairFace benchmark:</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li>Linear probe CLIP: Competitive or better than specialized models on race/gender/age classification</li>
+                                <li>But higher accuracy ≠ fairness in real-world deployment!</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Bias probes revealed:</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li>Denigration harms: Black images misclassified as non-human categories (14% vs. <8% for others)</li>
+                                <li>Crime-related labels: Applied to men (16.5%) vs. women (9.8%)</li>
+                                <li><strong>Class design matters:</strong> Adding "child" category drastically reduced harmful classifications for people under 20</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 20px;">
+                            <p>Flexible zero-shot capability introduces new challenges: Anyone can define classes, making bias characterization complex</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Test Your Understanding: Limitations</h2>
+                    <div data-mcq='{
+                        "question": "Why is the flexibility in class design of CLIP both a strength and a source of concern?",
+                        "type": "single",
+                        "options": [
+                            {
+                                "text": "It makes the model harder to train",
+                                "correct": false,
+                                "explanation": "Training difficulty is not the concern. The issue relates to deployment and potential misuse."
+                            },
+                            {
+                                "text": "Anyone can define arbitrary classes via natural language, making it harder to predict and control biases and harms",
+                                "correct": true,
+                                "explanation": "Correct! Unlike fixed classifiers, CLIP allows users to define any classes through natural language. This flexibility is powerful but means biases can manifest in unpredictable ways depending on class design. The paper shows adding/removing categories like \"child\" dramatically changes harmful classifications."
+                            },
+                            {
+                                "text": "Natural language is too ambiguous for accurate classification",
+                                "correct": false,
+                                "explanation": "CLIP achieves strong classification accuracy. The concern is about social implications, not technical accuracy."
+                            },
+                            {
+                                "text": "It prevents the model from learning proper representations",
+                                "correct": false,
+                                "explanation": "CLIP learns strong representations as shown by linear probe results. The concern is about bias and misuse potential."
+                            }
+                        ]
+                    }'></div>
+                </section>
+            </section>
+
+            <!-- CHUNK 7: Impact and Conclusion -->
+            <section>
+                <section data-sources='[{"text": "CLIP Paper - Section 8", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">CLIP's Impact on Vision-Language Models</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>CLIP demonstrated that task-agnostic web-scale pre-training works in computer vision</strong></p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Key insights that influenced the field:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>Natural language as supervision:</strong> 400M image-text pairs from internet</li>
+                                <li><strong>Contrastive learning:</strong> 12× more efficient than generative approaches</li>
+                                <li><strong>Zero-shot transfer:</strong> Competitive with supervised baselines</li>
+                                <li><strong>Robustness:</strong> 75% reduction in distribution shift gap</li>
+                                <li><strong>Prompt engineering:</strong> Simple templates yield large gains</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p>CLIP showed that learning from language supervision enables models to generalize to visual concepts beyond traditional supervised learning</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Legacy", "url": "https://openai.com/research/clip"}]'>
+                    <h2 class="truncate-title">Applications Enabled by CLIP</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>Direct applications:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>Image search:</strong> Text-to-image retrieval at scale</li>
+                                <li><strong>Content moderation:</strong> Zero-shot classification of harmful content</li>
+                                <li><strong>Accessibility:</strong> Image description and understanding</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>Foundation for other models:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li><strong>DALL-E series:</strong> Text-to-image generation (uses CLIP for guidance)</li>
+                                <li><strong>Stable Diffusion:</strong> Open-source text-to-image (CLIP text encoder)</li>
+                                <li><strong>Flamingo, BLIP, CoCa:</strong> Vision-language models building on CLIP</li>
+                                <li><strong>GPT-4V, Gemini:</strong> Multimodal LLMs leveraging similar approaches</li>
+                            </ul>
+                        </div>
+                        <div class="fragment emphasis-box" style="margin-top: 25px;">
+                            <p>CLIP's image-text alignment approach became foundational for the explosion of generative AI in 2022-2024</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Future Research Directions</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="fragment">
+                            <p><strong>From the paper's perspective (2021):</strong></p>
+                            <ul style="margin-top: 15px; font-size: 0.95em;">
+                                <li><strong>Improve few-shot learning:</strong> Better integrate prior knowledge (human-like sample efficiency)</li>
+                                <li><strong>Combine objectives:</strong> Joint contrastive + generative training</li>
+                                <li><strong>Self-supervision:</strong> Improve data efficiency beyond raw scale</li>
+                                <li><strong>Better evaluation:</strong> New benchmarks designed for zero-shot transfer</li>
+                                <li><strong>Bias mitigation:</strong> Techniques for fairer, more robust models</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <p><strong>What actually happened (2021-2025):</strong></p>
+                            <ul style="margin-top: 10px; font-size: 0.95em;">
+                                <li>Scaling continued: Larger models, more data (CLIP-L, EVA-CLIP, SigLIP 1 and 2, etc.)</li>
+                                <li>Combined with diffusion models for generation (DALL-E 2, Stable Diffusion)</li>
+                                <li>Integration into multimodal LLMs (GPT-4V, Gemini, Claude)</li>
+                                <li>Data curation focus: Better filtered datasets (DataComp, etc.)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section data-sources='[{"text": "CLIP Paper - Conclusion", "url": "https://arxiv.org/abs/2103.00020"}]'>
+                    <h2 class="truncate-title">Key Takeaways</h2>
+                    <div style="font-size: 0.6em;">
+                        <div class="fragment">
+                            <div style="background: #F5F5FF; padding: 20px; border-radius: 8px; margin: 15px 0;">
+                                <h4 style="color: #10099F; margin-top: 0;">1. Natural Language Supervision Works</h4>
+                                <p>Learning from 400M internet image-text pairs enables strong zero-shot transfer</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #F0FFF9; padding: 20px; border-radius: 8px; margin: 15px 0;">
+                                <h4 style="color: #2DD2C0; margin-top: 0;">2. Task Learning During Pre-Training</h4>
+                                <p>CLIP learns to perform wide variety of tasks during pre-training, leveraged via prompts</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #FFF9F0; padding: 20px; border-radius: 8px; margin: 15px 0;">
+                                <h4 style="color: #FFA05F; margin-top: 0;">3. Robustness from Zero-Shot</h4>
+                                <p>Zero-shot models much more robust to distribution shift (up to 75% gap reduction)</p>
+                            </div>
+                        </div>
+                        <div class="fragment">
+                            <div style="background: #FFF5F5; padding: 20px; border-radius: 8px; margin: 15px 0;">
+                                <h4 style="color: #FC8484; margin-top: 0;">4. Still Room for Improvement</h4>
+                                <p>Significant gaps remain: sample efficiency, SOTA performance, true OOD generalization</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Summary</h2>
+                    <div style="font-size: 0.75em;">
+                        <div class="key-finding">
+                            <h4>CLIP: Contrastive Language-Image Pre-training</h4>
+                            <p style="margin-top: 20px;"><strong>Core Innovation:</strong> Learn visual representations from natural language supervision at scale</p>
+                        </div>
+                        <div style="margin-top: 30px;">
+                            <p><strong>Key Results:</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>76.2% zero-shot on ImageNet (matches ResNet-50 supervised!)</li>
+                                <li>SOTA representation learning (linear probe)</li>
+                                <li>Dramatic robustness improvements</li>
+                                <li>Foundation for modern vision-language models</li>
+                            </ul>
+                        </div>
+                        <div class="emphasis-box" style="margin-top: 30px;">
+                            <p><strong>Legacy:</strong> Showed that web-scale natural language supervision is a viable path to general visual understanding</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="truncate-title">Questions?</h2>
+                    <div style="text-align: center; margin-top: 50px;">
+                        <p style="font-size: 1.2em;">Thank you for your attention!</p>
+                        <p style="margin-top: 40px; font-size: 0.8em;">
+                            <strong>Paper:</strong> Radford et al., "Learning Transferable Visual Models From Natural Language Supervision" (2021)<br>
+                            <a href="https://arxiv.org/abs/2103.00020" style="color: #10099F;">https://arxiv.org/abs/2103.00020</a>
+                        </p>
+                    </div>
+                </section>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js Core -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/math/math.js"></script>
+
+    <!-- Shared JavaScript -->
+    <script src="../shared/js/title-handler.js"></script>
+    <script src="../shared/js/source-modal-v2.js"></script>
+    <script src="../shared/js/tooltip-modal.js"></script>
+    <script src="../shared/js/multiple-choice.js"></script>
+
+    <script>
+        Reveal.initialize({
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true,
+            transition: 'slide',
+            slideNumber: 'c/t',
+            showSlideNumber: 'all',
+            math: {
+                mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js',
+                config: 'TeX-AMS_SVG-full'
+            },
+            plugins: [ RevealMath, RevealHighlight, RevealNotes ]
+        });
+
+        // Initialize MCQ system after Reveal.js loads
+        Reveal.on('ready', () => {
+            if (window.initializeMultipleChoice) {
+                window.initializeMultipleChoice();
+            }
+        });
+    </script>
+</body>
+</html>

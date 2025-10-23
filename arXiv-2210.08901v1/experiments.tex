@@ -1,0 +1,260 @@
+\section{Experiments}
+
+\label{sec:experi}
+
+\subsection{Implementation Details}
+\textbf{Experimental Setup.} In all the experiments, we use the same model structure as CLIP~\cite{clip}. A 12-layer Transformer model with 512 width is adopted for text encoder, and ViT-L/14 is adopted for image encoder. For text and image encoder, we use the pre-trained weights in the original CLIP as the initialization. For the multi-modal encoder, we consider a 4 layer Transformer model with 1024 width. The rate for drop path is set as 0.1 during training. As the added multi-modal encoder is trained from random initialization, we decrease the learning rate for the pre-trained weights from CLIP to achieve a more balanced step in the optimization. We train Knowledge-CLIP with an initial learning rate of 1e-5 for image and text encoders, and 1e-3 for the multi-modal encoder. Cosine learning rate with linear warmup is used in the training schedule. Weight decay and gradient clip are also adopted. See more details in the supplemental material. 
+
+\textbf{Pre-train Dataset.} Three knowledge graph datasets are adopted in the pre-training process. VisualSem~\cite{visualsem} is a high-quality multi-modal knowledge graph dataset for vision and language concepts, including entities with multilingual glosses, multiple illustrative images, and visually relevant relations, covering a total number of 90k nodes, 1.3M glosses and 938k images. 13 semantic relations are used to connect different entities in the graph, while the entities in VisualSem are linked to Wikipedia articles, WordNet~\cite{wordnet}, and high-quality images from ImageNet~\cite{imagenet}. Visual Genome~\cite{vgdata} is a knowledge-based scene graph dataset that connects structured image concepts with semantic relations. Visual Genome serves as the benchmark for various vision tasks, \textit{e.g.}, visual grounding, and scene graph generation. ConceptNet~\cite{conceptnet} is a knowledge graph that connects words and phrases of natural language with labeled edges. Its knowledge is collected from many sources including expert-created resources and crowd-sourcing built on only language modality.
+
+Besides the three knowledge graph datasets, we also train our model on two widely adopted image-text datasets that share the similar data distribution with the training data in CLIP. We practically add COCO Caption~\cite{cococap} and CC3M~\cite{cc3m} to the training set, while large-scale datasets like CC12M~\cite{cc12m} or YFCC~\cite{yfcc} are not considered to maintain training efficiency.
+
+\textbf{Downstream Task.} To validate the effectiveness of our framework, we conduct experiments on various downstream tasks, including multi-modal tasks like text and image retrieval, visual question answering, and uni-modal tasks like image classification and natural language understanding. 
+% We also show the performances of our models on several knowledge-based tasks including link prediction and triple classification, where our model can benefit from the graph-based training schedule.
+
+\begin{table}[t]
+    \centering
+    \caption{Fine-tuned image-text retrieval results on Flockr30K and COCO datasets. The best result is shown in \textcolor{blue}{blue} and the better result between CLIP and our approach is shown in \textbf{bold}.}
+    \label{retrieval}
+    \setlength{\tabcolsep}{0.6mm}{
+    \renewcommand\arraystretch{1.0}
+    \begin{tabular}{l|cccccc|cccccc}
+    \toprule
+    \multirow{3}*{Method} & \multicolumn{6}{c|}{Flickr30K (1K test set)} & \multicolumn{6}{c}{MSCOCO(5K test set)}\\
+    & \multicolumn{3}{c}{Text Retrieval} & \multicolumn{3}{c|}{Image Retrieval} & \multicolumn{3}{c}{Text Retrieval} & \multicolumn{3}{c}{Image Retrieval} \\
+    & R@1 & R@5 & R@10 & R@1 & R@5 & R@10 & R@1 & R@5 & R@10 & R@1 & R@5 & R@10 \\
+    \midrule
+    UNITER~\cite{uniter} & 87.3 & 98.0 & 99.2 & 75.6 & 94.1 & \textcolor{blue}{96.8} & 65.7 & 88.6 & 93.8 & 52.9 & 79.9 & 88.0\\
+    VILLA~\cite{villa} & 87.9 & 97.5 & 98.8 & 76.3 & 94.2 & \textcolor{blue}{96.8} & - & - & - & - & - & -\\
+    OSCAR~\cite{oscar} & - & - & - & - & - & - & \textcolor{blue}{73.5} & \textcolor{blue}{92.2} & \textcolor{blue}{96.0} & 57.5 & 82.8 & 89.8 \\
+    ERNIE-ViL~\cite{ernie} & 88.7 & 98.0 & 99.2 & \textcolor{blue}{76.7} & 93.6 & 96.4 & - & - & - & - & - & -\\
+    Unicoder-VL~\cite{unicoder} & 86.2 & 96.3 & 99.0 & 71.5 & 91.2 & 95.2 & 62.3 & 87.1 & 92.8 & 48.4 & 76.7 & 85.9\\
+    ViLT~\cite{vilt} & 83.5 & 96.7 & 98.6 & 64.4 & 88.7 & 93.8 & 61.5 & 86.3 & 92.7 & 42.7 & 72.9 & 83.1\\
+    Uni-Perceiver~\cite{uniperceiver} & 87.9 & 98.2 & 99.1 & 74.9 & 93.5 & 96.0 & 64.7 & 87.8 & 93.7 & 48.3 & 75.9 & 84.5\\
+    \midrule
+    CLIP~\cite{clip} & 88.6 & 98.5 & \textbf{\textcolor{blue}{99.4}} & 72.4 & 92.3 & 96.6 & 67.3 & 85.4 & 92.4 & 54.3 & 83.5 & 90.0\\
+    \textbf{Ours} & \textbf{\textcolor{blue}{89.2}} & \textbf{\textcolor{blue}{98.9}} & \textbf{\textcolor{blue}{99.4}} & \textbf{75.7} & \textbf{\textcolor{blue}{94.4}} & \textbf{\textcolor{blue}{96.8}} & \textbf{70.2} & \textbf{89.2} & \textbf{94.4} & \textbf{\textcolor{blue}{57.6}} & \textbf{\textcolor{blue}{83.9}} & \textbf{\textcolor{blue}{90.4}}\\
+    \bottomrule
+    \end{tabular}}
+\vskip -0.2in
+\end{table}
+
+
+\subsection{Multi-modal Tasks}
+\begin{wraptable}{r}{8.5cm}
+\vskip -0.3in
+    \centering
+    \caption{Fine-tuned results on other V-L tasks.}
+    \vskip 0.1in
+    \label{other}
+    \setlength{\tabcolsep}{2mm}{
+    \renewcommand\arraystretch{0.8}
+    \begin{tabular}{l|cc|cc}
+    \toprule
+    \multirow{2}*{Method}& \multicolumn{2}{c|}{VQA} & \multicolumn{2}{c}{SNLI\_VE}\\
+    & test-dev & test-std & val & test \\
+    \midrule
+    UNITER~\cite{uniter} & 72.70 & 72.91 & 78.59 & 78.28\\
+    VILLA~\cite{villa} & 73.59 & 73.67 & 79.47 & 79.03\\
+    OSCAR~\cite{oscar} & 73.16 & 73.44 & - & - \\
+    ALBEF~\cite{albef} & 74.54 & 74.70 & 80.14 & 80.30\\
+    Uni-Perceiver~\cite{uniperceiver} & 73.4 & 74.1 & - & -\\
+    FLAVA~\cite{flava} & 72.8 & - & 78.89 & -\\
+    \midrule
+    CLIP~\cite{clip} & 74.10 & 73.56 & 79.51 & 80.01\\
+    \textbf{Ours} & \textbf{76.11} & \textbf{75.24} & \textbf{80.52} & \textbf{80.97}\\
+    
+    \bottomrule
+    \end{tabular}}
+\vskip -0.15in
+\end{wraptable}
+
+\textbf{Visual question answering / Visual Entailment.} We also validate the effectiveness of Knowledge-CLIP on other vision-language tasks, including VQA~\cite{vqa} and SNLI-VE~\cite{ve}. We show the comparison results in Tab.~\ref{other}. Compared to competitive baselines including VILLA~\cite{villa} and ALBEF~\cite{albef}, Knowledge-CLIP with ViT-L/14 shows better performances under all settings, while the smaller model also achieves competitive results. Compared to the original CLIP model, our pre-trained model practically improves its transferability on downstream tasks, especially on the datasets like VQA that requires reasoning ability.
+
+\textbf{Image and text retrieval.} We first conduct experiments on Flickr30k~\cite{flickr30k} and COCO Caption~\cite{cococap} dataset to show the performances of our model on image-text retrieval tasks. Given input sets $\mathcal{X}$ and $\mathcal{Y}$ of images and texts, we use Knowledge-CLIP to extract features for each input, and model the joint probability with the cosine similarity between image and text pairs. We summarize the comparison results of Knowledge-CLIP with competitive baselines in Tab.~\ref{retrieval}. It is shown that our model consistently achieves better results over the original CLIP on both datasets, while comparable with competitive baselines like OSCAR.
+
+\subsection{Uni-modal Tasks}
+\begin{wraptable}{r}{4cm}
+\vskip -0.3in
+    \centering
+    \caption{Fine-tuned results on ImageNet.}
+    \label{imagenet}
+    \setlength{\tabcolsep}{4mm}{
+    \renewcommand\arraystretch{0.8}
+    \begin{tabular}{lc}
+    \toprule
+    Method & Acc(\%)\\
+    \midrule
+    DeiT~\cite{deit} & 83.4 \\
+    \midrule
+    CLIP~\cite{clip} & 84.2 \\
+    \textbf{Ours} & \textbf{84.4} \\
+    \bottomrule
+    \end{tabular}}
+\vskip -0.2in
+\end{wraptable}
+
+\textbf{Image Classification.} To further demonstrate the generalization power of Knowledge-CLIP, we compare the performances of pre-train models on the ImageNet classification task~\cite{imagenet}. We summarize the comparison results in Tab.~\ref{imagenet}, and show that Knowledge-CLIP can also handle vision tasks well. We argue the improvements over baselines may attribute to the scene graphs in our pre-training dataset, which emphasize the visual concepts in the images.
+
+\textbf{Language Understanding.} We validate the generalization performance of Knowledge-CLIP for language understanding tasks on the widely adopted GLUE dataset~\cite{glue}. Specifically, we conduct experiments on 7 tasks in GLUE and summarize the comparison results in Tab.~\ref{glue}. It is shown that our model achieves comparable performances with competitive baseline models. Also, for tasks like QQP and MNLI that require sentence-pair matching, Knowledge-CLIP shows higher performances, due to the existence of language triplets in the pre-training dataset.
+
+\begin{table}[t]
+    \centering
+    \caption{Fine-tuned language understanding results on GLUE dataset. The best result is shown in \textcolor{blue}{blue} and the better result between CLIP and our approach is shown in \textbf{bold}.}
+    \vskip -0.05in  
+    \label{glue}
+    \setlength{\tabcolsep}{3.2mm}{
+    \renewcommand\arraystretch{1.0}
+    \begin{tabular}{l|ccccccc}
+    \toprule
+    \multirow{2}*{Method} & CoLA & SST-2 & RTE & MRPC & QQP & MNLI & QNLI \\
+    & Mcc. & Acc. & Acc. & Acc./F1 & Acc./F1 & Acc & Acc \\
+    \midrule
+    VilBERT~\cite{vilbert} & 36.1 & 90.4 & 53.7 & 69.0/79.4 & 88.6/85.0 & 79.9 & 83.8\\
+    VL-BERT~\cite{vlbert} & 38.7 & 89.8 & 55.7 & 70.6/81.8 & 89.0/85.4 & 81.2 & 86.3\\
+    UNITER~\cite{uniter} & 37.4 & 89.7 & 55.6 & 69.3/80.3 & 89.2/85.7 & 80.9 & 86.0 \\
+    SimVLM~\cite{simvlm} & 46.7 & 90.0 & \textcolor{blue}{63.9} & 75.2/84.4 & 90.4/87.2 & 83.4 & 88.6 \\
+    FLAVA~\cite{flava} & \textcolor{blue}{50.7} & 90.9 & 57.8 & 81.4/86.9 & 90.4/87.2 & 80.3 & 87.3 \\
+    % \textbf{Ours (ViT-B)} & 49.7 & \textbf{91.7} & 63.0 & \textbf{83.1/87.0} & \textbf{90.6/87.5} & \textbf{83.5} & \textbf{89.1} \\
+    \midrule
+    CLIP~\cite{clip} & 42.1 & 90.5 & 59.2 & 82.4/87.0 & 90.4/87.1 & 80.9 & 87.1 \\
+    \textbf{Ours} & \textbf{50.4} & \textbf{\textcolor{blue}{91.2}} & \textbf{62.4} & \textbf{\textcolor{blue}{83.5/87.6}} & \textbf{\textcolor{blue}{90.5/87.9}} & \textbf{\textcolor{blue}{83.6}} & \textbf{\textcolor{blue}{89.5}}\\
+    \bottomrule
+    \end{tabular}}
+% \vskip -0.1in
+\end{table}
+
+\subsection{Ablation Studies}
+To validate the effectiveness of the components in our work, we carefully design several settings, including (1) CLIP+continuous learning: we train vanilla CLIP (pretrained weights as initialization) on knowledge datasets adopted in our work; (2) Knowledge-CLIP-(t1, t2, t3): we remove the training objectives respectively in our work to analyze the contribution of each loss.
+For all experiments, we adopt a smaller model (ViT-B/32) as the image encoder of CLIP in the ablation study. Also, it is worth noticing that KD loss plays a vital role in the continuous learning scheme, without which will lead to a significant performance drop due to the model forgetting problem. Therefore, we use KD loss in all the ablation settings for a fair comparison.
+
+\begin{table}[t]
+    \begin{center}
+    \caption{Ablation studies of continuous learning / training objectives. We report results on Flickr30K retrieval task and VQA task with ViT-B/32 as image encoder.}
+    \vskip -0.1in
+    \label{ablation1}
+    \setlength{\tabcolsep}{0.8mm}{
+    \renewcommand\arraystretch{1.0}
+    \begin{tabular}{l|cccc|cccc}
+    \toprule
+    \multirow{2}{*}{Model} & \multirow{2}{*}{KG data} & \multirow{2}{*}{E2E} & \multirow{2}{*}{E2R} & \multirow{2}{*}{G2E} & \multicolumn{2}{c}{Flickr30K retrieval}& \multicolumn{2}{c}{VQA}\\
+    &&&&& Text (R@1) & Image (R@1)& test-dev & test-std\\
+    \midrule
+    CLIP & - & - & - & - & 84.2 & 63.1 & 68.9 & 69.2 \\
+    CLIP+Continuous Learning & \checkmark & - & - & - & 84.5 & 63.0 & 69.1 & 69.5\\
+    \midrule
+    Knowledge-CLIP-t1 & \checkmark & - & \checkmark & \checkmark & 85.0 & 64.6 & 70.4 & 71.1\\
+    Knowledge-CLIP-t2 & \checkmark & \checkmark & - & \checkmark & 85.7 & 66.0 & 71.2 & 69.9\\
+    Knowledge-CLIP-t3 & \checkmark & \checkmark & \checkmark & - & 84.9 & 65.8 & 70.2 & 70.4\\
+    Knowledge-CLIP (Full) & \checkmark & \checkmark & \checkmark & \checkmark & \textbf{86.3} & \textbf{67.2} & \textbf{72.5} & \textbf{72.7}\\
+    \bottomrule
+    \end{tabular}}
+    \end{center}
+\vskip -0.1in
+\end{table}
+
+We show the comparison results on two representative tasks in Tab.~\ref{ablation1}, including the image/text retrieval task on Flickr30K, and the visual question answering task in VQA. Several observations can be made from the ablation: (1) All three training objectives (E2E, E2R, G2E) contribute to improving the model performance. Training the model without any of the objectives leads to inferior performances on downstream tasks. We argue that the E2E, E2R, and G2E loss promote the model from different perspectives by focusing on semantic understanding of concepts, complicated relations between entities, and structural information. Therefore, all three objectives are necessary for the framework and contribute to the improvement respectively. (2) By comparing the first and second row, we can see that simply training the CLIP model with extra time and data fails to improve the generalization performance. It also demonstrates that the improvements mainly come from the injected knowledge information rather than the continuous learning scheme.
+
+\begin{wraptable}{r}{6.3cm}
+\vskip -0.03in
+    \centering
+    \caption{Ablation studies of the KD loss.}
+    \vskip 0.08in
+    \label{ablation2}
+    \setlength{\tabcolsep}{1.5mm}{
+    \renewcommand\arraystretch{1.0}
+    \begin{tabular}{l|cc}
+    \toprule
+    \multirow{2}{*}{Model} & \multicolumn{2}{c}{Flickr30K retrieval}\\
+    & Text (R@1) & Image (R@1)\\
+    \midrule
+    Ours w/o KD & 82.4 & 62.5\\
+    \textbf{Ours w/ KD} & \textbf{86.3} & \textbf{67.2}\\
+    \bottomrule
+    \end{tabular}}
+\vskip -0.1in
+\end{wraptable}
+
+We also conduct an ablation study on the KD loss adopted for continuous learning and summarize the results in Tab.~\ref{ablation2}. The model achieves lower results after removing the KD loss, indicating its vital role in the continuous learning scheme. We argue the reason for this phenomenon is that the model suffers from the forgetting problem, which is widely spotted in the field of lifelong learning and continuous learning. 
+
+\subsection{Analysis on particular semantics}
+We also conduct experiments on carefully selected data which may better reflect how a vision-language model understands a particular type of input. Specifically, we select questions in the VQA dataset that contains (1) Negations; (2) Color attributes; (3) Position attributes; (4) Sizes. We summarize the comparison results of CLIP and our model on these sub-datasets in Tab.~\ref{ablation3}.
+
+\begin{wraptable}{r}{6.5cm}
+\vskip -0.2in
+    \centering
+    \caption{Ablation studies on semantic inputs.}
+    \label{ablation3}
+    \setlength{\tabcolsep}{3mm}{
+    \renewcommand\arraystretch{1}
+    \begin{tabular}{l|cc}
+    \toprule
+    Dataset & CLIP & Knowledge-CLIP\\
+    \midrule
+    Negation & 64.7 & \textbf{66.8}{\scriptsize(+2.1)}\\
+    Color & 54.2 & \textbf{59.9}{\scriptsize(+5.7)}\\
+    Position & 61.2 & \textbf{68.3}{\scriptsize(+7.1)}\\
+    Size & 72.1 & \textbf{63.4}{\scriptsize(+1.3)}\\
+    \bottomrule
+    \end{tabular}}
+\vskip -0.2in
+\end{wraptable}
+
+As we can observe, our model achieves consistent improvements over CLIP on these specially designed datasets and shows significantly better results. Regarding questions with negation, our model achieves 2.1\% higher accuracy. Regarding color and position attributes, our model shows even higher improvements. We believe these comparisons on different 'semantic domains' demonstrate the effectiveness of injecting knowledge information into the current vision-language pretraining framework which practically enhances the model perception of semantic understanding. 
+
+% \begin{table}[t]
+%     \centering
+%     \caption{Fine-tuned link prediction results on WN18RR and FB15K-237.}
+%     \vskip -0.05in
+%     \label{link}
+%     \setlength{\tabcolsep}{1.9mm}{
+%     \renewcommand\arraystretch{0.7}
+%     \begin{tabular}{l|ccccc|ccccc}
+%     \toprule
+%     \multirow{3}*{Method}& \multicolumn{5}{c|}{WN18RR} & \multicolumn{5}{c}{FB15k-237}\\
+%     \cline{2-11}
+%     & \multirow{2}*{MR} & \multirow{2}*{MMR} & \multicolumn{3}{c|}{Hits} & \multirow{2}*{MR} & \multirow{2}*{MMR} & \multicolumn{3}{c}{Hits} \\
+%     \cline{4-6}
+%     \cline{9-11}
+%     & & & @1 & @3 & @10 & & & @1 & @3 & @10 \\
+%     \midrule
+%     TransE~\cite{transe} & 3384 & 0.182 & 0.027 & 0.295 & 0.444 & 357 & 0.257 & 0.174 & 0.284 & 0.420\\
+%     ConvE~\cite{wn18rr} & 4187 & 0.430 & 0.400 & 0.440 & 0.520 & 244 & 0.325 & 0.237 & 0.356 & 0.501 \\
+%     RotatE~\cite{rotate} & 3340 & \textbf{0.476} & 0.428 & \textbf{0.492} & 0.571 & 177 & 0.338 & 0.241 & 0.375 & 0.533 \\
+%     InteractE~\cite{interacte} & 5202 & 0.463 & - & 0.430 & 0.528 & \textbf{172} & 0.354 & 0.263 & - & \textbf{0.535} \\
+%     \midrule
+%     \textbf{Ours} & \textbf{2689} & 0.467 & \textbf{0.430} & 0.477 & \textbf{0.572} & 182 & \textbf{0.356} & \textbf{0.281} & \textbf{0.391} & 0.530\\
+%     \toprule
+%     \end{tabular}}
+% \vskip -0.2in
+% \end{table}
+
+% \subsection{Knowledge-based Tasks}
+% Benefiting from the graph-based learning framework in the pre-training process, our models enjoy advantages on several knowledge-based downstream tasks. Therefore, we conduct experiments on link prediction, entity classification and triple classification tasks.
+
+% Link prediction task aim to recover an incomplete triplet when one of the entities is masked, \textit{i.e.}, predicting entity $h$ given $(\text{-},r,t)$. This task shares certain similarities with our pre-training objectives. We validate the performances of our model on the WN18RR~\cite{wn18rr} and FB15K-237~\cite{fb15k} datasets, where MR (MeanRank), MRR(Mean Reciprocal Rank), and Hit@n are adopted as the evaluation metrics. As shown in Tab.~\ref{link}, Knowledge-CLIP is able to perform competitive performances comparing to several baseline models, and achieves better results on 3 of 5 metrics.
+
+% \begin{wraptable}{r}{7cm}
+% \vskip -0.3in
+%     \centering
+%     \caption{Fine-tuned results on YAGO39K.}
+%     \vskip 0.05in
+%     \label{triple}
+%     \setlength{\tabcolsep}{0.5mm}{
+%     \renewcommand\arraystretch{0.8}
+%     \begin{tabular}{l|cccc}
+%     \toprule
+%     \multicolumn{5}{c}{Triple Classification(\%)}\\
+%     Method & Accuracy & Precision & Recall & F1-Score \\
+%     \midrule
+%     TransE~\cite{transe} & 92.1 & \textbf{92.8} & 91.2 & 92.0 \\
+%     TransD~\cite{transd} & 89.3 & 88.1 & 91.0 & 89.5 \\
+%     HolE~\cite{hole} & 92.3 & 92.6 & \textbf{91.9} & 92.3 \\
+%     \midrule
+%     \textbf{Ours} & \textbf{92.7} & 92.6 & \textbf{91.9} & \textbf{92.5}\\
+%     \bottomrule
+%     \end{tabular}}
+% \vskip -0.2in
+% \end{wraptable}
+
+% Triple classification requires the model to distinguish matched triples from unmatched ones, which can serve as a binary classification task. We validate our model on YAGO39K~\cite{yago39k} dataset, with Accuracy, Precision, Recall, and F1-Score as the evaluation metric. It is shown in Tab.~\ref{triple} that our model shows promising results over competitive baselines.
